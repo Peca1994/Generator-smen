@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalendář směn</title>
+
+<style>
+body{margin:0;font-family:system-ui;background:#0f172a;color:white;}
+
+.topbar{
+ height:56px;display:flex;align-items:center;justify-content:space-between;
+ padding:0 16px;background:#020617;border-bottom:1px solid #1f2937;
+}
+
+.menuBtn{
+ padding:8px 14px;border-radius:10px;border:none;font-weight:800;
+ background:#334155;color:white;cursor:pointer;
+}
+
+.container{max-width:480px;margin:auto;padding:16px;}
+
+.card{
+ background:#111827;border-radius:16px;padding:16px;margin-bottom:14px;
+}
+
+.monthBar{
+ display:flex;justify-content:space-between;align-items:center;
+ margin-bottom:12px;font-weight:900;font-size:18px;
+}
+
+.monthBtn{
+ background:#1f2937;border:none;color:white;
+ padding:8px 12px;border-radius:10px;font-weight:900;
+}
+
+.grid{
+ display:grid;
+ grid-template-columns:repeat(7,1fr);
+ gap:8px;
+}
+
+.dayName{
+ text-align:center;
+ font-size:12px;
+ opacity:.7;
+ font-weight:800;
+}
+
+.day{
+ background:#020617;
+ border-radius:12px;
+ height:72px;
+ padding:6px;
+ display:flex;
+ flex-direction:column;
+ justify-content:space-between;
+ font-weight:800;
+}
+
+.today{ outline:2px solid #38bdf8; }
+
+.holiday{
+ outline:2px solid #ef4444;
+ background:#1a0b0b;
+}
+
+.shift{
+ align-self:flex-start;
+ padding:3px 9px;
+ border-radius:999px;
+ font-size:12px;
+ font-weight:900;
+ color:white;
+}
+
+.hBadge{
+ background:#ef4444;
+ color:white;
+ font-size:10px;
+ padding:2px 6px;
+ border-radius:999px;
+ font-weight:900;
+}
+
+.R{ background:#16a34a; }
+.N{ background:#7c3aed; }
+.O{ background:#f59e0b; color:black; }
+
+.empty{ background:transparent; }
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+ <div><b>📅 Kalendář</b></div>
+ <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
+</div>
+
+<div class="container">
+<div class="card">
+
+<div class="monthBar">
+ <button class="monthBtn" onclick="changeMonth(-1)">◀</button>
+ <div id="title"></div>
+ <button class="monthBtn" onclick="changeMonth(1)">▶</button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+</div>
+</div>
+
+<script>
+
+/* ===== názvy ===== */
+
+const dayNames=["Po","Út","St","Čt","Pá","So","Ne"];
+const monthNames=["Leden","Únor","Březen","Duben","Květen","Červen",
+"Červenec","Srpen","Září","Říjen","Listopad","Prosinec"];
+
+/* ===== pevné svátky CZ ===== */
+
+const fixedHolidays = [
+ "01-01",
+ "05-01","05-08",
+ "07-05","07-06",
+ "09-28",
+ "10-28",
+ "11-17",
+ "12-24","12-25","12-26"
+];
+
+/* ===== výpočet Velikonoc ===== */
+
+function easterSunday(year){
+ const a = year % 19;
+ const b = Math.floor(year/100);
+ const c = year % 100;
+ const d = Math.floor(b/4);
+ const e = b % 4;
+ const f = Math.floor((b+8)/25);
+ const g = Math.floor((b-f+1)/3);
+ const h = (19*a+b-d-g+15)%30;
+ const i = Math.floor(c/4);
+ const k = c % 4;
+ const l = (32+2*e+2*i-h-k)%7;
+ const m = Math.floor((a+11*h+22*l)/451);
+ const month = Math.floor((h+l-7*m+114)/31);
+ const day = ((h+l-7*m+114)%31)+1;
+ return new Date(year, month-1, day);
+}
+
+function getEasterHolidays(year){
+ const easter = easterSunday(year);
+
+ const goodFriday = new Date(easter);
+ goodFriday.setDate(easter.getDate()-2);
+
+ const easterMonday = new Date(easter);
+ easterMonday.setDate(easter.getDate()+1);
+
+ return [goodFriday, easterMonday];
+}
+
+function isHoliday(date){
+
+ const key =
+  String(date.getMonth()+1).padStart(2,"0")+"-"+
+  String(date.getDate()).padStart(2,"0");
+
+ if(fixedHolidays.includes(key)) return true;
+
+ const easterDays = getEasterHolidays(date.getFullYear());
+
+ return easterDays.some(d =>
+  d.getFullYear()===date.getFullYear() &&
+  d.getMonth()===date.getMonth() &&
+  d.getDate()===date.getDate()
+ );
+}
+
+/* ===== SMĚNOVÝ CYKLUS ===== */
+
+const cycleStartMonday = new Date(Date.UTC(2026,1,2));
+const weekCycle = ["R","N","O"];
+
+function getMondayUTC(d){
+ const day=(d.getUTCDay()+6)%7;
+ return new Date(Date.UTC(
+  d.getUTCFullYear(),
+  d.getUTCMonth(),
+  d.getUTCDate()-day
+ ));
+}
+
+function weekType(i){
+ return weekCycle[(i%3+3)%3];
+}
+
+function getShiftForDate(date){
+
+ const day=(date.getDay()+6)%7;
+ if(day>4) return null;
+
+ const dUTC=new Date(Date.UTC(
+  date.getFullYear(),
+  date.getMonth(),
+  date.getDate()
+ ));
+
+ const monday=getMondayUTC(dUTC);
+ const diffDays=Math.round((monday-cycleStartMonday)/86400000);
+ const w=Math.floor(diffDays/7);
+
+ return weekType(w);
+}
+
+/* ===== RENDER ===== */
+
+let current=new Date();
+
+function render(){
+ const grid=document.getElementById("grid");
+ grid.innerHTML="";
+
+ const y=current.getFullYear();
+ const m=current.getMonth();
+ document.getElementById("title").innerText=monthNames[m]+" "+y;
+
+ dayNames.forEach(n=>{
+  const e=document.createElement("div");
+  e.className="dayName";
+  e.innerText=n;
+  grid.appendChild(e);
+ });
+
+ const first=new Date(y,m,1);
+ const start=(first.getDay()+6)%7;
+
+ for(let i=0;i<start;i++){
+  const e=document.createElement("div");
+  e.className="day empty";
+  grid.appendChild(e);
+ }
+
+ const days=new Date(y,m+1,0).getDate();
+ const today=new Date();
+
+ for(let d=1; d<=days; d++){
+  const cell=document.createElement("div");
+  cell.className="day";
+
+  const dt=new Date(y,m,d);
+
+  if(dt.toDateString()===today.toDateString())
+    cell.classList.add("today");
+
+  if(isHoliday(dt))
+    cell.classList.add("holiday");
+
+  const num=document.createElement("div");
+  num.innerText=d;
+
+  const s=getShiftForDate(dt);
+  if(s){
+    const b=document.createElement("div");
+    b.className="shift "+s;
+    b.innerText=s;
+    cell.appendChild(b);
+  }
+
+  if(isHoliday(dt)){
+    const h=document.createElement("div");
+    h.className="hBadge";
+    h.innerText="SV";
+    cell.appendChild(h);
+  }
+
+  cell.appendChild(num);
+  grid.appendChild(cell);
+ }
+}
+
+function changeMonth(x){
+ current.setMonth(current.getMonth()+x);
+ render();
+}
+
+render();
+
+</script>
+
+</body>
+</html>

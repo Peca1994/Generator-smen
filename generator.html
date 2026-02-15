@@ -1,0 +1,756 @@
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generátor směny</title>
+
+<style>
+body{margin:0;font-family:system-ui;background:#0f172a;color:white;}
+
+.topbar{
+ height:56px;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:0 16px;
+ background:#020617;
+ border-bottom:1px solid #1f2937;
+}
+
+.menuBtn{
+ padding:8px 14px;
+ border-radius:10px;
+ border:none;
+ font-weight:800;
+ background:#334155;
+ color:white;
+ cursor:pointer;
+}
+
+.container{padding:16px;max-width:1200px;margin:auto;}
+.card{background:#111827;padding:16px;border-radius:14px;margin-bottom:14px;}
+
+input,select{
+ width:100%;padding:12px;border-radius:10px;border:none;margin-top:6px;
+}
+
+button{
+ padding:12px;border-radius:10px;border:none;margin-top:10px;
+ font-weight:800;
+}
+
+.genBtn{background:#f59e0b;width:100%;}
+.saveBtn{background:#22c55e;width:100%;}
+
+/* LOCK PANEL */
+
+details{
+ background:#020617;
+ border-radius:10px;
+ padding:10px;
+ margin-top:10px;
+}
+
+details summary{
+ cursor:pointer;
+ font-weight:800;
+ margin-bottom:8px;
+}
+.loadBtn{
+  background:#2563eb;
+  width:100%;
+  color:white;
+}
+
+.loadBtn:hover{
+  filter:brightness(1.15);
+}
+
+.loadBtn:active{
+  transform:scale(.97);
+}
+
+.lockList{
+ max-height:160px;
+ overflow:auto;
+ font-size:13px;
+}
+
+.lockList{
+ max-height:180px;
+ overflow:auto;
+ font-size:14px;
+ margin-top:8px;
+}
+
+.lockRow{
+ display:flex;
+ align-items:center;
+ gap:10px;
+ padding:6px 8px;
+ border-radius:8px;
+ cursor:pointer;
+}
+
+.lockRow:hover{
+ background:#1f2937;
+}
+
+.lockRow input{
+ width:18px;
+ height:18px;
+ cursor:pointer;
+}
+
+.lockCode{
+ font-weight:800;
+ width:72px;
+}
+
+.lockName{
+ opacity:.8;
+ font-size:13px;
+}
+
+.lockedRow{
+ background:rgba(220,38,38,0.18); /* červená průhledná */
+}
+
+.lockedRow td{
+ background:rgba(220,38,38,0.18);
+}
+
+.lockedRow:hover td{
+ background:rgba(220,38,38,0.28);
+}
+
+/* TABLE */
+
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th,td{padding:8px;border-bottom:1px solid #1f2937;text-align:center;}
+th{background:#020617;}
+.posCol{font-weight:800;text-align:left;background:#020617;}
+td.slot{cursor:pointer;}
+td.slot:hover{background:#1f2937;}
+
+/* RESERVES */
+
+.resBox{
+ background:#020617;
+ padding:10px;
+ border-radius:10px;
+ margin-top:8px;
+ font-size:13px;
+ line-height:1.4;
+}
+
+/* MODAL */
+
+.modal{
+ position:fixed;inset:0;background:rgba(0,0,0,.7);
+ display:none;align-items:center;justify-content:center;
+}
+
+.modalBox{
+ background:#020617;padding:18px;border-radius:16px;
+ width:90%;max-width:420px;
+}
+
+.pickBtn{
+ width:100%;
+ margin-top:8px;
+ background:#2563eb;
+ color:white;
+}
+
+.removeBtn{background:#ef4444;}
+
+/* LOADING */
+
+.loading{
+ position:fixed;inset:0;background:rgba(0,0,0,.75);
+ display:none;align-items:center;justify-content:center;
+ font-size:22px;font-weight:900;z-index:999;
+}
+
+/* worker dnes mimo práci */
+
+.outWorker{
+ background:rgba(220,38,38,.35);
+ color:#fecaca;
+ font-weight:900;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="loading" id="loading">🔍 Pracuju…</div>
+
+<div class="topbar">
+<div><b>⚙️ Generátor směny</b></div>
+<button class="menuBtn" onclick="location.href='index.html'">Menu</button>
+</div>
+
+<div class="container">
+
+  <button id="infoBtn" class="menuBtn" style="width:100%;margin-bottom:10px;">
+ℹ️ Informace o směně
+</button>
+
+<div class="card">
+<label>Datum</label>
+<input type="date" id="date">
+
+<label>Směna</label>
+<select id="shift">
+<option value="ranni">Ranní</option>
+<option value="odpo">Odpolední</option>
+<option value="noc">Noční</option>
+</select>
+
+<details>
+<summary>🔒 Vyřadit pozice z generování</summary>
+<div class="lockList" id="lockBox"></div>
+</details>
+
+<button class="genBtn" id="genBtn">⚙️ Generovat</button>
+<button class="loadBtn" id="loadBtn">📂 Načíst uloženou směnu</button>
+</div>
+
+<div class="card">
+<table id="grid"></table>
+</div>
+
+<div class="card">
+<h4>Náhradníci podle fází</h4>
+<div id="reservesBox"></div>
+</div>
+
+<button class="saveBtn" id="saveBtn">💾 Uložit</button>
+
+</div>
+
+<div class="modal" id="pickModal">
+<div class="modalBox">
+<div id="pickTitle"></div>
+<div id="pickList"></div>
+<button onclick="closePick()">Zavřít</button>
+</div>
+</div>
+
+<div class="modal" id="infoModal">
+<div class="modalBox">
+
+<h3>ℹ️ Informace o směně</h3>
+
+<b>Scala / Kamiq</b>
+<input id="skStart" placeholder="Začátek">
+<input id="skEnd" placeholder="Konec">
+
+<b>Fabie</b>
+<input id="faStart" placeholder="Začátek">
+<input id="faEnd" placeholder="Konec">
+
+<b>Zásobník</b>
+<input id="zaStart" placeholder="Začátek">
+<input id="zaEnd" placeholder="Konec">
+
+<button id="infoSave" class="saveBtn">Uložit</button>
+<button onclick="closeInfo()">Zavřít</button>
+
+</div>
+</div>
+
+<script type="module">
+
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+  authDomain: "generator-smen-9fba1.firebaseapp.com",
+  projectId: "generator-smen-9fba1",
+  storageBucket: "generator-smen-9fba1.firebasestorage.app",
+  messagingSenderId: "541779211883",
+  appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
+  measurementId: "G-1HF3R93D92"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+/* DOM */
+
+const loadingEl = document.getElementById("loading");
+const dateEl = document.getElementById("date");
+const shiftEl = document.getElementById("shift");
+const gridEl = document.getElementById("grid");
+const reservesBoxEl = document.getElementById("reservesBox");
+
+const genBtn = document.getElementById("genBtn");
+const loadBtn = document.getElementById("loadBtn");
+const saveBtn = document.getElementById("saveBtn");
+const lockBox = document.getElementById("lockBox");
+
+const pickModal = document.getElementById("pickModal");
+const pickTitle = document.getElementById("pickTitle");
+const pickList = document.getElementById("pickList");
+
+const infoBtn = document.getElementById("infoBtn");
+const infoModal = document.getElementById("infoModal");
+
+const skStart = document.getElementById("skStart");
+const skEnd   = document.getElementById("skEnd");
+const faStart = document.getElementById("faStart");
+const faEnd   = document.getElementById("faEnd");
+const zaStart = document.getElementById("zaStart");
+const zaEnd   = document.getElementById("zaEnd");
+
+dateEl.value = new Date().toISOString().slice(0,10);
+
+/* POSITIONS */
+
+const POSITIONS = [
+"DP-L","DP-P","ZRC-L","ZRC-P","T-L","T-P",
+"AGR-LP","AGR-PP","AGR-PZ","AGR-LZ",
+"MOT-L","MOT-P","LEP-LP","LEP-PP","LEP-Z",
+"REPRO-L","REPRO-P","VYP1-L","VYP1-P",
+"VYP2-L","VYP2-P","PR-L","PR-P","ZAM-L","ZAM-P","VET","VET2","INST",
+"INST2","JINE","JINE2",
+
+];
+
+/* DEFAULT ZAMČENÉ POZICE */
+
+const DEFAULT_LOCKED = new Set([
+ "ZAM-L","ZAM-P",
+ "VET","VET2",
+ "INST","INST2",
+ "JINE","JINE2"
+]);
+
+POSITIONS.forEach(p=>{
+
+ const checked = DEFAULT_LOCKED.has(p) ? "checked" : "";
+
+ lockBox.innerHTML += `
+ <label class="lockRow">
+  <input type="checkbox" value="${p}" ${checked}>
+  <span>${p}</span>
+ </label>`;
+});
+
+
+function lockedPositions(){
+ return [...lockBox.querySelectorAll("input:checked")].map(x=>x.value);
+}
+
+function activePositions(){
+ const locked = lockedPositions();
+ return POSITIONS.filter(p=>!locked.includes(p));
+}
+
+/* STATE */
+
+let workers=[];
+let phases=[];
+let phaseReserves=[];
+let allWorkersMap={};   // ← NOVÉ
+let shiftInfo = {
+ sk:{start:"",end:""},
+ fa:{start:"",end:""},
+ za:{start:"",end:""}
+};
+
+
+
+/* WORKERS */
+
+async function loadWorkers(){
+ const snap = await getDocs(collection(db,"employees"));
+ workers=[];
+
+ snap.forEach(d=>{
+  const e=d.data();
+  const st = e.statusToday;
+
+  // ❌ tihle se NIKDY negenerují
+  if(
+    st === "sick" ||
+    st === "vacation" ||
+    st === "paragraf" ||
+    st === "shitmaking" ||
+    st === "loaned" ||
+    st === "borrowed"
+  ){
+    return;
+  }
+
+  // ✅ jen skuteční pracovníci
+  if(st === "work"){
+    workers.push({
+      id:d.id,
+      name:e.name,
+      skills:e.skills || []
+    });
+  }
+
+ });
+}
+
+async function loadAllWorkers(){
+
+ const snap = await getDocs(collection(db,"employees"));
+ allWorkersMap={};
+
+ snap.forEach(d=>{
+  const e=d.data();
+  allWorkersMap[d.id]={
+    id:d.id,
+    name:e.name,
+    skills:e.skills||[],
+    status:e.statusToday||"work"
+  };
+ });
+
+}
+
+/* BUILD */
+
+if (typeof historyStats === 'undefined') { var historyStats = {}; }
+if (typeof lastPosByWorker === 'undefined') { var lastPosByWorker = {}; }
+
+function buildPhase(act) {
+  if (!act || !workers || workers.length < act.length) return null;
+
+  const map = {};
+  act.forEach(pos => {
+    map[pos] = workers.filter(w => w.skills && w.skills.includes(pos));
+  });
+  const orderedPos = [...act].sort((a, b) => map[a].length - map[b].length);
+
+  let bestResult = null;
+  let minScore = Infinity;
+
+  for (let i = 0; i < 20; i++) {
+    const attempt = runSmartAttempt(orderedPos, map);
+    
+    if (attempt) {
+      let currentScore = 0;
+      for (const pos in attempt) {
+        const wId = attempt[pos].id;
+        currentScore += (historyStats[wId + "_" + pos] || 0);
+      }
+
+      if (currentScore < minScore) {
+        minScore = currentScore;
+        bestResult = attempt;
+      }
+      if (minScore === 0) break;
+    }
+  }
+
+  if (bestResult) {
+    for (const p in bestResult) {
+      const wId = bestResult[p].id;
+      historyStats[wId + "_" + p] = (historyStats[wId + "_" + p] || 0) + 1;
+      lastPosByWorker[wId] = p; 
+    }
+    const usedIds = new Set(Object.values(bestResult).map(w=>w.id));
+const reserves = workers.filter(w=>!usedIds.has(w.id));
+
+return { assign: bestResult, reserves };
+
+  }
+
+  return null;
+}
+
+function runSmartAttempt(orderedPos, map) {
+  let assign = {};
+  let used = new Set();
+  let steps = 0;
+
+  function solve(index) {
+    steps++;
+    if (steps > 1500) return false; 
+    if (index === orderedPos.length) return true;
+
+    const pos = orderedPos[index];
+    let candidates = map[pos].filter(w => !used.has(w.id));
+
+    candidates.sort(() => Math.random() - 0.5); 
+    
+    candidates.sort((a, b) => {
+      if (a.skills.length !== b.skills.length) {
+        if (a.skills.length === 1) return -1;
+        if (b.skills.length === 1) return 1;
+      }
+
+      const aRepeats = (lastPosByWorker[a.id] === pos && a.skills.length > 1) ? 1 : 0;
+      const bRepeats = (lastPosByWorker[b.id] === pos && b.skills.length > 1) ? 1 : 0;
+      if (aRepeats !== bRepeats) return aRepeats - bRepeats;
+
+      return 0;
+    });
+
+    for (const worker of candidates) {
+      assign[pos] = worker;
+      used.add(worker.id);
+      if (solve(index + 1)) return true;
+      used.delete(worker.id);
+      delete assign[pos];
+    }
+    return false;
+  }
+  return solve(0) ? assign : null;
+    } 
+
+
+/* GENERATE */
+
+genBtn.onclick = async ()=>{
+
+ loadingEl.style.display="flex";
+
+ await loadWorkers();
+
+ const act = activePositions();   // ← TOHLE CHYBÍ
+
+ phases = [];
+ phaseReserves = [];
+ lastPosByWorker = {};
+
+ for(let i=0;i<4;i++){
+
+   const res = buildPhase(act);
+
+   if(!res){
+     alert("❌ Nelze obsadit všechny pozice — málo lidí / skillů");
+     loadingEl.style.display="none";
+     return;
+   }
+
+   phases.push(res.assign);
+   phaseReserves.push(res.reserves);
+ }
+
+ render();
+
+ loadingEl.style.display="none";
+};
+
+
+/* LOAD */
+
+loadBtn.onclick = async ()=>{
+
+ loadingEl.style.display="flex";
+
+ await loadWorkers();      // pro generátor
+ await loadAllWorkers();   // pro load směny
+
+ const id=dateEl.value+"_"+shiftEl.value;
+ const snap=await getDoc(doc(db,"shifts",id));
+
+ if(!snap.exists()){
+  alert("Směna neexistuje");
+  loadingEl.style.display="none";
+  return;
+ }
+
+ const data=snap.data();
+// ✅ načti info o směně (popup data)
+shiftInfo = data.info || {
+ sk:{start:"",end:""},
+ fa:{start:"",end:""},
+ za:{start:"",end:""}
+};
+ // 🔷 mapujeme z ALL workers — ne jen work
+ phases = data.phases.map(ph=>{
+  const o={};
+  Object.entries(ph).forEach(([pos,wid])=>{
+   o[pos] = allWorkersMap[wid] || {
+     id:wid,
+     name:"NEZNÁMÝ",
+     skills:[],
+     status:"missing"
+   };
+  });
+  return o;
+ });
+
+ // reserves jen z aktuálních WORK workers
+ phaseReserves = phases.map(ph=>{
+  const used=new Set(Object.values(ph).filter(Boolean).map(w=>w.id));
+  return workers.filter(w=>!used.has(w.id));
+ });
+
+ render();
+ loadingEl.style.display="none";
+};
+
+
+/* RENDER */
+
+function phaseLabels(){
+ const s=shiftEl.value;
+ if(s==="ranni") return ["6:00-8:00","8:00-10:15","10:45-12:00","12:00-14:00"];
+ if(s==="odpo") return ["14:00-16:00","16:00-18:15","18:45-20:00","20:00-22:00"];
+ return ["22:00-00:00","00:00-02:15","02:45-04:00","04:00-06:00"];
+}
+
+function render(){
+
+ const L=phaseLabels();
+ const locked = new Set(lockedPositions());
+
+ let html="<tr><th>Pozice</th>";
+ L.forEach(x=>html+=`<th>${x}</th>`);
+ html+="</tr>";
+
+ POSITIONS.forEach(pos=>{
+  const isLocked = locked.has(pos);
+  html+=`<tr class="${isLocked?'lockedRow':''}">
+  <td class="posCol">
+   ${pos} ${isLocked?'🔒':''}
+   <button onclick="toggleLock('${pos}')">🔓</button>
+  </td>`;
+
+  for(let p=0;p<4;p++){
+   const w=phases[p]?.[pos];
+   const cls = (w && w.status && w.status!=="work") ? "outWorker" : "";
+html+=`<td class="slot ${cls}" onclick="pick(${p},'${pos}')">${w?w.name:"—"}</td>`;
+
+  }
+
+  html+="</tr>";
+ });
+
+ gridEl.innerHTML=html;
+
+ reservesBoxEl.innerHTML =
+ phaseReserves.map((arr,i)=>
+ `<div class="resBox"><b>Fáze ${i+1}</b><br>${
+ arr.map(w=>w.name+" — "+w.skills.join(", ")).join("<br>")||"Nikdo"
+ }</div>`).join("");
+}
+
+/* LOCK TOGGLE */
+
+window.toggleLock=(pos)=>{
+ const cb=[...lockBox.querySelectorAll("input")].find(x=>x.value===pos);
+ if(cb) cb.checked=!cb.checked;
+ render();
+};
+
+/* PICK */
+
+let pickPhaseIndex,pickPosition;
+
+window.pick=(phase,pos)=>{
+ pickPhaseIndex=phase;
+ pickPosition=pos;
+ const list=phaseReserves[phase].filter(w=>w.skills.includes(pos));
+ pickTitle.innerText="Pozice "+pos;
+ pickList.innerHTML=
+ list.map(w=>`<button class="pickBtn" onclick="swapWorker('${w.id}')">${w.name}</button>`).join("")
+ + `<button class="pickBtn removeBtn" onclick="removeWorker()">Vyprázdnit</button>`;
+ pickModal.style.display="flex";
+};
+
+window.swapWorker=(wid)=>{
+ const w=workers.find(x=>x.id===wid);
+ const cur=phases[pickPhaseIndex][pickPosition];
+ if(cur) phaseReserves[pickPhaseIndex].push(cur);
+ phases[pickPhaseIndex][pickPosition]=w;
+ phaseReserves[pickPhaseIndex]=phaseReserves[pickPhaseIndex].filter(x=>x.id!==wid);
+ closePick(); render();
+};
+
+window.removeWorker=()=>{
+ const cur=phases[pickPhaseIndex][pickPosition];
+ if(cur) phaseReserves[pickPhaseIndex].push(cur);
+ phases[pickPhaseIndex][pickPosition]=null;
+ closePick(); render();
+};
+
+window.closePick=()=> pickModal.style.display="none";
+
+infoBtn.onclick = ()=>{
+ skStart.value = shiftInfo.sk.start;
+ skEnd.value   = shiftInfo.sk.end;
+ faStart.value = shiftInfo.fa.start;
+ faEnd.value   = shiftInfo.fa.end;
+ zaStart.value = shiftInfo.za.start;
+ zaEnd.value   = shiftInfo.za.end;
+
+ infoModal.style.display="flex";
+};
+
+window.closeInfo = ()=>{
+ infoModal.style.display="none";
+};
+
+document.getElementById("infoSave").onclick = ()=>{
+ shiftInfo = {
+  sk:{start:skStart.value,end:skEnd.value},
+  fa:{start:faStart.value,end:faEnd.value},
+  za:{start:zaStart.value,end:zaEnd.value}
+ };
+ infoModal.style.display="none";
+};
+
+/* SAVE */
+
+saveBtn.onclick = async ()=>{
+
+ if(!phases.length){
+  alert("Nejdřív generuj");
+  return;
+ }
+
+ // 🔷 phase data
+ const out = phases.map(ph=>{
+  const o={};
+  Object.entries(ph).forEach(([pos,w])=>{
+   if(w) o[pos]=w.id;
+  });
+  return o;
+ });
+
+ // 🔷 status snapshot zaměstnanců v den uložení
+ const empSnap = await getDocs(collection(db,"employees"));
+ const statusSnapshot = {};
+
+ empSnap.forEach(d=>{
+   statusSnapshot[d.id] = d.data().statusToday || "work";
+ });
+
+ await setDoc(doc(db,"shifts",dateEl.value+"_"+shiftEl.value),{
+ date:dateEl.value,
+ shift:shiftEl.value,
+ phases:out,
+ statusSnapshot,
+ info: shiftInfo,   // ← NOVÉ
+ createdAt:Date.now()
+});
+
+ alert("✅ Uloženo (včetně status snapshotu)");
+};
+
+
+</script>
+</body>
+</html>
+ 

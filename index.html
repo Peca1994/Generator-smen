@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PecaShifter</title>
+
+<style>
+
+body{
+  margin:0;
+  font-family: system-ui, Arial;
+  background: linear-gradient(160deg,#0f172a,#1e293b);
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+}
+
+.app{ width:100%; max-width:420px; padding:20px; }
+
+.logo{
+  font-size:34px;
+  font-weight:900;
+  text-align:center;
+}
+
+.sub{
+  text-align:center;
+  opacity:.7;
+  margin-bottom:20px;
+}
+
+.card{
+  background:#111827;
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,.35);
+}
+
+
+#loading{
+  text-align:center;
+  opacity:.8;
+}
+
+/* switch */
+
+.switch{
+  display:flex;
+  background:#1f2937;
+  border-radius:12px;
+  overflow:hidden;
+  margin-bottom:14px;
+}
+
+.switch button{
+  flex:1;
+  padding:12px;
+  border:none;
+  font-weight:800;
+  background:#374151;
+  color:white;
+  transition:.15s;
+}
+
+.switch button:hover{ background:#4b5563; }
+
+.activeTab{
+  background:#22c55e !important;
+  color:black !important;
+}
+
+.switch button:active{
+  transform:scale(.96);
+}
+
+/* inputs */
+
+input{
+  width:100%;
+  padding:14px;
+  border-radius:10px;
+  border:none;
+  margin-bottom:10px;
+  font-size:16px;
+}
+
+/* main button */
+
+.mainBtn{
+  width:100%;
+  padding:16px;
+  border-radius:12px;
+  border:none;
+  font-size:16px;
+  font-weight:900;
+  background:#3b82f6;
+  color:white;
+  transition:.15s;
+}
+
+.mainBtn:hover{ background:#2563eb; }
+.mainBtn:active{
+  transform:scale(.97);
+  filter:brightness(.85);
+}
+
+/* menu buttons */
+
+.menu button{
+  width:100%;
+  padding:16px;
+  border-radius:14px;
+  border:none;
+  margin-top:12px;
+  font-weight:800;
+  transition:.15s;
+  color:white;
+}
+
+.btnEmployees{ background:#7c3aed; }
+.btnGenerator{ background:#f59e0b; }
+.btnSchedule{ background:#16a34a; }
+.btnCalendar{ background:#dc2626; }
+.btnStats{ background:#06b6d4; }
+.logout{ background:#374151; }
+
+.menu button:hover{ filter:brightness(1.1); }
+.menu button:active{
+  transform:scale(.97);
+  filter:brightness(.85);
+}
+
+.hidden{ display:none; }
+
+.roleTag{
+  text-align:center;
+  margin-bottom:10px;
+  opacity:.8;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="logo">PecaShifter</div>
+<div class="sub">Směnový plánovací systém</div>
+
+<!-- LOADING GATE -->
+<div id="loading" class="card">
+  Ověřuji přihlášení…
+</div>
+
+<!-- AUTH -->
+<div id="authCard" class="card hidden">
+
+ <div class="switch">
+    <button id="tabLogin" class="activeTab" onclick="setMode('login')">Přihlášení</button>
+    <button id="tabReg" onclick="setMode('register')">Registrace</button>
+  </div>
+
+  <input id="email" placeholder="Email">
+  <input id="pass" type="password" placeholder="Heslo">
+
+  <button class="mainBtn" id="mainBtn" onclick="submitAuth()">
+    Přihlásit
+  </button>
+
+</div>
+
+<!-- MENU -->
+<div id="menuCard" class="card hidden">
+<div class="roleTag" id="roleLabel"></div>
+<!-- HROMADNÁ ZPRÁVA -->
+<div id="broadcastCard" class="card hidden" style="
+  margin-bottom:14px;
+  background:#1e293b;
+  border:2px solid #0ea5e9;
+">
+  <div style="font-weight:900;margin-bottom:6px;">
+    📢 Hromadná zpráva
+  </div>
+  <div id="broadcastText" style="line-height:1.4;opacity:.95;"></div>
+</div>
+
+<!-- MOJE POZNÁMKA -->
+<div id="myNoteCard" class="card hidden" style="margin-bottom:14px;">
+  <div style="font-weight:800;margin-bottom:6px;">
+    📝 Soukromá zpráva
+  </div>
+  <div id="myNoteText" style="opacity:.9; line-height:1.4;"></div>
+</div>
+
+  <div class="menu">
+
+    <button class="btnEmployees adminOnly" onclick="go('employees.html')">
+      👥 Karty zaměstnance
+    </button>
+
+    <button class="btnGenerator adminOnly" onclick="go('generator.html')">
+      ⚙️ Generátor
+    </button>
+
+    <button class="btnSchedule" onclick="go('schedule.html')">
+      📊 Směnový graf
+    </button>
+
+    <button class="btnCalendar" onclick="go('date.html')">
+      📅 Kalendář
+    </button>
+
+    <button class="btnStats" onclick="go('stats.html')">
+      📈 Statistiky
+    </button>
+
+    <button class="logout" onclick="logout()">
+      Odhlásit
+    </button>
+
+  </div>
+
+</div>
+
+</div>
+
+<script type="module">
+
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+  authDomain: "generator-smen-9fba1.firebaseapp.com",
+  projectId: "generator-smen-9fba1",
+  storageBucket: "generator-smen-9fba1.firebasestorage.app",
+  messagingSenderId: "541779211883",
+  appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
+  measurementId: "G-1HF3R93D92"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+const loading = document.getElementById("loading");
+const emailEl = document.getElementById("email");
+const passEl = document.getElementById("pass");
+const authCard = document.getElementById("authCard");
+const menuCard = document.getElementById("menuCard");
+const roleLabel = document.getElementById("roleLabel");
+const myNoteCard = document.getElementById("myNoteCard");
+const myNoteText = document.getElementById("myNoteText");
+const broadcastCard = document.getElementById("broadcastCard");
+const broadcastTextEl = document.getElementById("broadcastText");
+
+let mode = "login";
+
+window.setMode = (m)=>{
+  mode = m;
+  tabLogin.classList.toggle("activeTab", m==="login");
+  tabReg.classList.toggle("activeTab", m==="register");
+  mainBtn.innerText = m==="login" ? "Přihlásit" : "Registrovat";
+};
+
+window.submitAuth = async ()=>{
+
+  try{
+
+    if(mode==="login"){
+      await signInWithEmailAndPassword(auth,emailEl.value,passEl.value);
+    }else{
+      const cred = await createUserWithEmailAndPassword(auth,emailEl.value,passEl.value);
+      await setDoc(doc(db,"users",cred.user.uid),{role:"user"});
+      alert("Registrace proběhla");
+      setMode("login");
+    }
+
+  }catch(e){
+
+    if(
+      e.code==="auth/user-not-found" ||
+      e.code==="auth/wrong-password" ||
+      e.code==="auth/invalid-credential"
+    ){
+      alert("Neplatné přihlášení — účet neexistuje nebo špatné heslo.");
+    }
+    else if(e.code==="auth/email-already-in-use"){
+      alert("Tento email už je registrovaný.");
+    }
+    else if(e.code==="auth/weak-password"){
+      alert("Heslo musí mít aspoň 6 znaků.");
+    }
+    else{
+      alert("Registrace OK");
+    }
+  }
+};
+
+window.logout = ()=> signOut(auth);
+window.go = (p)=> location.href=p;
+
+onAuthStateChanged(auth, async user=>{
+
+  loading.classList.add("hidden");
+
+  if(!user){
+    authCard.classList.remove("hidden");
+    menuCard.classList.add("hidden");
+    return;
+  }
+
+  const snap = await getDoc(doc(db,"users",user.uid));
+  const role = snap.data()?.role || "user";
+
+  roleLabel.innerText = "Role: "+role;
+
+  if(role!=="admin"){
+    document.querySelectorAll(".adminOnly")
+      .forEach(b=>b.style.display="none");
+  }
+
+  authCard.classList.add("hidden");
+  menuCard.classList.remove("hidden");
+ loadMyNote(user);
+ loadBroadcast();
+});
+async function loadMyNote(user){
+
+  const q = query(
+    collection(db,"employees"),
+    where("email","==", user.email)
+  );
+
+  const snap = await getDocs(q);
+
+  if(snap.empty){
+    myNoteCard.classList.add("hidden");
+    return;
+  }
+
+  const emp = snap.docs[0].data();
+
+  if(emp.info && emp.info.trim() !== ""){
+    myNoteText.innerText = emp.info;
+    myNoteCard.classList.remove("hidden");
+  }else{
+    myNoteCard.classList.add("hidden");
+  }
+}
+
+async function loadBroadcast(){
+
+  const snap = await getDoc(doc(db,"config","global"));
+
+  const msg = snap.data()?.broadcastMessage;
+
+  if(msg && msg.trim() !== ""){
+    broadcastTextEl.innerText = msg;
+    broadcastCard.classList.remove("hidden");
+  }else{
+    broadcastCard.classList.add("hidden");
+  }
+}
+
+</script>
+
+</body>
+</html>

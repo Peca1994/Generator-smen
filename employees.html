@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zaměstnanci</title>
+
+<style>
+
+body{
+  margin:0;
+  font-family:system-ui, Arial;
+  background:#0f172a;
+  color:white;
+}
+
+.header{
+  padding:16px;
+  background:#020617;
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+
+.back{
+  background:#334155;
+  border:none;
+  color:white;
+  padding:10px 14px;
+  border-radius:10px;
+  font-weight:700;
+}
+
+.container{
+  padding:16px;
+  max-width:700px;
+  margin:auto;
+}
+
+.addBtn{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:14px;
+  font-weight:800;
+  background:#22c55e;
+  margin-bottom:16px;
+}
+
+.empRow{
+  background:#111827;
+  padding:14px;
+  border-radius:12px;
+  margin-bottom:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.empName{
+  font-weight:800;
+  cursor:pointer;
+}
+
+select{
+  padding:8px;
+  border-radius:8px;
+}
+
+/* modal */
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  display:none;
+}
+
+.modalBox{
+  background:#020617;
+  margin:20px;
+  padding:18px;
+  border-radius:16px;
+  max-height:90vh;
+  overflow:auto;
+}
+
+input, textarea{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  margin-bottom:10px;
+}
+
+.skills{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.skillItem{
+  background:#111827;
+  padding:10px;
+  border-radius:10px;
+  cursor:pointer;
+  border:2px solid transparent;
+  font-size:13px;
+  user-select:none;
+}
+
+.skillItem.active{
+  border-color:#22c55e;
+  background:#052e1b;
+}
+.status-work{
+  background:#16a34a;
+  color:white;
+}
+
+.status-vacation{
+  background:#f59e0b;
+  color:black;
+}
+
+.status-sick,
+.status-paragraf{
+  background:#dc2626;
+  color:white;
+}
+
+.status-shitmaking{
+  background:#2563eb;
+  color:white;
+}
+
+.status-borrowed{
+  background:#a855f7;
+  color:white;
+}
+
+.status-loaned{
+  background:#14b8a6;
+  color:black;
+}
+
+
+.topbar{
+  height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px;
+  background:#020617;
+  border-bottom:1px solid #1f2937;
+}
+
+.topTitle{
+  font-weight:800;
+  font-size:18px;
+}
+
+.menuBtn{
+  padding:8px 14px;
+  border-radius:10px;
+  border:none;
+  font-weight:800;
+  background:#334155;
+  color:white;
+  cursor:pointer;
+}
+
+.menuBtn:hover{
+  filter:brightness(1.15);
+}
+
+.menuBtn:active{
+  transform:scale(.96);
+}
+
+.modal button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  font-weight:800;
+  margin-top:8px;
+}
+
+.save{ background:#22c55e; }
+.delete{ background:#ef4444; }
+.close{ background:#334155; }
+
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="topTitle">👥 Zaměstnanci</div>
+  <button class="menuBtn" onclick="location.href='index.html'">
+    Menu
+  </button>
+</div>
+
+<div class="container">
+<button class="addBtn" onclick="openNew()">+ Přidat zaměstnance</button>
+<button class="addBtn" style="background:#0ea5e9" onclick="openBroadcast()">
+📢 Hromadná zpráva všem
+</button>
+<div id="list"></div>
+</div>
+
+<div id="modal" class="modal">
+  <div class="modalBox">
+
+    <input id="fName" placeholder="Jméno">
+    <input id="lName" placeholder="Příjmení">
+    <input id="email" placeholder="Email zaměstnance">
+    <textarea id="info" placeholder="Poznámka"></textarea>
+
+    <h4>Pozice</h4>
+    <div id="skillsBox" class="skills"></div>
+
+    <h4>Stav dnes</h4>
+    <select id="status">
+  <option value="work">V práci</option>
+  <option value="vacation">Dovolená</option>
+  <option value="paragraf">Paragraf</option>
+  <option value="sick">Nemoc</option>
+  <option value="shitmaking">Shit making</option>
+  <option value="borrowed">Půjčený</option>
+  <option value="loaned">Propůjčený</option>
+</select>
+
+
+    <button class="save" onclick="saveEmp()">Uložit</button>
+    <button class="delete" onclick="deleteEmp()">Smazat</button>
+    <button class="close" onclick="closeModal()">Zavřít</button>
+
+  </div>
+</div>
+</div>
+<div id="broadcastModal" class="modal">
+  <div class="modalBox">
+    <h3>📢 Hromadná zpráva</h3>
+    <textarea id="broadcastText" placeholder="Text pro všechny zaměstnance"></textarea>
+    <button class="save" onclick="saveBroadcast()">Uložit zprávu</button>
+    <button class="close" onclick="closeBroadcast()">Zavřít</button>
+  </div>
+<script type="module">
+
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+  authDomain: "generator-smen-9fba1.firebaseapp.com",
+  projectId: "generator-smen-9fba1",
+  storageBucket: "generator-smen-9fba1.firebasestorage.app",
+  messagingSenderId: "541779211883",
+  appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
+  measurementId: "G-1HF3R93D92"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+/* 🔒 musí být přihlášen */
+
+onAuthStateChanged(auth, u=>{
+  if(!u){
+    alert("Nejsi přihlášen");
+    location.href="index.html";
+  }
+});
+
+/* DOM */
+
+const modal = document.getElementById("modal");
+const skillsBox = document.getElementById("skillsBox");
+const list = document.getElementById("list");
+
+const fNameEl = document.getElementById("fName");
+const lNameEl = document.getElementById("lName");
+const emailEl = document.getElementById("email");
+const infoEl = document.getElementById("info");
+const statusEl = document.getElementById("status");
+const broadcastModal = document.getElementById("broadcastModal");
+const broadcastTextEl = document.getElementById("broadcastText");
+
+/* pozice */
+
+const POSITIONS = [
+["DP-L","DOORPROTECTOR L"],["DP-P","DOORPROTECTOR P"],
+["ZRC-L","ZRCÁTKA L"],["ZRC-P","ZRCÁTKA P"],
+["T-L","TĚSNĚNÍ L"],["T-P","TĚSNĚNÍ P"],
+["AGR-LP","AGREGÁT LP"],["AGR-PP","AGREGÁT PP"],
+["AGR-PZ","AGREGÁT PZ"],["AGR-LZ","AGREGÁT LZ"],
+["MOT-L","MOTORY L"],["MOT-P","MOTORY P"],
+["LEP-LP","LEPENÍ LP"],["LEP-PP","LEPENÍ PP"],
+["LEP-Z","LEPENÍ Z"],
+["REPRO-L","REPRÁKY L"],["REPRO-P","REPRÁKY P"],
+["VYP1-L","VÝPLNĚ 1 L"],["VYP1-P","VÝPLNĚ 1 P"],
+["VYP2-L","VÝPLNĚ 2 L"],["VYP2-P","VÝPLNĚ 2 P"],
+["PR-L","PŘITAHOVAČ L"],["PR-P","PŘITAHOVAČ P"],
+["ZAM-L","ZÁMKY L"],["ZAM-P","ZÁMKY P"],
+["VET","VĚTRAČKY"],["VET2","VĚTRAČKY 2"],["INST","INSTALACE"],["INST2","INSTALACE 2"],
+["JINE","JINÝ ÚSEK"],["JINE2","JINÝ ÚSEK 2"],
+
+];
+
+POSITIONS.forEach(p=>{
+  const div=document.createElement("div");
+  div.className="skillItem";
+  div.innerHTML=`<input type="checkbox" value="${p[0]}"> ${p[1]}`;
+  div.onclick=()=>{
+    const cb=div.querySelector("input");
+    cb.checked=!cb.checked;
+    div.classList.toggle("active",cb.checked);
+  };
+  skillsBox.appendChild(div);
+});
+
+let editId=null;
+
+window.openNew=()=>{
+  editId=null;
+  fNameEl.value="";
+  lNameEl.value="";
+  emailEl.value="";
+  infoEl.value="";
+  statusEl.value="work";
+  skillsBox.querySelectorAll("input").forEach(c=>{
+    c.checked=false;
+    c.parentElement.classList.remove("active");
+  });
+  modal.style.display="block";
+};
+
+window.closeModal=()=> modal.style.display="none";
+
+/* SAVE */
+
+window.saveEmp = async ()=>{
+
+ try{
+
+  if(!fNameEl.value || !lNameEl.value){
+    alert("Vyplň jméno a příjmení");
+    return;
+  }
+
+  const skills=[...skillsBox.querySelectorAll("input:checked")]
+    .map(x=>x.value);
+
+  const id = editId || (fNameEl.value+"_"+lNameEl.value)
+    .toLowerCase().replace(/\s+/g,"_");
+
+  await setDoc(doc(db,"employees",id),{
+  name:fNameEl.value,
+  surname:lNameEl.value,
+  email:emailEl.value.toLowerCase().trim(),
+  info:infoEl.value,
+  skills,
+  statusToday:statusEl.value
+});
+
+
+  alert("Uloženo");
+  modal.style.display="none";
+  load();
+
+ }catch(e){
+  alert("CHYBA: "+e.message);
+  console.error(e);
+ }
+
+};
+
+/* DELETE */
+
+window.deleteEmp = async ()=>{
+
+ if(!editId) return;
+
+ const ok = confirm("Opravdu chceš smazat záznam zaměstnance?");
+
+ if(!ok) return;
+
+ await deleteDoc(doc(db,"employees",editId));
+
+ alert("Smazáno");
+ modal.style.display="none";
+ load();
+};
+
+function paintStatusSelect(sel){
+
+ sel.classList.remove(
+  "status-work",
+  "status-vacation",
+  "status-sick",
+  "status-paragraf",
+  "status-shitmaking",
+  "status-borrowed",
+  "status-loaned"
+ );
+
+
+  sel.classList.add("status-" + sel.value);
+}
+
+/* LIST */
+
+async function load(){
+ list.innerHTML="";
+ const snap = await getDocs(collection(db,"employees"));
+
+ snap.forEach(d=>{
+  const e=d.data();
+  const row=document.createElement("div");
+  row.className="empRow";
+  row.innerHTML=`
+   <div class="empName">${e.name} ${e.surname}</div>
+   <select>
+  <option value="work">Práce</option>
+  <option value="vacation">Dovolená</option>
+  <option value="paragraf">Paragraf</option>
+  <option value="sick">Nemoc</option>
+  <option value="shitmaking">Shit making</option>
+  <option value="borrowed">Půjčený</option>
+  <option value="loaned">Propůjčený</option>
+</select>
+`;
+
+  row.querySelector(".empName").onclick=()=>edit(d.id);
+  const sel=row.querySelector("select");
+  sel.value=e.statusToday || "work";
+  paintStatusSelect(sel);
+  sel.onchange=ev=>{
+  paintStatusSelect(ev.target);
+  setDoc(doc(db,"employees",d.id),
+    {statusToday:ev.target.value},{merge:true});
+};
+
+
+  list.appendChild(row);
+ });
+}
+
+async function edit(id){
+ const snap=await getDoc(doc(db,"employees",id));
+ const e=snap.data();
+ editId=id;
+ modal.style.display="block";
+ fNameEl.value=e.name;
+ lNameEl.value=e.surname;
+ emailEl.value = e.email || "";
+ infoEl.value=e.info;
+ statusEl.value=e.statusToday||"work";
+ skillsBox.querySelectorAll("input").forEach(c=>{
+   c.checked=e.skills?.includes(c.value);
+   c.parentElement.classList.toggle("active",c.checked);
+ });
+}
+
+load();
+
+window.openBroadcast = async ()=>{
+
+ const snap = await getDoc(doc(db,"config","global"));
+ broadcastTextEl.value = snap.data()?.broadcastMessage || "";
+ broadcastModal.style.display = "block";
+};
+
+window.closeBroadcast = ()=> broadcastModal.style.display="none";
+
+window.saveBroadcast = async ()=>{
+
+ await setDoc(doc(db,"config","global"),{
+   broadcastMessage: broadcastTextEl.value
+ },{merge:true});
+
+ alert("Uloženo pro všechny");
+ broadcastModal.style.display="none";
+};
+
+</script>
+</body>
+</html>
