@@ -286,6 +286,23 @@ body {
         background-position: center 5% !important;
     }
 }
+table, thead, tbody, tr, th, td, ul, li, section, main {
+    background: transparent !important;
+    background-color: transparent !important;
+    border-color: rgba(255, 255, 255, 0.1) !important; /* Jemné linky místo tlustých čar */
+    box-shadow: none !important;
+}
+
+/* Pokud jsou v tabulkách bílé nebo šedé pruhy (zebra), vypneme je */
+tr:nth-child(even), tr:nth-child(odd) {
+    background: transparent !important;
+}
+
+/* Text v tabulkách musí zůstat čitelný */
+td, th {
+    color: white !important;
+    padding: 10px 5px !important;
+}
 </style>
 </head>
 
