@@ -8,19 +8,17 @@
 <style>
 
 body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh; /* Zajistí výšku přes celý displej */
-    display: flex;
-    flex-direction: column;
-    color: white;
-    font-family: sans-serif;
-    /* Oprava pozadí: */
-    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), url('pozadi.jpg') !important;
-    background-size: cover !important; /* Důležité: roztáhne obrázek, aby vyplnil vše */
-    background-position: center center !important;
-    background-attachment: fixed !important;
+    margin: 0; padding: 0;
+    min-height: 100vh;
     background-color: #030712 !important;
+    /* Kombinace: Logo nahoře, zbytek tmavý gradient */
+    background-image: 
+        linear-gradient(to bottom, rgba(3, 7, 18, 0.4) 0%, rgba(3, 7, 18, 1) 80%), 
+        url('pozadi.jpg') !important;
+    background-size: contain !important; /* Logo se nezvětší víc, než je šířka mobilu */
+    background-position: center 10% !important; /* Posune logo kousek od horního okraje */
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
 }
 
 .app div:not(.card) {
@@ -228,48 +226,26 @@ hr, .divider, .separator {
 .logo {
     display: block !important;
     text-align: center;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-    font-size: 52px !important;
+    font-family: sans-serif !important;
+    font-size: 46px !important; /* Mírně zmenšeno pro mobil */
     font-weight: 300 !important;
     letter-spacing: -1.5px;
-    margin: 40px 0 20px 0 !important;
+    margin: 20px 0 5px 0 !important; /* Výrazně menší mezera pod logem */
     
-    /* Moderní barevný přechod s nádechem do zelena */
+    /* Fix pro mizející text - gradient aplikujeme na celek */
     background: linear-gradient(120deg, #ffffff 30%, #4ade80 70%, #ffffff 90%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    
-    /* Jemná záře kolem nápisu */
-    filter: drop-shadow(0 0 15px rgba(74, 222, 128, 0.2));
+    color: white; /* Pojistka */
 }
 
 .logo b {
     font-weight: 800 !important;
-    /* Část "Master" bude mít sytější zelený odlesk */
-    background: linear-gradient(to bottom, #ffffff 40%, #22c55e 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
 }
 
-/* Styl pro zprávu - aby neodsunula tlačítka moc nízko */
+/* Zmenšení mezery u hromadné zprávy */
 .message-box {
-    margin: 20px auto !important;
-    max-width: 400px;
-    padding: 18px 25px !important;
-    border-radius: 20px !important;
-    background: rgba(15, 23, 42, 0.6) !important; /* Tmavší, "skleněný" efekt */
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-left: 4px solid #3b82f6 !important; /* Modrý akcent na straně */
-    
-    /* VYLEPŠENÍ PÍSMA */
-    color: #f1f5f9 !important;
-    font-family: 'Segoe UI', Roboto, sans-serif !important;
-    font-size: 16px !important;
-    font-weight: 400 !important; /* Lehčí písmo působí luxusněji */
-    line-height: 1.6 !important; /* Větší mezery mezi řádky pro čitelnost */
-    text-align: left !important; /* Zarovnání doleva vypadá u zpráv lépe */
-    text-transform: none !important; /* ZRUŠÍ VELKÁ PÍSMENA */
-    letter-spacing: 0.2px;
+    margin: 0 auto 20px auto !important; /* Přitáhneme zprávu blíž k logu */
 }
 
 /* Zobrazí se pouze, pokud v ní něco je */
