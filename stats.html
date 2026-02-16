@@ -6,99 +6,97 @@
 <title>Statistiky</title>
 
 <style>
-/* 1. GLOBÁLNÍ RESET A POZADÍ */
-* {
-    box-shadow: none !important;
-    border: none !important;
-    outline: none !important;
-}
-
+/* 1. GLOBÁLNÍ NASTAVENÍ A POZADÍ */
 body {
     margin: 0;
     padding: 0;
-    display: flex;
+    display: flex; /* Vrátí vycentrování celé karty */
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     color: white;
     font-family: sans-serif;
     background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('pozadi.jpg');
-    background-size: cover !important; /* Pro mobilní telefony lepší cover */
+    background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
     background-attachment: fixed !important;
     background-color: #030712 !important;
 }
 
-/* 2. HLAVNÍ STRUKTURA (APP A KARTY) */
+/* 2. KONTEJNER A KARTA */
 .app {
     width: 100%;
     max-width: 420px;
     padding: 20px;
-    background: transparent !important;
+    box-sizing: border-box;
 }
 
 .card {
-    background: rgba(17, 24, 39, 0.4) !important;
+    background: rgba(17, 24, 39, 0.6) !important; /* Průhledná karta */
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
     border-radius: 20px !important;
-    padding: 20px;
+    padding: 25px;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important; /* Jemný stín pro hloubku */
 }
 
-/* Úklid vnořených prvků a menu */
-.card .card, #menuCard, .menu, .app div:not(.card), main, section {
+/* Úklid vnořených prvků, aby nevrstvily šedou barvu */
+.card .card, #menuCard, .menu, main, section {
     background: transparent !important;
-    box-shadow: none !important;
     border: none !important;
+    box-shadow: none !important;
     padding: 0;
 }
 
-/* 3. TEXTOVÉ PRVKY */
-.logo { font-size: 34px; font-weight: 900; text-align: center; }
+/* 3. TEXTY */
+.logo { font-size: 34px; font-weight: 900; text-align: center; margin-bottom: 5px; }
 .sub { text-align: center; opacity: .7; margin-bottom: 20px; }
 .roleTag { 
     text-align: center; 
-    margin: 10px 0 !important; 
+    margin: 15px 0 !important; 
     color: #22c55e !important; /* Škoda zelená */
     font-weight: bold;
-    background: transparent !important;
 }
 
-/* 4. TLAČÍTKA A INTERAKCE */
-.menu button, .mainBtn {
+/* 4. TLAČÍTKA - VRÁCENÍ BAREV A VELIKOSTI */
+.menu button, .mainBtn, .switch button {
     width: 100%;
     padding: 16px !important;
     border-radius: 12px;
-    margin-top: 10px;
+    margin-top: 12px;
     font-weight: 800;
     font-size: 16px !important;
     color: white !important;
-    transition: 0.15s;
+    border: none !important;
     cursor: pointer;
+    transition: 0.2s;
 }
 
-/* Barevné a průhledné varianty tlačítek */
-.btnEmployees { background: rgba(124, 58, 237, 0.5) !important; }
-.btnGenerator { background: rgba(245, 158, 11, 0.5) !important; }
-.btnSchedule  { background: rgba(22, 163, 74, 0.5) !important; }
-.btnCalendar  { background: rgba(220, 38, 38, 0.5) !important; }
-.btnStats     { background: rgba(6, 182, 212, 0.5) !important; }
-.logout       { background: rgba(55, 65, 81, 0.5) !important; }
+/* Konkrétní barvy pro tlačítka (neprůhlednější, aby byla vidět) */
+.btnEmployees { background: #7c3aed !important; opacity: 0.8; }
+.btnGenerator { background: #f59e0b !important; opacity: 0.8; }
+.btnSchedule  { background: #16a34a !important; opacity: 0.8; }
+.btnCalendar  { background: #dc2626 !important; opacity: 0.8; }
+.btnStats     { background: #06b6d4 !important; opacity: 0.8; }
+.logout       { background: #374151 !important; opacity: 0.8; }
 
-.menu button:hover, .mainBtn:hover { filter: brightness(1.2); transform: scale(1.01); }
-.menu button:active { transform: scale(0.98); }
+.menu button:hover { opacity: 1; transform: scale(1.02); filter: brightness(1.1); }
 
-/* 5. POMOCNÉ TŘÍDY */
+/* Vstupy (Inputy) - aby byly vidět */
+input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+
 .hidden { display: none; }
-hr, .divider { display: none !important; }
-
-/* Responzivita pro malé mobily */
-@media (max-width: 400px) {
-    .app { padding: 10px; }
-    .logo { font-size: 28px; }
-}
 </style>
 </head>
 
