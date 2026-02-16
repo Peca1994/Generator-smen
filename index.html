@@ -7,17 +7,27 @@
 
 <style>
 
-body {
-    margin: 0; padding-top: 10px !important;
+body  {
+    margin: 0;
+    padding: 0;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+    font-family: sans-serif;
+    padding-top: 5px !important;
+
+    /* ZÁKLADNÍ BARVA POZADÍ */
     background-color: #030712 !important;
-    /* Kombinace: Logo nahoře, zbytek tmavý gradient */
+
+    /* KOMBINACE EFEKTŮ */
     background-image: 
-        linear-gradient(to bottom, rgba(3, 7, 18, 0.4) 0%, rgba(3, 7, 18, 1) 80%), 
-        url('pozadi.jpg') !important;
-    background-size: contain !important; /* Logo se nezvětší víc, než je šířka mobilu */
-    background-position: center 5% !important;
-    background-repeat: no-repeat !important;
+        /* 1. HORNÍ ZELENÁ ZÁŘE (začíná hned odshora) */
+        radial-gradient(circle at 50% -20%, rgba(34, 197, 94, 0.4) 0%, rgba(3, 7, 18, 0) 60%),
+        /* 2. SPODNÍ STÍNOVÁNÍ PRO SILUETU */
+        linear-gradient(to top, rgba(34, 197, 94, 0.1) 0%, rgba(3, 7, 18, 0) 40%);
+    
     background-attachment: fixed !important;
 }
 
@@ -295,6 +305,20 @@ hr, .divider, .separator {
 .bg-slate   { background: #475569 !important; } /* Kalendář (místo červené) */
 .bg-cyan    { background: #0891b2 !important; } /* Statistiky */
 .bg-logout  { background: rgba(255,255,255,0.1) !important; color: #f1f5f9; }
+/* --- SILUETA / ZÁŘE AUTA DOLE --- */
+body::after {
+    content: "";
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    height: 150px;
+    /* Simulace spodní linie a odrazu světel */
+    background: radial-gradient(ellipse at 50% 100%, rgba(34, 197, 94, 0.15) 0%, rgba(3, 7, 18, 0) 70%);
+    z-index: -1; 
+    pointer-events: none;
+}
 </style>
 </head>
 
