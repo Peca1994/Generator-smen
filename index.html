@@ -445,15 +445,14 @@ onAuthStateChanged(auth, async user => {
   // SEM vložíš ten nový kód (místo původních řádků 444-465):
   if (user) {
      if (authCard) {
-        authCard.style.display = "none !important"; 
+        authCard.style.setProperty("display", "none", "important");
         authCard.style.visibility = "hidden";
         authCard.classList.add("hidden");
-        authCard.innerHTML = ""; // Pro jistotu smažeme i text uvnitř
+        authCard.innerHTML = ""; 
     }
 
-    // Natvrdo zobrazíme menu
     if (menuCard) {
-        menuCard.style.display = "block !important";
+        menuCard.style.setProperty("display", "block", "important");
         menuCard.classList.remove("hidden");
     }
 
