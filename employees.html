@@ -56,23 +56,42 @@ label, h1, h2, h3 { color: white !important; font-weight: 900; text-shadow: 2px 
 .bg-partak { background-color: #ffffff !important; color: black !important; }
 .bg-pujceny { background-color: #000000 !important; color: white !important; border: 1px solid white !important; }
 .bg-propujceny { background-color: #2563eb !important; color: white !important; }
+.bg-v-praci { background-color: #22c55e !important; color: white !important; }
+.bg-dovolena { background-color: #f59e0b !important; color: black !important; }
+.bg-paragraf { background-color: #a855f7 !important; color: white !important; }
+.bg-nemoc { background-color: #ef4444 !important; color: white !important; }
+.bg-partak { background-color: #ffffff !important; color: black !important; }
+.bg-pujceny { background-color: #000000 !important; color: white !important; border: 1px solid white !important; }
+.bg-propujceny { background-color: #3b82f6 !important; color: white !important; }
+
+/* Zajistí, aby text v políčku byl vždy tučný a čitelný */
+select { font-weight: 900 !important; }
 </style>
 </head>
 <script>
-// Funkce pro barvení políčka podle vybraného stavu
-const statusSelect = document.querySelector('select'); // vybere tvůj seznam stavů
+// Funkce pro automatické barvení políčka podle vybraného stavu
+const statusSelect = document.querySelector('select'); // vybere tvůj seznam
 
-if(statusSelect) {
-    statusSelect.addEventListener('change', function() {
+if (statusSelect) {
+    function updateColor() {
         // Seznam všech možných barevných tříd
         const colors = ['bg-v-praci', 'bg-dovolena', 'bg-paragraf', 'bg-nemoc', 'bg-partak', 'bg-pujceny', 'bg-propujceny'];
-        // Odstraní starou barvu
+        
+        // Odstraní předchozí barvu
         statusSelect.classList.remove(...colors);
-        // Přidá novou barvu podle value (např. bg-nemoc)
-        statusSelect.classList.add('bg-' + this.value);
-    });
+        
+        // Získá hodnotu a převede ji na název třídy (např. "V práci" -> "v-praci")
+        // POZOR: value v HTML musí odpovídat názvům (v-praci, dovolena, atd.)
+        const val = statusSelect.value.toLowerCase().replace(/\s+/g, '-');
+        statusSelect.classList.add('bg-' + val);
+    }
+
+    // Spustí se při změně a i hned po načtení
+    statusSelect.addEventListener('change', updateColor);
+    updateColor();
 }
 </script>
+
 <body>
 
 <div class="topbar">
