@@ -304,11 +304,6 @@ hr, .divider, .separator {
 <div id="menuCard" class="card hidden">
 <div class="roleTag" id="roleLabel"></div>
 <!-- HROMADNÁ ZPRÁVA -->
-<div id="broadcastCard" class="card hidden" style="
-  margin-bottom:14px;
-  background:#1e293b;
-  border:2px solid #0ea5e9;
-">
   <div id="broadcastText" class="message-box"></div>
 
 <!-- MOJE POZNÁMKA -->
@@ -445,30 +440,31 @@ window.submitAuth = async ()=>{
 window.logout = ()=> signOut(auth);
 window.go = (p)=> location.href=p;
 
-onAuthStateChanged(auth, async user=>{
+onAuthStateChanged(auth, async user => {
+  
+  // SEM vložíš ten nový kód (místo původních řádků 444-465):
+  if (user) {
+    const authCard = document.getElementById("authCard");
+    const menuCard = document.getElementById("menuCard");
 
-  loading.classList.add("hidden");
+    if (authCard) authCard.classList.add("hidden");
+    if (menuCard) menuCard.classList.remove("hidden");
 
-  if(!user){
-    authCard.classList.remove("hidden");
-    menuCard.classList.add("hidden");
-    return;
+    const snap = await getDoc(doc(db, "users", user.uid));
+    const role = snap.data()?.role || "user";
+
+    if (role !== "admin") {
+      document.querySelectorAll(".adminOnly").forEach(b => {
+        b.style.display = "none";
+      });
+    }
+
+    loadMyNote(user);
+    loadBroadcast();
+  } else {
+    // Pokud není uživatel přihlášen, pošli ho na login nebo schovej menu
+    location.href = "index.html"; // nebo tvoje přihlašovací stránka
   }
-
-  const snap = await getDoc(doc(db,"users",user.uid));
-  const role = snap.data()?.role || "user";
-
- // roleLabel.innerText = "Role: "+role;
-
-  if(role!=="admin"){
-    document.querySelectorAll(".adminOnly")
-      .forEach(b=>b.style.display="none");
-  }
-
-  authCard.classList.add("hidden");
-  menuCard.classList.remove("hidden");
- loadMyNote(user);
- loadBroadcast();
 });
 async function loadMyNote(user){
 
@@ -497,13 +493,15 @@ async function loadMyNote(user){
 async function loadBroadcast() {
   const snap = await getDoc(doc(db, "config", "global"));
   const msg = snap.data()?.broadcastMessage || "";
-  const box = document.getElementById("broadcastText"); // Použijeme tvé ID z HTML
+  const box = document.getElementById("broadcastText");
 
-  if (msg.trim() !== "") {
-    box.innerText = msg;
-    box.style.display = "block"; // Zobrazí box
-  } else {
-    box.style.display = "none";  // Schová box, když je prázdný
+  if (box) {
+    if (msg.trim() !== "") {
+      box.innerText = msg;
+      box.style.display = "block";
+    } else {
+      box.style.display = "none";
+    }
   }
 }
 
