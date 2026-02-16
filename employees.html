@@ -76,6 +76,41 @@ label, p, span, h1, h2, h3 { color: white !important; font-weight: 900; text-sha
 .addBtn, .btn-success, .save { background: #22c55e !important; color: white !important; }
 .close { background: #334155 !important; color: white !important; }
 button { cursor: pointer; width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 800; margin-top: 10px; }
+/* 1. VYNUCENÍ DVOU SLOUPCŮ */
+.grid, [class*="grid"], .modalBox div[style*="grid"] {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important; /* Dva sloupce vedle sebe */
+    gap: 8px !important;
+    width: 100% !important;
+}
+
+/* 2. ZAROVNÁNÍ TEXTU DOLEVA A ÚPRAVA POLOŽKY */
+.grid > div, .skillItem {
+    display: flex !important;
+    flex-direction: row-reverse !important; /* Checkbox vlevo, text vpravo */
+    justify-content: flex-end !important;   /* Vše se tlačí doleva */
+    align-items: center !important;
+    padding: 10px !important;
+    gap: 12px !important;                    /* Mezera mezi checkboxem a textem */
+    text-align: left !important;
+    font-size: 10px !important;              /* Menší písmo pro mobil */
+    min-height: 40px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 8px;
+}
+
+/* 3. ÚPRAVA SAMOTNÉHO TEXTU POZICE */
+.grid > div span, .grid > div label {
+    flex: 1; /* Text vyplní zbytek místa vlevo */
+    text-align: left !important;
+    white-space: nowrap; /* Zabrání rozhazování slov na dva řádky */
+}
+
+/* 4. ÚPRAVA CHECKBOXU (Aby nebyl uprostřed) */
+.grid > div input[type="checkbox"] {
+    margin: 0 !important;
+    order: -1; /* Posune checkbox na začátek řádku */
+}
 </style>
 </head>
 
