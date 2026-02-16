@@ -309,14 +309,25 @@ hr, .divider, .separator {
 body::after {
     content: "";
     position: fixed;
-    bottom: 0;
+    bottom: 20px; /* Umístění kousek nad spodní okraj */
     left: 50%;
     transform: translateX(-50%);
-    width: 100%;
-    height: 150px;
-    /* Simulace spodní linie a odrazu světel */
-    background: radial-gradient(ellipse at 50% 100%, rgba(34, 197, 94, 0.15) 0%, rgba(3, 7, 18, 0) 70%);
-    z-index: -1; 
+    width: 80px; /* Velikost loga - decentní, aby nerušilo */
+    height: 80px;
+    
+    /* VLOŽENÍ LOGA JAKO VODOZNAKU */
+    background-image: url('pozadi.jpg'); /* Použijeme stejný soubor */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    
+    /* Jemnost: snížíme viditelnost, aby to nebilo do očí */
+    opacity: 0.3; 
+    filter: grayscale(100%) brightness(200%); /* Udělá logo stříbrno-bílé */
+    
+    /* Přidáme pod něj tu záři, co jsme dělali minule */
+    box-shadow: 0 20px 50px 20px rgba(34, 197, 94, 0.15);
+    z-index: -1;
     pointer-events: none;
 }
 </style>
