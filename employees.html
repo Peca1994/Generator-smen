@@ -94,21 +94,23 @@ label, h1, h2, h3 { color: white !important; font-weight: 900; text-shadow: 2px 
     cursor: pointer; 
 }
 
-/* 6. BAREVNÉ STAVY PRO CELÉ POLE SELECT */
-.bg-v-praci { background-color: #16a34a !important; color: white !important; }
-.bg-dovolena { background-color: #f59e0b !important; color: black !important; }
-.bg-paragraf { background-color: #a855f7 !important; color: white !important; }
-.bg-nemoc { background-color: #dc2626 !important; color: white !important; }
-.bg-partak { background-color: #ffffff !important; color: black !important; }
-.bg-pujceny { background-color: #000000 !important; color: white !important; border: 1px solid white !important; }
-.bg-propujceny { background-color: #2563eb !important; color: white !important; }
-.bg-v-praci { background-color: #22c55e !important; color: white !important; }
-.bg-dovolena { background-color: #f59e0b !important; color: black !important; }
-.bg-paragraf { background-color: #a855f7 !important; color: white !important; }
-.bg-nemoc { background-color: #ef4444 !important; color: white !important; }
-.bg-partak { background-color: #ffffff !important; color: black !important; }
-.bg-pujceny { background-color: #000000 !important; color: white !important; border: 1px solid white !important; }
-.bg-propujceny { background-color: #3b82f6 !important; color: white !important; }
+.status-work { background-color: #22c55e !important; color: white !important; }      /* Práce - zelená */
+.status-vacation { background-color: #f59e0b !important; color: black !important; }   /* Dovolená - oranžová */
+.status-paragraf { background-color: #a855f7 !important; color: white !important; }   /* Paragraf - fialová */
+.status-sick { background-color: #ef4444 !important; color: white !important; }       /* Nemoc - červená */
+.status-shitmaking { background-color: #ffffff !important; color: black !important; } /* Parťák - bílá */
+.status-borrowed { background-color: #000000 !important; color: white !important; border: 1px solid white !important; } /* Půjčený - černá */
+.status-loaned { background-color: #3b82f6 !important; color: white !important; }     /* Propůjčený - modrá */
+
+/* Styl pro samotné možnosti, aby byly barevné i v rozbaleném seznamu */
+select option { background-color: white; color: black; font-weight: bold; }
+option[value="work"] { background-color: #22c55e; color: white; }
+option[value="vacation"] { background-color: #f59e0b; color: black; }
+option[value="paragraf"] { background-color: #a855f7; color: white; }
+option[value="sick"] { background-color: #ef4444; color: white; }
+option[value="shitmaking"] { background-color: #ffffff; color: black; }
+option[value="borrowed"] { background-color: #000000; color: white; }
+option[value="loaned"] { background-color: #3b82f6; color: white; }
 
 /* Zajistí, aby text v políčku byl vždy tučný a čitelný */
 select { font-weight: 900 !important; }
@@ -354,19 +356,14 @@ window.deleteEmp = async ()=>{
  load();
 };
 
-function paintStatusSelect(sel){
-
- sel.classList.remove(
-  "status-work",
-  "status-vacation",
-  "status-sick",
-  "status-paragraf",
-  "status-shitmaking",
-  "status-borrowed",
-  "status-loaned"
- );
-
-
+function paintStatusSelect(sel) {
+  // Seznam všech možných stavů
+  const states = ["work", "vacation", "sick", "paragraf", "shitmaking", "borrowed", "loaned"];
+  
+  // Odstraníme všechny staré barevné třídy
+  states.forEach(s => sel.classList.remove("status-" + s));
+  
+  // Přidáme tu aktuální
   sel.classList.add("status-" + sel.value);
 }
 
@@ -380,17 +377,17 @@ async function load(){
   const e=d.data();
   const row=document.createElement("div");
   row.className="empRow";
-  row.innerHTML=`
-   <div class="empName">${e.name} ${e.surname}</div>
-   <select>
-  <option value="work">Práce</option>
-  <option value="vacation">Dovolená</option>
-  <option value="paragraf">Paragraf</option>
-  <option value="sick">Nemoc</option>
-  <option value="shitmaking">Parťák</option>
-  <option value="borrowed">Půjčený</option>
-  <option value="loaned">Propůjčený</option>
-</select>
+  row.innerHTML = `
+  <div class="empName">${e.name} ${e.surname}</div>
+  <select class="statusSelect">
+    <option value="work">V práci</option>
+    <option value="vacation">Dovolená</option>
+    <option value="paragraf">Paragraf</option>
+    <option value="sick">Nemoc</option>
+    <option value="shitmaking">Parťák</option>
+    <option value="borrowed">Půjčený</option>
+    <option value="loaned">Propůjčený</option>
+  </select>
 `;
 
   row.querySelector(".empName").onclick=()=>edit(d.id);
