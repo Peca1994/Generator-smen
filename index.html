@@ -440,7 +440,7 @@ onAuthStateChanged(auth, async user=>{
   const snap = await getDoc(doc(db,"users",user.uid));
   const role = snap.data()?.role || "user";
 
-  roleLabel.innerText = "Role: "+role;
+ // roleLabel.innerText = "Role: "+role;
 
   if(role!=="admin"){
     document.querySelectorAll(".adminOnly")
