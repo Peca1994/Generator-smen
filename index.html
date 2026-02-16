@@ -245,15 +245,14 @@ hr, .divider, .separator {
 
 /* Styl pro zprávu - aby neodsunula tlačítka moc nízko */
 .message-box {
-    margin: 10px auto 30px auto !important;
-    max-width: 380px;
-    padding: 12px 20px !important;
-    border-radius: 18px !important;
-    background: rgba(30, 41, 59, 0.6) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    color: #f1f5f9 !important;
-    text-align: center;
-    display: none; 
+    font-family: 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 17px !important; /* Větší písmo */
+    font-weight: 400 !important;
+    letter-spacing: 0.5px;
+    line-height: 1.6;
+    color: #e2e8f0 !important;
+    border-left: 4px solid #16a34a; /* Zelený proužek na boku jako "tip" */
+    background: rgba(30, 41, 59, 0.7) !important;
 }
 
 /* Zobrazí se pouze, pokud v ní něco je */
@@ -265,6 +264,32 @@ hr, .divider, .separator {
 .message-box:not(:empty) {
     display: block;
 }
+/* --- MODERNIZACE TLAČÍTEK V MENU --- */
+.card {
+    border-radius: 20px !important;
+    padding: 18px !important;
+    margin-bottom: 12px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+    cursor: pointer;
+}
+
+.card:hover {
+    transform: translateY(-2px); /* Jemné nadzvednutí při najetí myší */
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4) !important;
+}
+
+/* Konkrétní syté barvy pro sekce */
+.bg-purple  { background: #7e22ce !important; } /* Zaměstnanci */
+.bg-orange  { background: #ea580c !important; } /* Generátor */
+.bg-green   { background: #16a34a !important; } /* Směnový graf */
+.bg-slate   { background: #475569 !important; } /* Kalendář (místo červené) */
+.bg-cyan    { background: #0891b2 !important; } /* Statistiky */
+.bg-logout  { background: rgba(255,255,255,0.1) !important; color: #f1f5f9; }
 </style>
 </head>
 
@@ -312,27 +337,27 @@ hr, .divider, .separator {
 
   <div class="menu">
 
-    <button class="btnEmployees adminOnly" onclick="go('employees.html')">
+    <button class="btnEmployees adminOnly bg-purple" onclick="go('employees.html')">
       👥 Karty zaměstnance
     </button>
 
-    <button class="btnGenerator adminOnly" onclick="go('generator.html')">
+    <button class="btnGenerator adminOnly bg-orange" onclick="go('generator.html')">
       ⚙️ Generátor
     </button>
 
-    <button class="btnSchedule" onclick="go('schedule.html')">
+    <button class="btnSchedule bg-green" onclick="go('schedule.html')">
       📊 Směnový graf
     </button>
 
-    <button class="btnCalendar" onclick="go('date.html')">
+    <button class="btnCalendar bg-slate" onclick="go('date.html')">
       📅 Kalendář
     </button>
 
-    <button class="btnStats" onclick="go('stats.html')">
+    <button class="btnStats bg-cyan" onclick="go('stats.html')">
       📈 Statistiky
     </button>
 
-    <button class="logout" onclick="logout()">
+    <button class="logout bg-logout" onclick="logout()">
       Odhlásit
     </button>
 
