@@ -352,6 +352,56 @@ body::after {
     opacity: 0.95;
     display: inline-block;
 }
+.hero-section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding-top: 10px;
+}
+
+.logo-wrapper {
+    position: relative; /* Umožní nápisu vznášet se nad logem */
+    width: 320px; /* Šířka tvého loga */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.center-logo {
+    width: 100%;
+    height: auto;
+    /* MAGICKÝ ŘÁDEK: Odstraní černé pozadí z obrázku */
+    mix-blend-mode: screen; 
+    filter: brightness(1.2) drop-shadow(0 0 20px rgba(34, 197, 94, 0.4));
+    opacity: 0.9;
+}
+
+.logo-overlay {
+    position: absolute;
+    top: 50%; /* Vertikální střed */
+    left: 50%;
+    transform: translate(-50%, -50%); /* Přesný střed */
+    z-index: 10;
+    
+    /* Styl nápisu */
+    font-size: 42px !important;
+    font-weight: 300 !important;
+    letter-spacing: -1px;
+    margin: 0 !important;
+    white-space: nowrap; /* Aby se nápis nezalomil */
+    color: white !important;
+    text-shadow: 0 0 15px rgba(0,0,0,0.8); /* Stín, aby byl text čitelný přes logo */
+}
+
+.logo-overlay b {
+    font-weight: 800 !important;
+    color: #22c55e !important;
+}
+
+/* Zmenšení mezery pod celým tímto blokem */
+.hero-section {
+    margin-bottom: -20px !important;
+}
 </style>
 </head>
 
@@ -359,12 +409,10 @@ body::after {
 
 <div class="app">
 
-<div class="header-container">
-    <!-- NÁZEV ÚPLNĚ NAHOŘE -->
-    <h1 class="logo">Shift<b>Master</b></h1>
-    
-    <!-- MEGA LOGO POD NÁZVEM -->
-    <div class="main-logo-container">
+<div class="hero-section">
+    <div class="logo-wrapper">
+        <!-- Nápis teď bude absolutně pozicován přes logo -->
+        <h1 class="logo-overlay">Shift<b>Master</b></h1>
         <img src="pozadi.jpg" class="center-logo" alt="Škoda Logo">
     </div>
 </div>
