@@ -455,6 +455,57 @@ body::after {
 #menuCard {
     margin-top: 5px !important;
 }
+body {
+    background: radial-gradient(circle at 50% 25%, #064e3b 0%, #020617 80%) !important;
+    background-color: #020617 !important;
+    margin: 0; padding: 0; min-height: 100vh;
+}
+
+.header-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+    width: 100%;
+}
+
+/* NÁZEV SHIFTMASTER */
+.logo {
+    font-size: 42px !important;
+    font-weight: 300 !important;
+    margin: 0 0 5px 0 !important; /* Minimální mezera pod názvem */
+    color: white !important;
+    text-transform: none !important;
+    letter-spacing: -1px;
+}
+.logo b { font-weight: 800 !important; color: #22c55e !important; }
+
+/* LOGO ŠKODA - MAGICKÉ ODSTRANĚNÍ POZADÍ */
+.skoda-logo-box {
+    width: 280px; /* Pořádná velikost loga */
+    margin: 0 !important;
+    display: flex;
+    justify-content: center;
+}
+
+.skoda-img {
+    width: 100%;
+    height: auto;
+    /* Tento řádek zneviditelní černou barvu z obrázku: */
+    mix-blend-mode: screen; 
+    filter: brightness(1.1);
+}
+
+/* ZPRÁVA - PŘILEPENÁ K LOGU */
+.message-box {
+    margin: -10px auto 10px auto !important; /* Záporná mezera přitáhne zprávu k logu */
+    max-width: 400px;
+    padding: 10px 20px !important;
+    font-size: 15px !important;
+    color: #e2e8f0;
+    text-align: center;
+    background: transparent !important;
+}
 </style>
 </head>
 
@@ -462,20 +513,18 @@ body::after {
 
 <div class="app">
 
-<div class="hero-section">
-  <!-- Moderní čisté logo Škoda (SVG - nezabírá místo a je průhledné) -->
-  <svg class="skoda-svg" viewBox="0 0 100 100">
-    <circle cx="50" cy="50" r="48" fill="none" stroke="#22c55e" stroke-width="2""")/>>
-    <path d="M50 15 L35 45 L50 40 L65 45 Z" fill="#22c55e""")/>>
-    <path d="M50 45 L35 75 L50 70 L65 75 Z" fill="#22c55e""")/>>
-  </svg>
-  
-  <h1 class="logo-overlay">Shift<b>Master</b></h1>
-  <div class="skoda-text">ŠKODA</div>
-</div>
+<div class="header-section">
+    <!-- 1. Název aplikace úplně nahoře -->
+    <h1 class="logo">Shift<b>Master</b></h1>
 
-<!-- Hromadná zpráva - teď bude nalepená pod tím -->
-<div id="broadcastText" class="message-box"></div>
+    <!-- 2. Logo ŠKODA jako vizuální prvek pod názvem -->
+    <div class="skoda-logo-box">
+        <img src="pozadi.jpg" class="skoda-img" alt="Škoda">
+    </div>
+
+    <!-- 3. Hromadná zpráva (přilepená hned pod logo) -->
+    <div id="broadcastText" class="message-box"></div>
+</div>
 
 <div id="loading" class="card">
   Ověřuji přihlášení…
