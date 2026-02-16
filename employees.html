@@ -116,6 +116,33 @@ option[value="borrowed"] { background-color: #000000; color: white; }
 option[value="loaned"] { background-color: #15803d; color: white; }
 /* Zajistí, aby text v políčku byl vždy tučný a čitelný */
 select { font-weight: 900 !important; }
+.empRow {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background: rgba(15, 23, 42, 0.7) !important; /* Tmavé pozadí řádku */
+    padding: 12px 16px !important;
+    margin-bottom: 8px !important;
+    border-radius: 20px !important; /* Zaoblené rohy řádku */
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.empName {
+    font-weight: 800 !important;
+    font-size: 15px !important;
+    cursor: pointer !important;
+    text-align: left !important;
+    flex: 1 !important;
+}
+
+/* Úprava selectu v řádku - aby nebyl přes celou šířku a byl vpravo */
+.empRow select {
+    width: 130px !important;
+    margin-bottom: 0 !important;
+    padding: 8px !important;
+    font-size: 13px !important;
+    border-radius: 12px !important;
+}
 </style>
 </head>
 <script>
@@ -371,40 +398,39 @@ function paintStatusSelect(sel) {
 
 /* LIST */
 
-async function load(){
- list.innerHTML="";
- const snap = await getDocs(collection(db,"employees"));
+async function load() {
+  list.innerHTML = "";
+  const snap = await getDocs(collection(db, "employees"));
 
- snap.forEach(d=>{
-  const e=d.data();
-  const row=document.createElement("div");
-  row.className="empRow";
-  row.innerHTML = `
-   <div class="empName">${e.name} ${e.surname}</div>
-   <select>
-      <option value="work">V práci</option>
-      <option value="vacation">Dovolená</option>
-      <option value="paragraf">Paragraf</option>
-      <option value="sick">Nemoc</option>
-      <option value="shitmaking">Parťák</option>
-      <option value="borrowed">Půjčený</option>
-      <option value="loaned">Propůjčený</option>
-   </select>
-`;
+  snap.forEach(d => {
+    const e = d.data();
+    const row = document.createElement("div");
+    row.className = "empRow"; // Musí mít tuto třídu
+    row.innerHTML = `
+      <div class="empName">${e.name} ${e.surname}</div>
+      <select>
+        <option value="work">Práce</option>
+        <option value="vacation">Dovolená</option>
+        <option value="paragraf">Paragraf</option>
+        <option value="sick">Nemoc</option>
+        <option value="shitmaking">Parťák</option>
+        <option value="borrowed">Půjčený</option>
+        <option value="loaned">Propůjčený</option>
+      </select>
+    `;
 
-  row.querySelector(".empName").onclick=()=>edit(d.id);
-  const sel=row.querySelector("select");
-  sel.value=e.statusToday || "work";
-  paintStatusSelect(sel);
-  sel.onchange=ev=>{
-  paintStatusSelect(ev.target);
-  setDoc(doc(db,"employees",d.id),
-    {statusToday:ev.target.value},{merge:true});
-};
+    row.querySelector(".empName").onclick = () => edit(d.id);
+    const sel = row.querySelector("select");
+    sel.value = e.statusToday || "work";
+    paintStatusSelect(sel);
+    
+    sel.onchange = ev => {
+      paintStatusSelect(ev.target);
+      setDoc(doc(db, "employees", d.id), { statusToday: ev.target.value }, { merge: true });
+    };
 
-
-  list.appendChild(row);
- });
+    list.appendChild(row);
+  });
 }
 
 async function edit(id){
