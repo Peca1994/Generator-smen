@@ -81,37 +81,57 @@ label, p, span, h1, h2, h3, .empName {
     font-weight: 900 !important;
     text-shadow: 2px 2px 4px rgba(0,0,0,1) !important;
 }
-/* 1. SCHOVÁNÍ MODÁLNÍHO OKNA (Příprava pro přidávání zaměstnanců) */
+/* 1. OPRAVA VYSKAKOVACÍHO OKNA (MODALU) */
 .modal {
-    display: none;             /* Tohle schová ty inputy z hlavní plochy */
-    position: fixed; 
-    inset: 0; 
-    background: rgba(0, 0, 0, 0.85); /* Tmavé pozadí za vyskakovacím oknem */
-    z-index: 9999;
-    align-items: center; 
+    display: none; /* Schované, dokud neklikneš */
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8) !important; /* Ztmaví pozadí webu */
+    z-index: 10000;
+    align-items: center;
     justify-content: center;
 }
 
-/* 2. STYL PRO VYSKAKOVACÍ BOX (Ten musí mít pozadí, aby byl čitelný) */
+/* 2. VZHLED BOXU S FORMULÁŘEM */
 .modalBox {
-    background: #020617 !important; /* Tmavě modré/černé pozadí boxu */
+    background: #0f172a !important; /* Tmavé pevné pozadí, aby byl text vidět! */
     padding: 25px;
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    width: 90%;
-    max-width: 400px;
-    margin: auto;
+    width: 95%;
+    max-width: 450px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
     display: block !important;
 }
 
-/* 3. ÚPRAVA INPUTŮ UVNITŘ MODÁLU */
+/* 3. POLÍČKA VEDLE SEBE (Jméno a Příjmení) */
+/* Pokud máš v HTML políčka zabalená v divu, tohle je dá vedle sebe */
+.input-row, .modalBox .grid-2 {
+    display: flex;
+    gap: 10px;
+}
+
 .modalBox input, .modalBox select {
     background: white !important;
     color: black !important;
-    margin-bottom: 10px;
-    display: block;
-    width: 100%;
+    border-radius: 10px !important;
+    padding: 12px !important;
+    margin-bottom: 12px !important;
+    border: none !important;
+    font-weight: 700;
 }
+
+/* 4. TLAČÍTKA V MODÁLU */
+.modalBox button {
+    width: 100%;
+    padding: 15px !important;
+    border-radius: 12px !important;
+    font-weight: 800;
+    margin-top: 10px;
+}
+
+.save { background: #22c55e !important; color: white; }
+.close { background: #334155 !important; color: white; }
 </style>
 </head>
 
