@@ -84,14 +84,25 @@ select { font-weight: 900 !important; }
 </style>
 </head>
 <script>
-  // 1. OTEVŘENÍ A ZAVŘENÍ MODÁLU
+  // 1. BEZPEČNÉ OTEVŘENÍ MODÁLU
   function openNew() {
     const modal = document.getElementById('modal');
     if (modal) {
       modal.style.display = 'flex';
+      
+      // Vyčistíme políčka, jen pokud v HTML skutečně existují
+      const nameInp = document.getElementById('empName');
+      const emailInp = document.getElementById('empEmail');
+      if (nameInp) nameInp.value = '';
+      if (emailInp) emailInp.value = '';
+      
+      console.log("Modál úspěšně otevřen");
+    } else {
+      console.error("Chyba: Prvek s ID 'modal' nebyl v HTML nalezen!");
     }
   }
 
+  // 2. ZAVŘENÍ MODÁLU
   function closeModal() {
     const modal = document.getElementById('modal');
     if (modal) {
@@ -99,32 +110,25 @@ select { font-weight: 900 !important; }
     }
   }
 
-  // 2. BARVENÍ POLÍČKA "STAV DNES"
+  // 3. BARVENÍ POLÍČKA "STAV DNES"
   const s = document.getElementById('statusSelect');
   if (s) {
     const updateStatusColor = () => {
       const colors = ['bg-v-praci', 'bg-dovolena', 'bg-paragraf', 'bg-nemoc', 'bg-partak', 'bg-pujceny', 'bg-propujceny'];
       s.classList.remove(...colors);
-      s.classList.add('bg-' + s.value);
+      if (s.value) s.classList.add('bg-' + s.value);
     };
     s.addEventListener('change', updateStatusColor);
-    updateStatusColor(); // Spustí hned po načtení
+    updateStatusColor();
   }
 
-  // 3. PŘEPÍNÁNÍ POZIC (ČERVENÁ -> ZELENÁ)
-  // Tento kód zajistí, že po kliknutí na kartu pozice se změní barva
+  // 4. PŘEPÍNÁNÍ POZIC (ČERVENÁ -> ZELENÁ)
   document.addEventListener('click', function (e) {
-    // Najde nejbližší element s třídou skillItem nebo div v mřížce
     const card = e.target.closest('.skillItem') || e.target.closest('.grid > div');
-    
     if (card && card.closest('#modal')) {
       card.classList.toggle('active');
-      
-      // Pokud je uvnitř schovaný checkbox, zaškrtne ho pro Firebase
-      const checkbox = card.querySelector('input[type="checkbox"]');
-      if (checkbox) {
-        checkbox.checked = card.classList.contains('active');
-      }
+      const cb = card.querySelector('input[type="checkbox"]');
+      if (cb) cb.checked = card.classList.contains('active');
     }
   });
 </script>
