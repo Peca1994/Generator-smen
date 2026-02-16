@@ -129,6 +129,26 @@ body {
         background-attachment: scroll !important;
     }
 }
+body {
+    /* 'contain' zajistí, že logo uvidíš vždy celé, nic se neořízne */
+    background-size: contain !important;
+    
+    /* Posune logo do horní části (cca 10 % odshora), aby nebylo schované pod kartou */
+    background-position: center 10% !important;
+    
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+    background-color: #030712 !important; /* Tmavé pozadí vyplní zbytek displeje */
+}
+
+/* Speciální úprava pro mobily na výšku */
+@media (max-width: 480px) {
+    body {
+        /* Na mobilu logo trochu zvětšíme, ale pořád se nesmí oříznout */
+        background-size: 90% auto !important; 
+        background-position: center 5% !important;
+    }
+}
 </style>
 </head>
 
