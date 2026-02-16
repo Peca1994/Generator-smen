@@ -111,6 +111,40 @@ button { cursor: pointer; width: 100%; padding: 16px; border-radius: 14px; borde
     margin: 0 !important;
     order: -1; /* Posune checkbox na začátek řádku */
 }
+/* 1. SCHOVÁNÍ PŮVODNÍCH ČTVEREČKŮ (CHECKBOXŮ) */
+.grid input[type="checkbox"], .skillItem input[type="checkbox"] {
+    display: none !important;
+}
+
+/* 2. ZÁKLADNÍ VZHLED KARTY (ČERVENÁ - NEAKTIVNÍ) */
+.grid > div, .skillItem {
+    background: rgba(220, 38, 38, 0.2) !important; /* Jemná červená */
+    border: 1px solid rgba(220, 38, 38, 0.5) !important;
+    color: white !important;
+    padding: 12px !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    text-align: center !important; /* Text bude na střed karty */
+    font-weight: 800 !important;
+    font-size: 11px !important;
+    transition: 0.2s all;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* 3. AKTIVNÍ STAV (ZELENÁ - PO KLIKNUTÍ) */
+/* Tato třída 'active' se přidá pomocí JavaScriptu */
+.grid > div.active, .skillItem.active, .grid > div.selected {
+    background: rgba(22, 163, 74, 0.6) !important; /* Škoda zelená */
+    border: 1px solid #22c55e !important;
+    transform: scale(0.98); /* Efekt zmáčknutí */
+}
+
+/* Efekt při najetí myší */
+.grid > div:hover {
+    filter: brightness(1.2);
+}
 </style>
 </head>
 
