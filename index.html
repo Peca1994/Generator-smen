@@ -200,6 +200,27 @@ hr, .divider, .separator {
 [class*="card"] {
     box-shadow: none !important;
 }
+#menuCard {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* 2. Pokud chceš, aby celá ta velká plocha byla průhlednější, upravíme hlavní kartu */
+.card {
+    background: rgba(17, 24, 39, 0.4) !important; /* Číslo 0.4 znamená 40% průhlednost */
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 3. Odstranění té čáry nad nápisem Role */
+.roleTag {
+    border-top: none !important;
+    margin-top: 10px !important;
+    padding-top: 0 !important;
+}
 </style>
 </head>
 
