@@ -86,36 +86,31 @@ select { font-weight: 900 !important; }
 <script>
   // 1. BEZPEČNÉ OTEVŘENÍ MODÁLU
   function openNew() {
-    const m = document.getElementById('modal');
-    if (m) {
-        m.style.display = 'flex';
-        console.log("Kliknuto a otevírám!");
+    const modal = document.getElementById('modal');
+    if (modal) {
+      modal.style.display = 'flex'; // Nejdřív okno otevřeme
+      
+      // Vyčistíme políčka pouze pokud v HTML skutečně jsou
+      const inputs = ['empName', 'empEmail', 'empPhone', 'note'];
+      inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = ''; // Pokud prvek s tímto ID neexistuje, skript to prostě přeskočí
+      });
+      
+      console.log("Modál úspěšně otevřen bez chyb.");
     } else {
-        alert("Chyba: V HTML chybí prvek s id='modal'!");
+      console.error("Chyba: Prvek s ID 'modal' nebyl v HTML nalezen!");
+      alert("Chyba: V kódu chybí id='modal' u vyskakovacího okna.");
     }
-}
+  }
 
   // 2. ZAVŘENÍ MODÁLU
   function closeModal() {
     const modal = document.getElementById('modal');
-    if (modal) {
-      modal.style.display = 'none';
-    }
+    if (modal) modal.style.display = 'none';
   }
 
-  // 3. BARVENÍ POLÍČKA "STAV DNES"
-  const s = document.getElementById('statusSelect');
-  if (s) {
-    const updateStatusColor = () => {
-      const colors = ['bg-v-praci', 'bg-dovolena', 'bg-paragraf', 'bg-nemoc', 'bg-partak', 'bg-pujceny', 'bg-propujceny'];
-      s.classList.remove(...colors);
-      if (s.value) s.classList.add('bg-' + s.value);
-    };
-    s.addEventListener('change', updateStatusColor);
-    updateStatusColor();
-  }
-
-  // 4. PŘEPÍNÁNÍ POZIC (ČERVENÁ -> ZELENÁ)
+  // 3. PŘEPÍNÁNÍ POZIC (ČERVENÁ -> ZELENÁ)
   document.addEventListener('click', function (e) {
     const card = e.target.closest('.skillItem') || e.target.closest('.grid > div');
     if (card && card.closest('#modal')) {
@@ -124,6 +119,18 @@ select { font-weight: 900 !important; }
       if (cb) cb.checked = card.classList.contains('active');
     }
   });
+
+  // 4. BARVENÍ STAVU DNES
+  const s = document.getElementById('statusSelect');
+  if (s) {
+    const update = () => {
+      const colors = ['bg-v-praci', 'bg-dovolena', 'bg-paragraf', 'bg-nemoc', 'bg-partak', 'bg-pujceny', 'bg-propujceny'];
+      s.classList.remove(...colors);
+      if (s.value) s.classList.add('bg-' + s.value);
+    };
+    s.addEventListener('change', update);
+    update();
+  }
 </script>
 <body>
 
