@@ -91,7 +91,19 @@ if (statusSelect) {
     updateColor();
 }
 </script>
-
+<script>
+const s = document.getElementById('statusSelect');
+if (s) {
+    const update = () => {
+        // Seznam barevných tříd z našeho CSS
+        const colors = ['bg-v-praci', 'bg-dovolena', 'bg-paragraf', 'bg-nemoc', 'bg-partak', 'bg-pujceny', 'bg-propujceny'];
+        s.classList.remove(...colors);
+        s.classList.add('bg-' + s.value);
+    };
+    s.addEventListener('change', update);
+    update(); // Spustí barvu i při načtení uloženého stavu z Firebase
+}
+</script>
 <body>
 
 <div class="topbar">
