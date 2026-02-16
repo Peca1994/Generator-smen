@@ -76,6 +76,27 @@ input, select, textarea {
 /* 8. MODAL */
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; z-index: 1000; }
 .modalBox { background: #020617 !important; border: 1px solid rgba(255,255,255,0.2) !important; margin: 20px; padding: 20px; border-radius: 20px; }
+.container, .app, main {
+    display: flex !important;
+    flex-direction: column !important; /* Řadí prvky pod sebe */
+    gap: 15px !important;            /* Vytvoří stejnoměrnou mezeru mezi kartami */
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding-top: 20px !important;
+}
+
+/* Sjednocení všech karet a tlačítek, aby měly odstup */
+.card, .empRow, button, .mainBtn {
+    position: relative !important;   /* Zruší případné překrývání z absolutní pozice */
+    margin: 0 !important;            /* Odsazení řeší "gap" výše */
+    width: 100% !important;          /* Aby byly všechny stejně široké */
+    max-width: 400px !important;
+}
+
+/* Pokud je logo v pozadí příliš vysoko, posuneme obsah níž */
+body {
+    padding-top: 60px !important; 
+}
 </style>
 </head>
 
