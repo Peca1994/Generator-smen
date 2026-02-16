@@ -239,29 +239,31 @@ hr, .divider, .separator {
     display: block !important;
     text-align: center;
     font-family: -apple-system, sans-serif !important;
-    font-size: 46px !important;
+    font-size: 48px !important; /* Na PC pořádná velikost */
     font-weight: 300 !important;
-    letter-spacing: -1.5px;
-    margin: 15px 0 0 0 !important;
+    letter-spacing: -1px;
+    margin: 10px 0 0 0 !important;
     text-transform: none !important;
     
-    /* ZÁKLADNÍ BARVA (Pojistka, aby nezmizel) */
+    /* --- BARVA A MATNÝ OKRAJ PRO "Shift" --- */
     color: #ffffff !important;
-    
-    /* MATNÁ ZÁŘE NA OKRAJÍCH */
-    text-shadow: 0 0 10px rgba(34, 197, 94, 0.4), 
-                 0 0 20px rgba(34, 197, 94, 0.2) !important;
-    
-    /* Jemný zelený nádech v písmu */
-    background: linear-gradient(to bottom, #ffffff 40%, #4ade80 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    text-shadow: 
+        0 0 10px rgba(255, 255, 255, 0.2), /* Jemná bílá záře */
+        0 0 20px rgba(34, 197, 94, 0.2) !important; /* První nádech zelené */
 }
 
 .logo b {
     font-weight: 800 !important;
-    color: #22c55e !important;
-    -webkit-text-fill-color: #22c55e !important; /* Pro Master vynutíme barvu */
+    /* --- BARVA A MATNÝ OKRAJ PRO "Master" --- */
+    color: #22c55e !important; /* Sytá Škoda zelená */
+    text-shadow: 
+        0 0 12px rgba(34, 197, 94, 0.6), /* Sytější zelená záře */
+        0 0 25px rgba(34, 197, 94, 0.3) !important; /* Rozpitý matný okraj */
+}
+
+/* Na mobilu to trochu zmenšíme, aby to nebylo přes celý displej */
+@media (max-width: 480px) {
+    .logo { font-size: 38px !important; }
 }
 
 .main-logo-container {
