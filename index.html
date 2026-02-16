@@ -224,13 +224,21 @@ hr, .divider, .separator {
 .logo {
     display: block !important;
     text-align: center;
-    font-size: 48px !important;
-    font-weight: 900 !important;
-    color: white !important; /* Bílá barva, která vždy funguje */
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin: 30px 0 !important;
-    text-shadow: 2px 2px 10px rgba(0,0,0,0.8) !important;
+    /* Použijeme moderní systémové písmo */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-size: 52px !important; /* Trochu větší, ale lehčí */
+    font-weight: 300 !important; /* První část bude elegantně tenká */
+    letter-spacing: -1.5px; /* Těsnější písmo působí moderněji */
+    margin: 40px 0 20px 0 !important;
+    color: #f8fafc !important;
+    text-transform: none !important; /* Zruší velká písmena */
+}
+
+/* Uděláme druhou část názvu tučnou pro šmrnc */
+.logo b {
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    letter-spacing: -1px;
 }
 
 /* Smazání podnadpisu (pokud tam zůstal nějaký element) */
