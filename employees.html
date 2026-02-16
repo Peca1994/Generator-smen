@@ -121,14 +121,14 @@ if (statusSelect) {
     <div id="skillsBox" class="skills"></div>
 
     <h4>Stav dnes</h4>
-    <select id="status">
-  <option value="work">V práci</option>
-  <option value="vacation">Dovolená</option>
+   <select id="statusSelect">
+  <option value="v-praci">V práci</option>
+  <option value="dovolena">Dovolená</option>
   <option value="paragraf">Paragraf</option>
-  <option value="sick">Nemoc</option>
-  <option value="shitmaking">Parťák</option>
-  <option value="borrowed">Půjčený</option>
-  <option value="loaned">Propůjčený</option>
+  <option value="nemoc">Nemoc</option>
+  <option value="partak">Parťák</option>
+  <option value="pujceny">Půjčený</option>
+  <option value="propujceny">Propůjčený</option>
 </select>
 
 
@@ -332,14 +332,14 @@ async function load(){
   row.className="empRow";
   row.innerHTML=`
    <div class="empName">${e.name} ${e.surname}</div>
-   <select>
-  <option value="work">Práce</option>
-  <option value="vacation">Dovolená</option>
+   <select id="statusSelect">
+  <option value="v-praci">V práci</option>
+  <option value="dovolena">Dovolená</option>
   <option value="paragraf">Paragraf</option>
-  <option value="sick">Nemoc</option>
-  <option value="shitmaking">Parťák</option>
-  <option value="borrowed">Půjčený</option>
-  <option value="loaned">Propůjčený</option>
+  <option value="nemoc">Nemoc</option>
+  <option value="partak">Parťák</option>
+  <option value="pujceny">Půjčený</option>
+  <option value="propujceny">Propůjčený</option>
 </select>
 `;
 
