@@ -670,17 +670,23 @@ body::after { display: none !important; }
 /* Úprava mezer u nápisu nahoře */
 .logo { margin-bottom: 0 !important; }
 .disclaimer {
-    position: fixed;
-    bottom: 8px;
-    right: 12px;
+    position: relative; /* Změna z fixed na relative, aby netvořil prázdné místo pod sebou */
+    margin-top: 20px;
+    padding: 10px 20px;
     font-size: 9px;
-    color: rgba(255, 255, 255, 0.3); /* Velmi nenápadné, aby to nerušilo */
-    text-align: right;
+    color: rgba(255, 255, 255, 0.3); /* Decentní šedá */
+    text-align: left; /* Zarovnání doleva */
     font-family: sans-serif;
-    pointer-events: none; /* Kliknutí projdou skrz na tlačítka pod tím */
-    z-index: 100;
-    max-width: 200px;
-    line-height: 1.2;
+    line-height: 1.3;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Oprava pro body, aby se netvořil scrollbar dolů */
+body {
+    overflow-x: hidden; /* Zabrání scrollování do stran */
+    height: auto;
+    min-height: 100vh;
 }
 
 /* Na mobilu to vycentrujeme, aby to nevypadalo utrženě */
