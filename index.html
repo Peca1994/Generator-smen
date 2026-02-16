@@ -227,25 +227,34 @@ hr, .divider, .separator {
     display: block !important;
     text-align: center;
     font-family: sans-serif !important;
-    font-size: 46px !important; /* Mírně zmenšeno pro mobil */
+    font-size: 44px !important;
     font-weight: 300 !important;
-    letter-spacing: -1.5px;
-    margin: 20px 0 5px 0 !important; /* Výrazně menší mezera pod logem */
-    
-    /* Fix pro mizející text - gradient aplikujeme na celek */
-    background: linear-gradient(120deg, #ffffff 30%, #4ade80 70%, #ffffff 90%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: white; /* Pojistka */
+    letter-spacing: -1px;
+    margin: 20px 0 5px 0 !important;
+    color: white !important; /* Základní barva, aby nápis nezmizel */
+    text-transform: none !important; /* Zruší velká písmena */
 }
 
+/* Master bude tučný a zelený */
 .logo b {
     font-weight: 800 !important;
+    color: #22c55e !important; /* Krásná zelená Škoda */
 }
 
-/* Zmenšení mezery u hromadné zprávy */
+/* HROMADNÁ ZPRÁVA - OPRAVENÁ VERZE */
 .message-box {
-    margin: 0 auto 20px auto !important; /* Přitáhneme zprávu blíž k logu */
+    margin: 10px auto 30px auto !important;
+    max-width: 400px;
+    padding: 15px 25px !important;
+    background: rgba(15, 23, 42, 0.7) !important;
+    border-radius: 20px !important;
+    border-left: 4px solid #22c55e !important; /* Zelený proužek */
+    color: #f1f5f9 !important;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+    text-align: center !important;
+    text-transform: none !important; /* ZRUŠÍ VELKÁ PÍSMENA VE ZPRÁVĚ */
+    font-weight: 400 !important;
 }
 
 /* Zobrazí se pouze, pokud v ní něco je */
