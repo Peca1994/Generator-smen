@@ -10,19 +10,19 @@
 body {
     margin: 0;
     padding: 0;
-    display: flex; /* Toto vrátí zarovnání na střed */
+    display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     color: white;
     font-family: sans-serif;
-    /* Opravený odkaz na logo a tmavé pozadí */
-    background-image: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('https://upload.wikimedia.org') !important;
-    background-size: 50% !important; /* Velikost loga uprostřed */
+    /* Použijeme tvůj nahraný soubor */
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('pozadi.jpg');
+    background-size: cover !important; /* Rozprostře se přes celou obrazovku */
     background-position: center !important;
     background-repeat: no-repeat !important;
     background-attachment: fixed !important;
-    background-color: #030712 !important; /* Velmi tmavá barva pozadí */
+    background-color: #030712 !important;
 }
 
 .app{ width:100%; max-width:420px; padding:20px; }
