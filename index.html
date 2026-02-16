@@ -444,11 +444,11 @@ onAuthStateChanged(auth, async user => {
   
   // SEM vložíš ten nový kód (místo původních řádků 444-465):
   if (user) {
-    const authCard = document.getElementById("authCard");
-    const menuCard = document.getElementById("menuCard");
-
-    if (authCard) authCard.classList.add("hidden");
-    if (menuCard) menuCard.classList.remove("hidden");
+     if (authCard) authCard.style.display = "none";
+    if (menuCard) {
+        menuCard.style.display = "block";
+        menuCard.classList.remove("hidden");
+    }
 
     const snap = await getDoc(doc(db, "users", user.uid));
     const role = snap.data()?.role || "user";
