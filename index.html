@@ -25,11 +25,11 @@ body {
     background-color: #030712 !important;
 }
 
-.app {
-    background: transparent !important; /* Odstraní černé pozadí pod kartami */
-    width: 100%;
-    max-width: 420px;
-    margin: 0 auto;
+.app div:not(.card) {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
 }
 
 .logo{
@@ -45,11 +45,9 @@ body {
 }
 
 .card {
-    background: rgba(17, 24, 39, 0.8) !important; /* Průhledná tmavá */
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,.35);
+    background: rgba(17, 24, 39, 0.4) !important; /* Hodně průhledná */
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
 }
 
 
@@ -155,7 +153,11 @@ input{
     position: relative;
     z-index: 2; /* Aby text nezanikl pod filtrem */
 }
-
+ main, section, article, .app div:not(.card) {
+      background: transparent !important;
+      background-color: transparent !important;
+      box-shadow: none !important;
+  }
 </style>
 </head>
 
