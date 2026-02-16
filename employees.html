@@ -66,6 +66,21 @@ label, h1, h2, h3 { color: white !important; font-weight: 900; text-shadow: 2px 
 
 /* Zajistí, aby text v políčku byl vždy tučný a čitelný */
 select { font-weight: 900 !important; }
+.addBtn, .btn-success, .menuBtn, button {
+    position: relative !important;
+    z-index: 999 !important; /* Vyšvihne tlačítka nad případné neviditelné vrstvy */
+    pointer-events: auto !important; /* Vynutí reakci na kliknutí */
+    cursor: pointer !important;
+}
+
+/* Zajištění, aby kontejner nebyl "přes" tlačítka */
+.container, .app {
+    pointer-events: none; /* Kontejner samotný neblokuje kliky */
+}
+
+.container *, .app * {
+    pointer-events: auto; /* Ale všechno uvnitř něj (tlačítka) ano */
+}
 </style>
 </head>
 <script>
