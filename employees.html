@@ -84,40 +84,49 @@ select { font-weight: 900 !important; }
 </style>
 </head>
 <script>
-// Funkce pro automatické barvení políčka podle vybraného stavu
-const statusSelect = document.querySelector('select'); // vybere tvůj seznam
-
-if (statusSelect) {
-    function updateColor() {
-        // Seznam všech možných barevných tříd
-        const colors = ['bg-v-praci', 'bg-dovolena', 'bg-paragraf', 'bg-nemoc', 'bg-partak', 'bg-pujceny', 'bg-propujceny'];
-        
-        // Odstraní předchozí barvu
-        statusSelect.classList.remove(...colors);
-        
-        // Získá hodnotu a převede ji na název třídy (např. "V práci" -> "v-praci")
-        // POZOR: value v HTML musí odpovídat názvům (v-praci, dovolena, atd.)
-        const val = statusSelect.value.toLowerCase().replace(/\s+/g, '-');
-        statusSelect.classList.add('bg-' + val);
+  // 1. OTEVŘENÍ A ZAVŘENÍ MODÁLU
+  function openNew() {
+    const modal = document.getElementById('modal');
+    if (modal) {
+      modal.style.display = 'flex';
     }
+  }
 
-    // Spustí se při změně a i hned po načtení
-    statusSelect.addEventListener('change', updateColor);
-    updateColor();
-}
-</script>
-<script>
-const s = document.getElementById('statusSelect');
-if (s) {
-    const update = () => {
-        // Seznam barevných tříd z našeho CSS
-        const colors = ['bg-v-praci', 'bg-dovolena', 'bg-paragraf', 'bg-nemoc', 'bg-partak', 'bg-pujceny', 'bg-propujceny'];
-        s.classList.remove(...colors);
-        s.classList.add('bg-' + s.value);
+  function closeModal() {
+    const modal = document.getElementById('modal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
+
+  // 2. BARVENÍ POLÍČKA "STAV DNES"
+  const s = document.getElementById('statusSelect');
+  if (s) {
+    const updateStatusColor = () => {
+      const colors = ['bg-v-praci', 'bg-dovolena', 'bg-paragraf', 'bg-nemoc', 'bg-partak', 'bg-pujceny', 'bg-propujceny'];
+      s.classList.remove(...colors);
+      s.classList.add('bg-' + s.value);
     };
-    s.addEventListener('change', update);
-    update(); // Spustí barvu i při načtení uloženého stavu z Firebase
-}
+    s.addEventListener('change', updateStatusColor);
+    updateStatusColor(); // Spustí hned po načtení
+  }
+
+  // 3. PŘEPÍNÁNÍ POZIC (ČERVENÁ -> ZELENÁ)
+  // Tento kód zajistí, že po kliknutí na kartu pozice se změní barva
+  document.addEventListener('click', function (e) {
+    // Najde nejbližší element s třídou skillItem nebo div v mřížce
+    const card = e.target.closest('.skillItem') || e.target.closest('.grid > div');
+    
+    if (card && card.closest('#modal')) {
+      card.classList.toggle('active');
+      
+      // Pokud je uvnitř schovaný checkbox, zaškrtne ho pro Firebase
+      const checkbox = card.querySelector('input[type="checkbox"]');
+      if (checkbox) {
+        checkbox.checked = card.classList.contains('active');
+      }
+    }
+  });
 </script>
 <body>
 
