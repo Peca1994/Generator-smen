@@ -191,38 +191,51 @@ input, select, textarea {
 .card {
     margin-top: 20px !important;
 }
-.container, main, .app, .card {
-    background: rgba(0, 0, 0, 0.4) !important; /* Velmi jemná průhledná černá */
-    backdrop-filter: none !important;           /* Vypne to rozmazání loga */
-    -webkit-backdrop-filter: none !important;    /* Vypne rozmazání pro iPhony */
-    border: 1px solid rgba(255, 255, 255, 0.15) !important; /* Tenká linka kolem celé karty */
-    border-radius: 20px !important;
-    box-shadow: none !important;
+body, div, span, p, label, summary, h1, h2, h3, h4, .card-header {
+    color: white !important;
+    font-weight: 800 !important;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8); /* Stín pod textem, aby zářil */
 }
 
-/* 2. TOTÁLNÍ SMAZÁNÍ VNITŘNÍCH OHRANIČENÍ A STÍNŮ */
-/* Tohle vyčistí ty "krabičky" uvnitř (Datum, Směna, Náhradníci) */
-.container *, .card *, section, details, summary, fieldset {
+/* 2. ODSTRANĚNÍ VNITŘNÍCH ČAR A STÍNŮ (u fieldsetů a details) */
+fieldset, details, summary, .card, .card-body, .card-header, section {
+    border: none !important;
     background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
     box-shadow: none !important;
-    outline: none !important;
+    margin: 0 !important;
+    padding: 10px 0 !important;
 }
 
-/* 3. ZACHOVÁNÍ VIDITELNOSTI TLAČÍTEK A POLÍČEK */
-/* Aby ti nezmizela barva u oranžového tlačítka "Generovat" a dalších */
-button, .btn, .mainBtn, .btn-warning, .btn-primary, .btn-success {
-    background-color: initial !important; /* Vrátí tlačítkům jejich barvy */
-    border-radius: 10px !important;
+/* 3. HLAVNÍ KONTEJNER (Jemný filtr přes logo) */
+.container, main, .app {
+    background: rgba(0, 0, 0, 0.3) !important; /* Velmi lehké ztmavení loga */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 20px;
+    padding: 20px !important;
+    margin: 20px auto !important;
+    max-width: 420px !important;
+}
+
+/* 4. FORMULÁŘE - Bílá políčka musí zůstat vidět */
+input, select {
+    background: white !important;
+    color: black !important; /* Text uvnitř políček musí být černý */
+    border-radius: 8px !important;
+    padding: 12px !important;
+    margin-top: 5px !important;
+    margin-bottom: 15px !important;
+    width: 100% !important;
+    display: block !important;
     border: none !important;
 }
 
-/* 4. ÚPRAVA INPUTŮ (Bílá políčka) */
-input, select {
-    background: rgba(255, 255, 255, 0.9) !important;
-    border: 1px solid #ccc !important;
-    color: black !important;
+/* 5. TLAČÍTKA - Vrácení jejich barev */
+button, .btn, .mainBtn {
+    padding: 12px !important;
+    border-radius: 10px !important;
+    font-weight: 900 !important;
+    text-transform: uppercase;
+    cursor: pointer;
 }
 </style>
 </head>
