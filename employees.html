@@ -145,6 +145,27 @@ button { cursor: pointer; width: 100%; padding: 16px; border-radius: 14px; borde
 .grid > div:hover {
     filter: brightness(1.2);
 }
+/* VYNUCENÍ DVOU SLOUPCŮ PRO ČERVENÉ KARTY */
+.skills, .grid, [class*="grid"], .modalBox div[style*="grid"] {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important; /* Dva stejně široké sloupce */
+    gap: 10px !important;                      /* Mezera mezi kartami */
+    width: 100% !important;
+    margin-top: 15px !important;
+}
+
+/* ÚPRAVA VELIKOSTI KARET PRO DVA SLOUPCE */
+.grid > div, .skillItem {
+    min-height: 45px !important;               /* Trošku vyšší pro lepší klikání prstem */
+    padding: 8px !important;
+    font-size: 10px !important;                 /* Menší písmo, aby se tam dlouhé názvy vešly */
+    word-break: break-word !important;          /* Pokud je slovo moc dlouhé, zalomí se */
+}
+
+/* Aby Jméno a Příjmení nahoře zůstala pod sebou (pokud by se taky zvrhla do mřížky) */
+.modalBox input {
+    grid-column: span 2; 
+}
 </style>
 </head>
 
