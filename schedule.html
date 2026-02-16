@@ -144,6 +144,27 @@ body {
 }
 
 .roleTag { color: #22c55e !important; font-weight: bold !important; }
+body {
+    display: block !important; 
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('pozadi.jpg') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-attachment: fixed !important;
+}
+
+/* 2. Zajištění, aby hlavní obsah byl uprostřed, ale menu nahoře */
+.container, main, .app {
+    margin: 20px auto !important;
+    max-width: 420px;
+}
+
+/* 3. Průhlednost karet (aby bylo vidět logo Škoda) */
+.card, [class*="card"] {
+    background: rgba(17, 24, 39, 0.5) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
 </style>
 </head>
 
