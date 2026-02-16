@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zaměstnanci</title>
-
+<title>Zaměstnanci - Škoda</title>
 <style>
-/* 1. GLOBÁLNÍ RESET A OSTRÉ POZADÍ */
+/* 1. GLOBÁLNÍ RESET A POZADÍ */
 body {
     margin: 0; padding: 0; display: block !important; min-height: 100vh;
     color: white; font-family: sans-serif;
@@ -18,37 +17,35 @@ body {
 
 /* 2. TOPBAR A KONTEJNERY */
 .topbar { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: transparent !important; }
-.container, .app, main { max-width: 420px; margin: 40px auto !important; padding: 16px; background: transparent !important; border: none !important; }
+.container { max-width: 420px; margin: 40px auto !important; padding: 16px; pointer-events: none; }
+.container * { pointer-events: auto; }
 
 /* 3. MODÁL A MŘÍŽKA POZIC */
 .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85) !important; z-index: 10000; overflow-y: auto !important; align-items: flex-start; justify-content: center; padding: 20px 10px; }
 .modalBox { background: #0f172a !important; padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); width: 100%; max-width: 450px; margin: 40px auto !important; box-shadow: 0 20px 50px #000; }
 
-.skills, .grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; margin-top: 15px !important; }
+.skills { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; margin-top: 15px !important; }
 
-/* Červené karty pozic */
-.grid > div, .skillItem {
+.skillItem {
     background: rgba(220, 38, 38, 0.2) !important; border: 1px solid rgba(220, 38, 38, 0.5) !important;
     padding: 10px !important; border-radius: 10px !important; cursor: pointer; text-align: center;
     font-weight: 800; font-size: 10px; display: flex !important; align-items: center; justify-content: center; min-height: 45px;
 }
-.skillItem.active, .grid > div.active { background: rgba(22, 163, 74, 0.6) !important; border: 1px solid #22c55e !important; }
-.grid input[type="checkbox"] { display: none !important; }
+.skillItem.active { background: rgba(22, 163, 74, 0.6) !important; border: 1px solid #22c55e !important; }
+.skillItem input { display: none !important; }
 
-/* 4. FORMULÁŘOVÁ POLE */
-input, select, textarea {
-    width: 100%; padding: 12px; border-radius: 10px; border: none !important;
-    margin-bottom: 12px; background: white !important; color: black !important; font-weight: 700; box-sizing: border-box !important;
-}
-textarea { min-height: 50px; resize: none; }
-label, h1, h2, h3 { color: white !important; font-weight: 900; text-shadow: 2px 2px 4px #000; }
+/* 4. FORMULÁŘE */
+input, select, textarea { width: 100%; padding: 12px; border-radius: 10px; border: none !important; margin-bottom: 12px; background: white !important; color: black !important; font-weight: 700; box-sizing: border-box !important; }
+textarea { min-height: 60px; resize: none; }
+h3, h4 { color: white !important; font-weight: 900; text-shadow: 2px 2px 4px #000; margin: 15px 0 5px 0; }
 
 /* 5. TLAČÍTKA */
-.addBtn, .btn-success, .save { background: #22c55e !important; color: white !important; cursor: pointer; width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 800; margin-top: 10px; }
-.close { background: #334155 !important; }
+.addBtn, .save { background: #22c55e !important; color: white !important; cursor: pointer; width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 800; margin-top: 10px; }
+.delete { background: #ef4444 !important; color: white; width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 800; margin-top: 10px; cursor: pointer; }
+.close { background: #334155 !important; color: white; width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 800; margin-top: 10px; cursor: pointer; }
 .menuBtn { padding: 8px 14px; border-radius: 10px; border: none; font-weight: 800; background: rgba(51, 65, 85, 0.8); color: white; cursor: pointer; }
 
-/* 6. BAREVNÉ STAVY PRO CELÉ POLE SELECT */
+/* 6. BAREVNÉ STAVY PRO SELECT */
 .bg-v-praci { background-color: #16a34a !important; color: white !important; }
 .bg-dovolena { background-color: #f59e0b !important; color: black !important; }
 .bg-paragraf { background-color: #a855f7 !important; color: white !important; }
@@ -56,385 +53,214 @@ label, h1, h2, h3 { color: white !important; font-weight: 900; text-shadow: 2px 
 .bg-partak { background-color: #ffffff !important; color: black !important; }
 .bg-pujceny { background-color: #000000 !important; color: white !important; border: 1px solid white !important; }
 .bg-propujceny { background-color: #2563eb !important; color: white !important; }
-.bg-v-praci { background-color: #22c55e !important; color: white !important; }
-.bg-dovolena { background-color: #f59e0b !important; color: black !important; }
-.bg-paragraf { background-color: #a855f7 !important; color: white !important; }
-.bg-nemoc { background-color: #ef4444 !important; color: white !important; }
-.bg-partak { background-color: #ffffff !important; color: black !important; }
-.bg-pujceny { background-color: #000000 !important; color: white !important; border: 1px solid white !important; }
-.bg-propujceny { background-color: #3b82f6 !important; color: white !important; }
 
-/* Zajistí, aby text v políčku byl vždy tučný a čitelný */
-select { font-weight: 900 !important; }
-.addBtn, .btn-success, .menuBtn, button {
-    position: relative !important;
-    z-index: 999 !important; /* Vyšvihne tlačítka nad případné neviditelné vrstvy */
-    pointer-events: auto !important; /* Vynutí reakci na kliknutí */
-    cursor: pointer !important;
+/* 7. SEZNAM ZAMĚSTNANCŮ */
+.empRow { 
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(255, 255, 255, 0.05) !important; 
+    padding: 12px; margin-bottom: 8px; border-radius: 10px;
 }
-
-/* Zajištění, aby kontejner nebyl "přes" tlačítka */
-.container, .app {
-    pointer-events: none; /* Kontejner samotný neblokuje kliky */
-}
-
-.container *, .app * {
-    pointer-events: auto; /* Ale všechno uvnitř něj (tlačítka) ano */
-}
+.empName { font-weight: 800; text-shadow: 1px 1px 2px #000; cursor: pointer; }
+.empRow select { width: 140px !important; margin-bottom: 0; padding: 6px; font-size: 12px; }
 </style>
 </head>
-<script>
-  // 1. BEZPEČNÉ OTEVŘENÍ MODÁLU
-  function openNew() {
-    const modal = document.getElementById('modal');
-    if (modal) {
-      modal.style.display = 'flex'; // Nejdřív okno otevřeme
-      
-      // Vyčistíme políčka pouze pokud v HTML skutečně jsou
-      const inputs = ['empName', 'empEmail', 'empPhone', 'note'];
-      inputs.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = ''; // Pokud prvek s tímto ID neexistuje, skript to prostě přeskočí
-      });
-      
-      console.log("Modál úspěšně otevřen bez chyb.");
-    } else {
-      console.error("Chyba: Prvek s ID 'modal' nebyl v HTML nalezen!");
-      alert("Chyba: V kódu chybí id='modal' u vyskakovacího okna.");
-    }
-  }
-
-  // 2. ZAVŘENÍ MODÁLU
-  function closeModal() {
-    const modal = document.getElementById('modal');
-    if (modal) modal.style.display = 'none';
-  }
-
-  // 3. PŘEPÍNÁNÍ POZIC (ČERVENÁ -> ZELENÁ)
-  document.addEventListener('click', function (e) {
-    const card = e.target.closest('.skillItem') || e.target.closest('.grid > div');
-    if (card && card.closest('#modal')) {
-      card.classList.toggle('active');
-      const cb = card.querySelector('input[type="checkbox"]');
-      if (cb) cb.checked = card.classList.contains('active');
-    }
-  });
-
-  // 4. BARVENÍ STAVU DNES
-  const s = document.getElementById('statusSelect');
-  if (s) {
-    const update = () => {
-      const colors = ['bg-v-praci', 'bg-dovolena', 'bg-paragraf', 'bg-nemoc', 'bg-partak', 'bg-pujceny', 'bg-propujceny'];
-      s.classList.remove(...colors);
-      if (s.value) s.classList.add('bg-' + s.value);
-    };
-    s.addEventListener('change', update);
-    update();
-  }
-</script>
 <body>
 
 <div class="topbar">
-  <div class="topTitle">👥 Zaměstnanci</div>
-  <button class="menuBtn" onclick="location.href='index.html'">
-    Menu
-  </button>
+  <div style="font-weight:900; font-size:18px;">👥 Zaměstnanci</div>
+  <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
 </div>
 
 <div class="container">
-<button class="addBtn" onclick="openNew()">+ Přidat zaměstnance</button>
-<button class="addBtn" style="background:#0ea5e9" onclick="openBroadcast()">
-📢 Hromadná zpráva všem
-</button>
-<div id="list"></div>
+    <button class="addBtn" onclick="openNew()">+ Přidat zaměstnance</button>
+    <button class="addBtn" style="background:#0ea5e9" onclick="openBroadcast()">📢 Hromadná zpráva všem</button>
+    <div id="list" style="margin-top:20px;"></div>
 </div>
 
+<!-- MODÁL FORMULÁŘ -->
 <div id="modal" class="modal">
   <div class="modalBox">
-
     <input id="fName" placeholder="Jméno">
     <input id="lName" placeholder="Příjmení">
-    <input id="email" placeholder="Email zaměstnance">
+    <input id="email" placeholder="Email">
     <textarea id="info" placeholder="Poznámka"></textarea>
 
     <h4>Pozice</h4>
     <div id="skillsBox" class="skills"></div>
 
     <h4>Stav dnes</h4>
-   <select id="statusSelect">
-  <option value="v-praci">V práci</option>
-  <option value="dovolena">Dovolená</option>
-  <option value="paragraf">Paragraf</option>
-  <option value="nemoc">Nemoc</option>
-  <option value="partak">Parťák</option>
-  <option value="pujceny">Půjčený</option>
-  <option value="propujceny">Propůjčený</option>
-</select>
-
+    <select id="statusSelect">
+      <option value="v-praci">V práci</option>
+      <option value="dovolena">Dovolená</option>
+      <option value="paragraf">Paragraf</option>
+      <option value="nemoc">Nemoc</option>
+      <option value="partak">Parťák</option>
+      <option value="pujceny">Půjčený</option>
+      <option value="propujceny">Propůjčený</option>
+    </select>
 
     <button class="save" onclick="saveEmp()">Uložit</button>
     <button class="delete" onclick="deleteEmp()">Smazat</button>
     <button class="close" onclick="closeModal()">Zavřít</button>
-
   </div>
 </div>
-</div>
+
+<!-- MODÁL ZPRÁVA -->
 <div id="broadcastModal" class="modal">
   <div class="modalBox">
     <h3>📢 Hromadná zpráva</h3>
-    <textarea id="broadcastText" placeholder="Text pro všechny zaměstnance"></textarea>
-    <button class="save" onclick="saveBroadcast()">Uložit zprávu</button>
+    <textarea id="broadcastText" placeholder="Text pro všechny..."></textarea>
+    <button class="save" onclick="saveBroadcast()">Uložit pro všechny</button>
     <button class="close" onclick="closeBroadcast()">Zavřít</button>
   </div>
+</div>
+
 <script type="module">
+import { initializeApp } from "https://www.gstatic.com";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com";
+import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, getDoc } from "https://www.gstatic.com";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  doc,
-  setDoc,
-  deleteDoc,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-const app = initializeApp({
-apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+const firebaseConfig = {
+  apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
   authDomain: "generator-smen-9fba1.firebaseapp.com",
   projectId: "generator-smen-9fba1",
   storageBucket: "generator-smen-9fba1.firebasestorage.app",
   messagingSenderId: "541779211883",
-  appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
-  measurementId: "G-1HF3R93D92"
-});
+  appId: "1:541779211883:web:1d8578ec61b0f428a4632e"
+};
 
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* 🔒 musí být přihlášen */
-
-onAuthStateChanged(auth, u=>{
-  if(!u){
-    alert("Nejsi přihlášen");
-    location.href="index.html";
-  }
-});
-
-/* DOM */
-
 const modal = document.getElementById("modal");
-const skillsBox = document.getElementById("skillsBox");
 const list = document.getElementById("list");
-
 const fNameEl = document.getElementById("fName");
 const lNameEl = document.getElementById("lName");
 const emailEl = document.getElementById("email");
 const infoEl = document.getElementById("info");
-const statusEl = document.getElementById("status");
+const statusSelect = document.getElementById("statusSelect");
+const skillsBox = document.getElementById("skillsBox");
 const broadcastModal = document.getElementById("broadcastModal");
 const broadcastTextEl = document.getElementById("broadcastText");
 
-/* pozice */
+let editId = null;
 
+// Barvení Selectu
+function paintSelect(sel) {
+    const colors = ['bg-v-praci', 'bg-dovolena', 'bg-paragraf', 'bg-nemoc', 'bg-partak', 'bg-pujceny', 'bg-propujceny'];
+    sel.classList.remove(...colors);
+    sel.classList.add('bg-' + sel.value);
+}
+statusSelect.onchange = () => paintSelect(statusSelect);
+
+// Pozice
 const POSITIONS = [
-["DP-L","DOORPROTECTOR L"],["DP-P","DOORPROTECTOR P"],
-["ZRC-L","ZRCÁTKA L"],["ZRC-P","ZRCÁTKA P"],
-["T-L","TĚSNĚNÍ L"],["T-P","TĚSNĚNÍ P"],
-["AGR-LP","AGREGÁT LP"],["AGR-PP","AGREGÁT PP"],
-["AGR-PZ","AGREGÁT PZ"],["AGR-LZ","AGREGÁT LZ"],
-["MOT-L","MOTORY L"],["MOT-P","MOTORY P"],
-["LEP-LP","LEPENÍ LP"],["LEP-PP","LEPENÍ PP"],
-["LEP-Z","LEPENÍ Z"],
-["REPRO-L","REPRÁKY L"],["REPRO-P","REPRÁKY P"],
-["VYP1-L","VÝPLNĚ 1 L"],["VYP1-P","VÝPLNĚ 1 P"],
-["VYP2-L","VÝPLNĚ 2 L"],["VYP2-P","VÝPLNĚ 2 P"],
-["PR-L","PŘITAHOVAČ L"],["PR-P","PŘITAHOVAČ P"],
-["ZAM-L","ZÁMKY L"],["ZAM-P","ZÁMKY P"],
-["VET","VĚTRAČKY"],["VET2","VĚTRAČKY 2"],["INST","INSTALACE"],["INST2","INSTALACE 2"],
-["JINE","JINÝ ÚSEK"],["JINE2","JINÝ ÚSEK 2"],
-
+    ["DP-L","DOORPROTECTOR L"],["DP-P","DOORPROTECTOR P"],["ZRC-L","ZRCÁTKA L"],["ZRC-P","ZRCÁTKA P"],
+    ["T-L","TĚSNĚNÍ L"],["T-P","TĚSNĚNÍ P"],["AGR-LP","AGREGÁT LP"],["AGR-PP","AGREGÁT PP"],
+    ["AGR-PZ","AGREGÁT PZ"],["AGR-LZ","AGREGÁT LZ"],["MOT-L","MOTORY L"],["MOT-P","MOTORY P"],
+    ["LEP-LP","LEPENÍ LP"],["LEP-PP","LEPENÍ PP"],["LEP-Z","LEPENÍ Z"],["REPRO-L","REPRÁKY L"],
+    ["REPRO-P","REPRÁKY P"],["VYP1-L","VÝPLNĚ 1 L"],["VYP1-P","VÝPLNĚ 1 P"],["VYP2-L","VÝPLNĚ 2 L"],
+    ["VYP2-P","VÝPLNĚ 2 P"],["PR-L","PŘITAHOVAČ L"],["PR-P","PŘITAHOVAČ P"],["ZAM-L","ZÁMKY L"],
+    ["ZAM-P","ZÁMKY P"],["VET","VĚTRAČKY"],["VET2","VĚTRAČKY 2"],["INST","INSTALACE"],
+    ["INST2","INSTALACE 2"],["JINE","JINÝ ÚSEK"],["JINE2","JINÝ ÚSEK 2"]
 ];
 
-POSITIONS.forEach(p=>{
-  const div=document.createElement("div");
-  div.className="skillItem";
-  div.innerHTML=`<input type="checkbox" value="${p[0]}"> ${p[1]}`;
-  div.onclick=()=>{
-    const cb=div.querySelector("input");
-    cb.checked=!cb.checked;
-    div.classList.toggle("active",cb.checked);
-  };
-  skillsBox.appendChild(div);
+POSITIONS.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "skillItem";
+    div.innerHTML = `<input type="checkbox" value="${p[0]}"> ${p[1]}`;
+    div.onclick = () => {
+        const cb = div.querySelector("input");
+        cb.checked = !cb.checked;
+        div.classList.toggle("active", cb.checked);
+    };
+    skillsBox.appendChild(div);
 });
 
-let editId=null;
+// Auth
+onAuthStateChanged(auth, u => { if(!u) location.href="index.html"; });
 
-window.openNew=()=>{
-  editId=null;
-  fNameEl.value="";
-  lNameEl.value="";
-  emailEl.value="";
-  infoEl.value="";
-  statusEl.value="work";
-  skillsBox.querySelectorAll("input").forEach(c=>{
-    c.checked=false;
-    c.parentElement.classList.remove("active");
-  });
-  modal.style.display="block";
+// Funkce okna
+window.openNew = () => {
+    editId = null; fNameEl.value=""; lNameEl.value=""; emailEl.value=""; infoEl.value=""; statusSelect.value="v-praci";
+    skillsBox.querySelectorAll("input").forEach(c => { c.checked=false; c.parentElement.classList.remove("active"); });
+    modal.style.display="flex"; paintSelect(statusSelect);
+};
+window.closeModal = () => modal.style.display="none";
+window.openBroadcast = async () => {
+    const snap = await getDoc(doc(db,"config","global"));
+    broadcastTextEl.value = snap.data()?.broadcastMessage || "";
+    broadcastModal.style.display = "flex";
+};
+window.closeBroadcast = () => broadcastModal.style.display="none";
+
+// CRUD Operace
+window.saveEmp = async () => {
+    if(!fNameEl.value || !lNameEl.value) { alert("Vyplň jméno!"); return; }
+    const skills = [...skillsBox.querySelectorAll("input:checked")].map(x => x.value);
+    const id = editId || (fNameEl.value+"_"+lNameEl.value).toLowerCase().replace(/\s+/g,"_");
+    await setDoc(doc(db,"employees",id), {
+        name: fNameEl.value, surname: lNameEl.value, email: emailEl.value, info: infoEl.value, skills, statusToday: statusSelect.value
+    });
+    alert("Uloženo"); modal.style.display="none"; load();
 };
 
-window.closeModal=()=> modal.style.display="none";
-
-/* SAVE */
-
-window.saveEmp = async ()=>{
-
- try{
-
-  if(!fNameEl.value || !lNameEl.value){
-    alert("Vyplň jméno a příjmení");
-    return;
-  }
-
-  const skills=[...skillsBox.querySelectorAll("input:checked")]
-    .map(x=>x.value);
-
-  const id = editId || (fNameEl.value+"_"+lNameEl.value)
-    .toLowerCase().replace(/\s+/g,"_");
-
-  await setDoc(doc(db,"employees",id),{
-  name:fNameEl.value,
-  surname:lNameEl.value,
-  email:emailEl.value.toLowerCase().trim(),
-  info:infoEl.value,
-  skills,
-  statusToday:statusEl.value
-});
-
-
-  alert("Uloženo");
-  modal.style.display="none";
-  load();
-
- }catch(e){
-  alert("CHYBA: "+e.message);
-  console.error(e);
- }
-
+window.deleteEmp = async () => {
+    if(!editId || !confirm("Smazat?")) return;
+    await deleteDoc(doc(db,"employees",editId));
+    modal.style.display="none"; load();
 };
 
-/* DELETE */
-
-window.deleteEmp = async ()=>{
-
- if(!editId) return;
-
- const ok = confirm("Opravdu chceš smazat záznam zaměstnance?");
-
- if(!ok) return;
-
- await deleteDoc(doc(db,"employees",editId));
-
- alert("Smazáno");
- modal.style.display="none";
- load();
+window.saveBroadcast = async () => {
+    await setDoc(doc(db,"config","global"), { broadcastMessage: broadcastTextEl.value }, {merge:true});
+    alert("Odesláno"); broadcastModal.style.display="none";
 };
 
-function paintStatusSelect(sel){
-
- sel.classList.remove(
-  "status-work",
-  "status-vacation",
-  "status-sick",
-  "status-paragraf",
-  "status-shitmaking",
-  "status-borrowed",
-  "status-loaned"
- );
-
-
-  sel.classList.add("status-" + sel.value);
+async function load() {
+    list.innerHTML = "<div style='text-align:center;'>Načítám...</div>";
+    const snap = await getDocs(collection(db,"employees"));
+    list.innerHTML = "";
+    snap.forEach(d => {
+        const e = d.data();
+        const row = document.createElement("div");
+        row.className = "empRow";
+        row.innerHTML = `
+            <div class="empName">${e.name} ${e.surname}</div>
+            <select class="statusSelect">
+                <option value="v-praci">V práci</option>
+                <option value="dovolena">Dovolená</option>
+                <option value="paragraf">Paragraf</option>
+                <option value="nemoc">Nemoc</option>
+                <option value="partak">Parťák</option>
+                <option value="pujceny">Půjčený</option>
+                <option value="propujceny">Propůjčený</option>
+            </select>`;
+        const sel = row.querySelector("select");
+        sel.value = e.statusToday || "v-praci";
+        paintSelect(sel);
+        sel.onchange = async () => {
+            paintSelect(sel);
+            await setDoc(doc(db,"employees",d.id), {statusToday: sel.value}, {merge:true});
+        };
+        row.querySelector(".empName").onclick = () => edit(d.id);
+        list.appendChild(row);
+    });
 }
 
-/* LIST */
-
-async function load(){
- list.innerHTML="";
- const snap = await getDocs(collection(db,"employees"));
-
- snap.forEach(d=>{
-  const e=d.data();
-  const row=document.createElement("div");
-  row.className="empRow";
-  row.innerHTML=`
-   <div class="empName">${e.name} ${e.surname}</div>
-   <select id="statusSelect">
-  <option value="v-praci">V práci</option>
-  <option value="dovolena">Dovolená</option>
-  <option value="paragraf">Paragraf</option>
-  <option value="nemoc">Nemoc</option>
-  <option value="partak">Parťák</option>
-  <option value="pujceny">Půjčený</option>
-  <option value="propujceny">Propůjčený</option>
-</select>
-`;
-
-  row.querySelector(".empName").onclick=()=>edit(d.id);
-  const sel=row.querySelector("select");
-  sel.value=e.statusToday || "work";
-  paintStatusSelect(sel);
-  sel.onchange=ev=>{
-  paintStatusSelect(ev.target);
-  setDoc(doc(db,"employees",d.id),
-    {statusToday:ev.target.value},{merge:true});
-};
-
-
-  list.appendChild(row);
- });
-}
-
-async function edit(id){
- const snap=await getDoc(doc(db,"employees",id));
- const e=snap.data();
- editId=id;
- modal.style.display="block";
- fNameEl.value=e.name;
- lNameEl.value=e.surname;
- emailEl.value = e.email || "";
- infoEl.value=e.info;
- statusEl.value=e.statusToday||"work";
- skillsBox.querySelectorAll("input").forEach(c=>{
-   c.checked=e.skills?.includes(c.value);
-   c.parentElement.classList.toggle("active",c.checked);
- });
+async function edit(id) {
+    const snap = await getDoc(doc(db,"employees",id));
+    const e = snap.data();
+    editId = id;
+    fNameEl.value = e.name; lNameEl.value = e.surname; emailEl.value = e.email || ""; infoEl.value = e.info; statusSelect.value = e.statusToday || "v-praci";
+    skillsBox.querySelectorAll("input").forEach(c => {
+        c.checked = e.skills?.includes(c.value);
+        c.parentElement.classList.toggle("active", c.checked);
+    });
+    modal.style.display = "flex"; paintSelect(statusSelect);
 }
 
 load();
-
-window.openBroadcast = async ()=>{
-
- const snap = await getDoc(doc(db,"config","global"));
- broadcastTextEl.value = snap.data()?.broadcastMessage || "";
- broadcastModal.style.display = "block";
-};
-
-window.closeBroadcast = ()=> broadcastModal.style.display="none";
-
-window.saveBroadcast = async ()=>{
-
- await setDoc(doc(db,"config","global"),{
-   broadcastMessage: broadcastTextEl.value
- },{merge:true});
-
- alert("Uloženo pro všechny");
- broadcastModal.style.display="none";
-};
-
 </script>
 </body>
 </html>
