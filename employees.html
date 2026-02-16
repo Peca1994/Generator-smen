@@ -81,28 +81,36 @@ label, p, span, h1, h2, h3, .empName {
     font-weight: 900 !important;
     text-shadow: 2px 2px 4px rgba(0,0,0,1) !important;
 }
-/* OPRAVA ROZHÁZENÝCH OKEN (INPUTŮ) */
-input, select, textarea {
-    width: 100% !important;        /* Roztáhne je na celou šířku */
-    max-width: 100% !important;    /* Zabrání utíkání doleva */
-    box-sizing: border-box !important; 
-    display: block !important;     /* Každý bude na svém řádku */
-    margin: 10px 0 !important;     /* Mezera mezi nimi */
+/* 1. SCHOVÁNÍ MODÁLNÍHO OKNA (Příprava pro přidávání zaměstnanců) */
+.modal {
+    display: none;             /* Tohle schová ty inputy z hlavní plochy */
+    position: fixed; 
+    inset: 0; 
+    background: rgba(0, 0, 0, 0.85); /* Tmavé pozadí za vyskakovacím oknem */
+    z-index: 9999;
+    align-items: center; 
+    justify-content: center;
 }
 
-/* Sjednocení kontejneru pro zaměstnance */
-.empRow, .form-group, .container > div {
-    display: flex !important;
-    flex-direction: column !important; /* Všechno pod sebe */
-    align-items: center !important;
-    width: 100% !important;
+/* 2. STYL PRO VYSKAKOVACÍ BOX (Ten musí mít pozadí, aby byl čitelný) */
+.modalBox {
+    background: #020617 !important; /* Tmavě modré/černé pozadí boxu */
+    padding: 25px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 90%;
+    max-width: 400px;
+    margin: auto;
+    display: block !important;
 }
 
-/* Pokud jsou inputy v jednom řádku, tento kód je srovná */
-.skills, .grid-inputs {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 10px;
+/* 3. ÚPRAVA INPUTŮ UVNITŘ MODÁLU */
+.modalBox input, .modalBox select {
+    background: white !important;
+    color: black !important;
+    margin-bottom: 10px;
+    display: block;
+    width: 100%;
 }
 </style>
 </head>
