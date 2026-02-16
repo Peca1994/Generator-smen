@@ -184,6 +184,32 @@ textarea, .modalBox textarea {
     min-height: 50px !important; /* Můžeš nechat nižší, aby se tolik nelišila od jména */
     resize: none; /* Zamezí uživateli, aby ji ručně roztáhl a rozbil design */
 }
+/* BAREVNÉ ROZLIŠENÍ STAVŮ */
+
+/* V práci - Zelená */
+.status-v-praci, [value="v-praci"] { color: #22c55e !important; font-weight: 900; }
+
+/* Dovolená - Žlutá */
+.status-dovolena, [value="dovolena"] { color: #f59e0b !important; font-weight: 900; }
+
+/* Paragraf - Fialová */
+.status-paragraf, [value="paragraf"] { color: #a855f7 !important; font-weight: 900; }
+
+/* Nemoc - Červená */
+.status-nemoc, [value="nemoc"] { color: #ef4444 !important; font-weight: 900; }
+
+/* Parťák - Bílá */
+.status-partak, [value="partak"], [value="shit-making"] { color: #ffffff !important; font-weight: 900; }
+
+/* Půjčený - Černá (s bílým obrysem, aby byl vidět) */
+.status-pujceny, [value="pujceny"] { 
+    color: #000000 !important; 
+    font-weight: 900; 
+    text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff; 
+}
+
+/* Propůjčený - Modrá */
+.status-propujceny, [value="propujceny"] { color: #3b82f6 !important; font-weight: 900; }
 </style>
 </head>
 
@@ -221,7 +247,7 @@ textarea, .modalBox textarea {
   <option value="vacation">Dovolená</option>
   <option value="paragraf">Paragraf</option>
   <option value="sick">Nemoc</option>
-  <option value="shitmaking">Shit making</option>
+  <option value="shitmaking">Parťák</option>
   <option value="borrowed">Půjčený</option>
   <option value="loaned">Propůjčený</option>
 </select>
@@ -432,7 +458,7 @@ async function load(){
   <option value="vacation">Dovolená</option>
   <option value="paragraf">Paragraf</option>
   <option value="sick">Nemoc</option>
-  <option value="shitmaking">Shit making</option>
+  <option value="shitmaking">Parťák</option>
   <option value="borrowed">Půjčený</option>
   <option value="loaned">Propůjčený</option>
 </select>
