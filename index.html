@@ -276,9 +276,6 @@ hr, .divider, .separator {
     <h1 class="logo">Shift<b>Master</b></h1>
 </div>
 
-<div id="broadcastText" class="message-box"></div>
-
-<!-- LOADING GATE -->
 <div id="loading" class="card">
   Ověřuji přihlášení…
 </div>
@@ -303,8 +300,7 @@ hr, .divider, .separator {
 <!-- MENU -->
 <div id="menuCard" class="card hidden">
 <div class="roleTag" id="roleLabel"></div>
-<!-- HROMADNÁ ZPRÁVA -->
-  <div id="broadcastText" class="message-box"></div>
+ <div id="broadcastText" class="message-box"></div>
 
 <!-- MOJE POZNÁMKA -->
 <div id="myNoteCard" class="card hidden" style="margin-bottom:14px;">
@@ -444,11 +440,16 @@ onAuthStateChanged(auth, async user => {
   
   // SEM vložíš ten nový kód (místo původních řádků 444-465):
   if (user) {
-     if (authCard) {
-        authCard.style.setProperty("display", "none", "important");
-        authCard.style.visibility = "hidden";
-        authCard.classList.add("hidden");
-        authCard.innerHTML = ""; 
+     const loadingCard = document.getElementById("loading");
+    const menuCard = document.getElementById("menuCard");
+
+    if (loadingCard) {
+        loadingCard.style.setProperty("display", "none", "important");
+    }
+
+    if (menuCard) {
+        menuCard.style.setProperty("display", "block", "important");
+        menuCard.classList.remove("hidden");
     }
 
     if (menuCard) {
