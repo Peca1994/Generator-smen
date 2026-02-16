@@ -14,38 +14,20 @@ body {
     background-repeat: no-repeat !important; background-attachment: fixed !important;
     background-color: #030712 !important;
 }
-
-/* 2. TOPBAR A KONTEJNERY */
 .topbar { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: transparent !important; }
-.container { max-width: 420px; margin: 40px auto !important; padding: 16px; pointer-events: none; }
-.container * { pointer-events: auto; }
-
-/* 3. MODÁL A MŘÍŽKA POZIC */
+.container { max-width: 420px; margin: 40px auto !important; padding: 16px; }
 .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85) !important; z-index: 10000; overflow-y: auto !important; align-items: flex-start; justify-content: center; padding: 20px 10px; }
 .modalBox { background: #0f172a !important; padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); width: 100%; max-width: 450px; margin: 40px auto !important; box-shadow: 0 20px 50px #000; }
-
 .skills { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; margin-top: 15px !important; }
-
-.skillItem {
-    background: rgba(220, 38, 38, 0.2) !important; border: 1px solid rgba(220, 38, 38, 0.5) !important;
-    padding: 10px !important; border-radius: 10px !important; cursor: pointer; text-align: center;
-    font-weight: 800; font-size: 10px; display: flex !important; align-items: center; justify-content: center; min-height: 45px;
-}
+.skillItem { background: rgba(220, 38, 38, 0.2) !important; border: 1px solid rgba(220, 38, 38, 0.5) !important; padding: 10px !important; border-radius: 10px !important; cursor: pointer; text-align: center; font-weight: 800; font-size: 10px; display: flex !important; align-items: center; justify-content: center; min-height: 45px; }
 .skillItem.active { background: rgba(22, 163, 74, 0.6) !important; border: 1px solid #22c55e !important; }
 .skillItem input { display: none !important; }
-
-/* 4. FORMULÁŘE */
 input, select, textarea { width: 100%; padding: 12px; border-radius: 10px; border: none !important; margin-bottom: 12px; background: white !important; color: black !important; font-weight: 700; box-sizing: border-box !important; }
-textarea { min-height: 60px; resize: none; }
-h3, h4 { color: white !important; font-weight: 900; text-shadow: 2px 2px 4px #000; margin: 15px 0 5px 0; }
-
-/* 5. TLAČÍTKA */
+h3, h4, .topTitle { color: white !important; font-weight: 900; text-shadow: 2px 2px 4px #000; }
 .addBtn, .save { background: #22c55e !important; color: white !important; cursor: pointer; width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 800; margin-top: 10px; }
 .delete { background: #ef4444 !important; color: white; width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 800; margin-top: 10px; cursor: pointer; }
 .close { background: #334155 !important; color: white; width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 800; margin-top: 10px; cursor: pointer; }
 .menuBtn { padding: 8px 14px; border-radius: 10px; border: none; font-weight: 800; background: rgba(51, 65, 85, 0.8); color: white; cursor: pointer; }
-
-/* 6. BAREVNÉ STAVY PRO SELECT */
 .bg-v-praci { background-color: #16a34a !important; color: white !important; }
 .bg-dovolena { background-color: #f59e0b !important; color: black !important; }
 .bg-paragraf { background-color: #a855f7 !important; color: white !important; }
@@ -53,13 +35,7 @@ h3, h4 { color: white !important; font-weight: 900; text-shadow: 2px 2px 4px #00
 .bg-partak { background-color: #ffffff !important; color: black !important; }
 .bg-pujceny { background-color: #000000 !important; color: white !important; border: 1px solid white !important; }
 .bg-propujceny { background-color: #2563eb !important; color: white !important; }
-
-/* 7. SEZNAM ZAMĚSTNANCŮ */
-.empRow { 
-    display: flex; justify-content: space-between; align-items: center;
-    background: rgba(255, 255, 255, 0.05) !important; 
-    padding: 12px; margin-bottom: 8px; border-radius: 10px;
-}
+.empRow { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.05) !important; padding: 12px; margin-bottom: 8px; border-radius: 10px; }
 .empName { font-weight: 800; text-shadow: 1px 1px 2px #000; cursor: pointer; }
 .empRow select { width: 140px !important; margin-bottom: 0; padding: 6px; font-size: 12px; }
 </style>
@@ -67,7 +43,7 @@ h3, h4 { color: white !important; font-weight: 900; text-shadow: 2px 2px 4px #00
 <body>
 
 <div class="topbar">
-  <div style="font-weight:900; font-size:18px;">👥 Zaměstnanci</div>
+  <div class="topTitle">👥 Zaměstnanci</div>
   <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
 </div>
 
@@ -77,17 +53,14 @@ h3, h4 { color: white !important; font-weight: 900; text-shadow: 2px 2px 4px #00
     <div id="list" style="margin-top:20px;"></div>
 </div>
 
-<!-- MODÁL FORMULÁŘ -->
 <div id="modal" class="modal">
   <div class="modalBox">
     <input id="fName" placeholder="Jméno">
     <input id="lName" placeholder="Příjmení">
     <input id="email" placeholder="Email">
     <textarea id="info" placeholder="Poznámka"></textarea>
-
     <h4>Pozice</h4>
     <div id="skillsBox" class="skills"></div>
-
     <h4>Stav dnes</h4>
     <select id="statusSelect">
       <option value="v-praci">V práci</option>
@@ -98,19 +71,17 @@ h3, h4 { color: white !important; font-weight: 900; text-shadow: 2px 2px 4px #00
       <option value="pujceny">Půjčený</option>
       <option value="propujceny">Propůjčený</option>
     </select>
-
     <button class="save" onclick="saveEmp()">Uložit</button>
     <button class="delete" onclick="deleteEmp()">Smazat</button>
     <button class="close" onclick="closeModal()">Zavřít</button>
   </div>
 </div>
 
-<!-- MODÁL ZPRÁVA -->
 <div id="broadcastModal" class="modal">
   <div class="modalBox">
     <h3>📢 Hromadná zpráva</h3>
     <textarea id="broadcastText" placeholder="Text pro všechny..."></textarea>
-    <button class="save" onclick="saveBroadcast()">Uložit pro všechny</button>
+    <button class="save" onclick="saveBroadcast()">Uložit zprávu</button>
     <button class="close" onclick="closeBroadcast()">Zavřít</button>
   </div>
 </div>
@@ -133,6 +104,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// DOM Elements
 const modal = document.getElementById("modal");
 const list = document.getElementById("list");
 const fNameEl = document.getElementById("fName");
@@ -152,7 +124,6 @@ function paintSelect(sel) {
     sel.classList.remove(...colors);
     sel.classList.add('bg-' + sel.value);
 }
-statusSelect.onchange = () => paintSelect(statusSelect);
 
 // Pozice
 const POSITIONS = [
@@ -169,7 +140,7 @@ const POSITIONS = [
 POSITIONS.forEach(p => {
     const div = document.createElement("div");
     div.className = "skillItem";
-    div.innerHTML = `<input type="checkbox" value="${p[0]}"> ${p[1]}`;
+    div.innerHTML = `<input type="checkbox" value="${p[1]}"> ${p[1]}`;
     div.onclick = () => {
         const cb = div.querySelector("input");
         cb.checked = !cb.checked;
@@ -178,10 +149,7 @@ POSITIONS.forEach(p => {
     skillsBox.appendChild(div);
 });
 
-// Auth
-onAuthStateChanged(auth, u => { if(!u) location.href="index.html"; });
-
-// Funkce okna
+// Zpřístupnění funkcí pro HTML tlačítka (Vytáhnutí z modulu)
 window.openNew = () => {
     editId = null; fNameEl.value=""; lNameEl.value=""; emailEl.value=""; infoEl.value=""; statusSelect.value="v-praci";
     skillsBox.querySelectorAll("input").forEach(c => { c.checked=false; c.parentElement.classList.remove("active"); });
@@ -195,7 +163,6 @@ window.openBroadcast = async () => {
 };
 window.closeBroadcast = () => broadcastModal.style.display="none";
 
-// CRUD Operace
 window.saveEmp = async () => {
     if(!fNameEl.value || !lNameEl.value) { alert("Vyplň jméno!"); return; }
     const skills = [...skillsBox.querySelectorAll("input:checked")].map(x => x.value);
@@ -217,6 +184,7 @@ window.saveBroadcast = async () => {
     alert("Odesláno"); broadcastModal.style.display="none";
 };
 
+// Načítání seznamu
 async function load() {
     list.innerHTML = "<div style='text-align:center;'>Načítám...</div>";
     const snap = await getDocs(collection(db,"employees"));
@@ -260,7 +228,10 @@ async function edit(id) {
     modal.style.display = "flex"; paintSelect(statusSelect);
 }
 
-load();
+// Spuštění po přihlášení
+onAuthStateChanged(auth, u => { if(u) { load(); } else { location.href="index.html"; } });
+
+statusSelect.onchange = () => paintSelect(statusSelect);
 </script>
 </body>
 </html>
