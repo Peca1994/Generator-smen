@@ -330,6 +330,19 @@ body::after {
     z-index: -1;
     pointer-events: none;
 }
+.main-logo-container {
+    text-align: center;
+    margin: 5px 0 10px 0 !important; /* Malé mezery, aby neodsouvalo karty */
+    width: 100%;
+}
+
+.center-logo {
+    width: 160px; /* Zvětšeno pro pořádný efekt */
+    height: auto;
+    filter: drop-shadow(0 0 15px rgba(34, 197, 94, 0.4)); /* Zelená záře */
+    opacity: 0.95;
+    display: inline-block;
+}
 </style>
 </head>
 
@@ -338,7 +351,8 @@ body::after {
 <div class="app">
 
 <div class="header-container">
-    <h1 class="logo">Shift<b>Master</b></h1>
+   <div class="main-logo-container">
+    <img src="pozadi.jpg" class="center-logo" alt="Škoda Logo">
 </div>
 
 <div id="loading" class="card">
