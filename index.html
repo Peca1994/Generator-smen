@@ -599,6 +599,50 @@ body::after { display: none !important; }
 #menuCard {
     margin-top: 0 !important;
 }
+.hero-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: -10px !important; /* Přitáhne karty nahoru */
+}
+
+.stack-box {
+    position: relative;
+    width: 300px; /* Šířka loga */
+    height: 200px; /* Výška boxu - uprav podle potřeby */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -20px !important; /* Přitáhne logo blíž k nápisu ShiftMaster */
+}
+
+.skoda-blend-layer {
+    width: 100%;
+    height: auto;
+    /* AGRESIVNÍ ODSTRANĚNÍ RÁMEČKU */
+    mix-blend-mode: lighten; 
+    filter: contrast(1.5) brightness(0.8) grayscale(1); 
+    opacity: 0.5; /* Udělá logo jemnější, aby text přes něj byl čitelný */
+    position: absolute;
+    z-index: 1;
+}
+
+.message-overlay {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 0 20px;
+    color: #ffffff;
+    font-size: 16px !important;
+    font-weight: 600;
+    line-height: 1.4;
+    text-shadow: 2px 2px 8px rgba(0,0,0,1); /* Klíčové pro čitelnost na logu */
+    text-transform: none !important;
+}
+
+/* Úprava mezer u nápisu nahoře */
+.logo { margin-bottom: 0 !important; }
 </style>
 </head>
 
@@ -606,18 +650,16 @@ body::after { display: none !important; }
 
 <div class="app">
 
-<div class="hero-section">
+<div class="hero-container">
     <h1 class="logo">Shift<b>Master</b></h1>
-    
-    <!-- Zpráva je teď hned pod názvem -->
-    <div id="broadcastText" class="message-box"></div>
 
-    <!-- Logo Škoda posunuté níž -->
-    <div class="skoda-logo-container">
-        <img src="pozadi.jpg" class="skoda-img-blend" alt="Škoda">
+    <div class="stack-box">
+        <!-- Logo jako podklad -->
+        <img src="pozadi.jpg" class="skoda-blend-layer" alt="Škoda">
+        
+        <!-- Text zprávy vznášející se nad logem -->
+        <div id="broadcastText" class="message-overlay"></div>
     </div>
-</div>
-</div>
 </div>
 
 <div id="loading" class="card">
