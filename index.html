@@ -240,15 +240,19 @@ hr, .divider, .separator {
     text-align: center;
     font-family: -apple-system, sans-serif !important;
     
-    /* Větší písmo pro mobilní zobrazení */
-    font-size: 56px !important; 
+    /* RADIKÁLNÍ ZVĚTŠENÍ */
+    font-size: 15vw !important; /* Velikost se teď automaticky přizpůsobí šířce displeje */
     font-weight: 300 !important;
-    letter-spacing: -2px; /* Těsnější prostrkání vypadá u velkého písma lépe */
     
-    margin: 10px 0 0 0 !important; /* Minimální mezera nahoře */
+    /* ROZTAŽENÍ DO ŠÍŘKY */
+    letter-spacing: -2px !important; /* Těsnější prostrkání, aby se to tam vešlo */
+    transform: scaleX(1.1); /* Mírně nápis roztáhneme do stran pro "širokoúhlý" efekt */
+    
+    margin: 5px 0 0 0 !important;
     width: 100%;
     color: #ffffff !important;
     text-shadow: 0 0 15px rgba(34, 197, 94, 0.4) !important;
+    white-space: nowrap; /* Zajistí, že se název nikdy nezalomí na dva řádky */
 }
 
 .logo b {
