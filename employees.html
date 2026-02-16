@@ -60,8 +60,11 @@ body {
 
 /* 4. FORMULÁŘOVÁ POLE */
 input, select, textarea {
-    width: 100%; padding: 12px; border-radius: 10px; border: none !important;
-    margin-bottom: 12px; background: white !important; color: black !important; font-weight: 700; box-sizing: border-box !important;
+    width: 100%; padding: 12px; border-radius: 20px !important; /* Tady je to zaoblení */
+    border: none !important; margin-bottom: 12px; 
+    background: white !important; color: black !important; 
+    font-weight: 700; box-sizing: border-box !important;
+    text-align: center;
 }
 textarea { min-height: 50px; resize: none; }
 label, h1, h2, h3 { color: white !important; font-weight: 900; text-shadow: 2px 2px 4px #000; }
@@ -94,24 +97,23 @@ label, h1, h2, h3 { color: white !important; font-weight: 900; text-shadow: 2px 
     cursor: pointer; 
 }
 
-.status-work { background-color: #22c55e !important; color: white !important; }      /* Práce - zelená */
-.status-vacation { background-color: #f59e0b !important; color: black !important; }   /* Dovolená - oranžová */
-.status-paragraf { background-color: #a855f7 !important; color: white !important; }   /* Paragraf - fialová */
-.status-sick { background-color: #ef4444 !important; color: white !important; }       /* Nemoc - červená */
-.status-shitmaking { background-color: #ffffff !important; color: black !important; } /* Parťák - bílá */
-.status-borrowed { background-color: #000000 !important; color: white !important; border: 1px solid white !important; } /* Půjčený - černá */
-.status-loaned { background-color: #3b82f6 !important; color: white !important; }     /* Propůjčený - modrá */
+.status-work { background-color: #15803d !important; color: white !important; }
+.status-vacation { background-color: #eab308 !important; color: black !important; }
+.status-paragraf { background-color: #7e22ce !important; color: white !important; }
+.status-sick { background-color: #b91c1c !important; color: white !important; }
+.status-shitmaking { background-color: #1d4ed8 !important; color: white !important; }
+.status-borrowed { background-color: #000000 !important; color: white !important; border: 1px solid #444 !important; }
+.status-loaned { background-color: #15803d !important; color: white !important; }
 
 /* Styl pro samotné možnosti, aby byly barevné i v rozbaleném seznamu */
-select option { background-color: white; color: black; font-weight: bold; }
-option[value="work"] { background-color: #22c55e; color: white; }
-option[value="vacation"] { background-color: #f59e0b; color: black; }
-option[value="paragraf"] { background-color: #a855f7; color: white; }
-option[value="sick"] { background-color: #ef4444; color: white; }
-option[value="shitmaking"] { background-color: #ffffff; color: black; }
+select option { font-weight: bold; }
+option[value="work"] { background-color: #15803d; color: white; }
+option[value="vacation"] { background-color: #eab308; color: black; }
+option[value="paragraf"] { background-color: #7e22ce; color: white; }
+option[value="sick"] { background-color: #b91c1c; color: white; }
+option[value="shitmaking"] { background-color: #1d4ed8; color: white; } /* Sytě modrá */
 option[value="borrowed"] { background-color: #000000; color: white; }
-option[value="loaned"] { background-color: #3b82f6; color: white; }
-
+option[value="loaned"] { background-color: #15803d; color: white; }
 /* Zajistí, aby text v políčku byl vždy tučný a čitelný */
 select { font-weight: 900 !important; }
 </style>
@@ -378,16 +380,16 @@ async function load(){
   const row=document.createElement("div");
   row.className="empRow";
   row.innerHTML = `
-  <div class="empName">${e.name} ${e.surname}</div>
-  <select class="statusSelect">
-    <option value="work">V práci</option>
-    <option value="vacation">Dovolená</option>
-    <option value="paragraf">Paragraf</option>
-    <option value="sick">Nemoc</option>
-    <option value="shitmaking">Parťák</option>
-    <option value="borrowed">Půjčený</option>
-    <option value="loaned">Propůjčený</option>
-  </select>
+   <div class="empName">${e.name} ${e.surname}</div>
+   <select>
+      <option value="work">V práci</option>
+      <option value="vacation">Dovolená</option>
+      <option value="paragraf">Paragraf</option>
+      <option value="sick">Nemoc</option>
+      <option value="shitmaking">Parťák</option>
+      <option value="borrowed">Půjčený</option>
+      <option value="loaned">Propůjčený</option>
+   </select>
 `;
 
   row.querySelector(".empName").onclick=()=>edit(d.id);
