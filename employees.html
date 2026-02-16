@@ -167,20 +167,22 @@ button { cursor: pointer; width: 100%; padding: 16px; border-radius: 14px; borde
     grid-column: span 2; 
 }
 /* SJEDNOCENÍ POZNÁMKY (TEXTAREA) S OSTATNÍMI POLI */
-textarea {
+/* FINÁLNÍ ZAROVNÁNÍ POZNÁMKY */
+textarea, .modalBox textarea {
     width: 100% !important;
     max-width: 100% !important;
-    box-sizing: border-box !important;
+    box-sizing: border-box !important; /* KLÍČOVÝ PŘÍKAZ PRO STEJNOU ŠÍŘKU */
     padding: 12px !important;
-    border-radius: 10px !important; /* STEJNÉ ZAKULACENÍ */
+    border-radius: 10px !important;
     border: none !important;
     background: white !important;
     color: black !important;
-    font-family: sans-serif;
-    font-weight: 700;
-    margin-bottom: 15px !important;
-    min-height: 80px; /* Aby byla trochu vyšší než jméno */
+    font-weight: 700 !important;
+    font-family: sans-serif !important;
+    margin-bottom: 12px !important;
     display: block !important;
+    min-height: 50px !important; /* Můžeš nechat nižší, aby se tolik nelišila od jména */
+    resize: none; /* Zamezí uživateli, aby ji ručně roztáhl a rozbil design */
 }
 </style>
 </head>
