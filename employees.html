@@ -86,21 +86,14 @@ select { font-weight: 900 !important; }
 <script>
   // 1. BEZPEČNÉ OTEVŘENÍ MODÁLU
   function openNew() {
-    const modal = document.getElementById('modal');
-    if (modal) {
-      modal.style.display = 'flex';
-      
-      // Vyčistíme políčka, jen pokud v HTML skutečně existují
-      const nameInp = document.getElementById('empName');
-      const emailInp = document.getElementById('empEmail');
-      if (nameInp) nameInp.value = '';
-      if (emailInp) emailInp.value = '';
-      
-      console.log("Modál úspěšně otevřen");
+    const m = document.getElementById('modal');
+    if (m) {
+        m.style.display = 'flex';
+        console.log("Kliknuto a otevírám!");
     } else {
-      console.error("Chyba: Prvek s ID 'modal' nebyl v HTML nalezen!");
+        alert("Chyba: V HTML chybí prvek s id='modal'!");
     }
-  }
+}
 
   // 2. ZAVŘENÍ MODÁLU
   function closeModal() {
