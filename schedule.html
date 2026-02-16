@@ -249,6 +249,39 @@ input, select, textarea {
 .card {
     margin-top: 20px !important;
 }
+.container, main, .app, .card {
+    background: rgba(0, 0, 0, 0.4) !important; /* Velmi jemná průhledná černá */
+    backdrop-filter: none !important;           /* Vypne to rozmazání loga */
+    -webkit-backdrop-filter: none !important;    /* Vypne rozmazání pro iPhony */
+    border: 1px solid rgba(255, 255, 255, 0.15) !important; /* Tenká linka kolem celé karty */
+    border-radius: 20px !important;
+    box-shadow: none !important;
+}
+
+/* 2. TOTÁLNÍ SMAZÁNÍ VNITŘNÍCH OHRANIČENÍ A STÍNŮ */
+/* Tohle vyčistí ty "krabičky" uvnitř (Datum, Směna, Náhradníci) */
+.container *, .card *, section, details, summary, fieldset {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* 3. ZACHOVÁNÍ VIDITELNOSTI TLAČÍTEK A POLÍČEK */
+/* Aby ti nezmizela barva u oranžového tlačítka "Generovat" a dalších */
+button, .btn, .mainBtn, .btn-warning, .btn-primary, .btn-success {
+    background-color: initial !important; /* Vrátí tlačítkům jejich barvy */
+    border-radius: 10px !important;
+    border: none !important;
+}
+
+/* 4. ÚPRAVA INPUTŮ (Bílá políčka) */
+input, select {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid #ccc !important;
+    color: black !important;
+}
 </style>
 </head>
 
