@@ -247,6 +247,28 @@ body {
     -webkit-backdrop-filter: blur(10px) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
+body {
+    /* Fixní pozice zajistí, že se logo nehýbe při scrollování */
+    background-attachment: fixed !important;
+    
+    /* Center zajistí vycentrování loga Škoda na střed */
+    background-position: center center !important;
+    
+    /* Cover roztáhne logo tak, aby vyplnilo celý displej mobilu */
+    background-size: cover !important;
+    
+    background-repeat: no-repeat !important;
+    
+    /* Zajištění, aby podklad pod logem byl tmavý */
+    background-color: #030712 !important;
+}
+
+/* Oprava pro iOS Safari (iPhony), které mají s background-attachment: fixed občas problém */
+@supports (-webkit-touch-callout: none) {
+    body {
+        background-attachment: scroll !important;
+    }
+}
 </style>
 </head>
 
