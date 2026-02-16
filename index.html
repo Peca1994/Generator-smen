@@ -669,6 +669,31 @@ body::after { display: none !important; }
 
 /* Úprava mezer u nápisu nahoře */
 .logo { margin-bottom: 0 !important; }
+.disclaimer {
+    position: fixed;
+    bottom: 8px;
+    right: 12px;
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.3); /* Velmi nenápadné, aby to nerušilo */
+    text-align: right;
+    font-family: sans-serif;
+    pointer-events: none; /* Kliknutí projdou skrz na tlačítka pod tím */
+    z-index: 100;
+    max-width: 200px;
+    line-height: 1.2;
+}
+
+/* Na mobilu to vycentrujeme, aby to nevypadalo utrženě */
+@media (max-width: 480px) {
+    .disclaimer {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        text-align: center;
+        width: 90%;
+        max-width: none;
+    }
+}
 </style>
 </head>
 
@@ -925,6 +950,8 @@ async function loadBroadcast() {
 }
 
 </script>
-
+<div class="disclaimer">
+    © 2024 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.
+</div>
 </body>
 </html>
