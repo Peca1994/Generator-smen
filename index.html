@@ -231,27 +231,36 @@ hr, .divider, .separator {
     padding-top: 0 !important;
 }
 .header-container {
-    padding-top: 60px; /* Vytvoří místo shora */
-    padding-bottom: 20px;
+    padding-top: 10px !important;
     text-align: center;
 }
 
 .logo {
     display: block !important;
-    text-align: center;
-    font-family: sans-serif !important;
-    font-size: 44px !important;
+    font-size: 42px !important; /* Pořádná velikost pro hlavní název */
     font-weight: 300 !important;
     letter-spacing: -1px;
-    margin: 20px 0 5px 0 !important;
-    color: white !important; /* Základní barva, aby nápis nezmizel */
-    text-transform: none !important; /* Zruší velká písmena */
+    margin: 10px 0 5px 0 !important; /* Minimální mezery */
+    color: white !important;
+    text-transform: none !important;
 }
 
-/* Master bude tučný a zelený */
 .logo b {
     font-weight: 800 !important;
-    color: #22c55e !important; /* Krásná zelená Škoda */
+    color: #22c55e !important;
+}
+
+.main-logo-container {
+    margin-top: 5px !important;
+    margin-bottom: 10px !important;
+}
+
+.center-logo {
+    width: 320px !important; /* Opravdu masivní logo */
+    max-width: 90vw; /* Pojistka, aby na malých mobilech nepřeteklo */
+    height: auto;
+    filter: drop-shadow(0 0 30px rgba(34, 197, 94, 0.4));
+    opacity: 1;
 }
 
 /* HROMADNÁ ZPRÁVA - OPRAVENÁ VERZE */
@@ -351,9 +360,16 @@ body::after {
 <div class="app">
 
 <div class="header-container">
-   <div class="main-logo-container">
-    <img src="pozadi.jpg" class="center-logo" alt="Škoda Logo">
+    <!-- NÁZEV ÚPLNĚ NAHOŘE -->
+    <h1 class="logo">Shift<b>Master</b></h1>
+    
+    <!-- MEGA LOGO POD NÁZVEM -->
+    <div class="main-logo-container">
+        <img src="pozadi.jpg" class="center-logo" alt="Škoda Logo">
+    </div>
 </div>
+
+<div id="broadcastText" class="message-box"></div>
 
 <div id="loading" class="card">
   Ověřuji přihlášení…
