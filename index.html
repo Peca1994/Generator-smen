@@ -8,7 +8,7 @@
 <style>
 
 body {
-    margin: 0; padding: 0;
+    margin: 0; padding-top: 10px !important;
     min-height: 100vh;
     background-color: #030712 !important;
     /* Kombinace: Logo nahoře, zbytek tmavý gradient */
@@ -16,7 +16,7 @@ body {
         linear-gradient(to bottom, rgba(3, 7, 18, 0.4) 0%, rgba(3, 7, 18, 1) 80%), 
         url('pozadi.jpg') !important;
     background-size: contain !important; /* Logo se nezvětší víc, než je šířka mobilu */
-    background-position: center 10% !important; /* Posune logo kousek od horního okraje */
+    background-position: center 5% !important;
     background-repeat: no-repeat !important;
     background-attachment: fixed !important;
 }
@@ -28,10 +28,13 @@ body {
     border: none !important;
 }
 
-.logo{
-  font-size:34px;
-  font-weight:900;
-  text-align:center;
+.logo {
+    font-size: 38px !important;
+    font-weight: 300 !important;
+    text-align: center;
+    margin-top: 0 !important; /* Odstraní mezeru nad nápisem */
+    margin-bottom: 5px !important; /* Přitáhne zprávu/karty blíž */
+    display: block;
 }
 
 .sub{
