@@ -101,6 +101,22 @@ th { border-bottom: 2px solid rgba(255,255,255,0.1) !important; }
 .highlight { color: #22c55e !important; font-weight: 900; }
 .empty { opacity: .4; }
 .infoRow { display: flex; justify-content: space-between; margin: 6px 0; }
+/* SJEDNOCENÍ ŠÍŘKY VŠECH POLÍ (DATUM, SMĚNA, FILTR) */
+input, select, textarea {
+    width: 100% !important;        /* Roztáhne pole na celou šířku karty */
+    max-width: 100% !important;    /* Zabrání přetékání */
+    box-sizing: border-box !important; /* Zajistí, že padding (vnitřní okraj) nezvětší pole */
+    display: block !important;     /* Každé pole bude na vlastním řádku */
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Sjednocení odsazení textu nad poli */
+label, .label, p {
+    width: 100% !important;
+    text-align: left !important;
+    margin-bottom: 5px !important;
+}
 </style>
 </head>
 
