@@ -210,6 +210,27 @@ textarea, .modalBox textarea {
 
 /* Propůjčený - Modrá */
 .status-propujceny, [value="propujceny"] { color: #3b82f6 !important; font-weight: 900; }
+/* 1. ZÁKLADNÍ STYL VÝBĚRU (VÝCHOZÍ BÍLÁ) */
+select#statusSelect {
+    width: 100% !important;
+    padding: 12px !important;
+    border-radius: 10px !important;
+    font-weight: 900 !important;
+    border: none !important;
+    cursor: pointer;
+    background-color: white !important;
+    color: black !important;
+}
+
+/* 2. BARVY PRO JEDNOTLIVÉ STAVY (BARVÍME POZADÍ POLÍČKA) */
+/* Tyto barvy se uplatní v seznamu, pokud to prohlížeč dovolí */
+option[value="v-praci"] { background: #22c55e; color: white; }
+option[value="dovolena"] { background: #f59e0b; color: black; }
+option[value="paragraf"] { background: #a855f7; color: white; }
+option[value="nemoc"] { background: #ef4444; color: white; }
+option[value="partak"] { background: #ffffff; color: black; }
+option[value="pujceny"] { background: #000000; color: white; }
+option[value="propujceny"] { background: #3b82f6; color: white; }
 </style>
 </head>
 
