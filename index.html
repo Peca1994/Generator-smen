@@ -221,6 +221,29 @@ hr, .divider, .separator {
     margin-top: 10px !important;
     padding-top: 0 !important;
 }
+.logo {
+    font-size: 48px !important; /* Opravdu výrazné */
+    font-weight: 900 !important;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin: 20px 0 10px 0 !important;
+    text-align: center;
+    display: block;
+    width: 100%;
+    
+    /* Moderní stříbrný odlesk */
+    background: linear-gradient(to bottom, #ffffff 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+    /* Hloubka nápisu */
+    filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.5));
+}
+
+/* Smazání podnadpisu (pokud tam zůstal nějaký element) */
+.header p, .header span {
+    display: none !important;
+}
 </style>
 </head>
 
@@ -228,8 +251,9 @@ hr, .divider, .separator {
 
 <div class="app">
 
-<div class="logo">PecaShifter</div>
-<div class="sub">Směnový plánovací systém</div>
+<div class="header">
+  <h1 class="logo">ShiftMaster</h1>
+</div>
 
 <!-- LOADING GATE -->
 <div id="loading" class="card">
