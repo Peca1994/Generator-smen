@@ -506,6 +506,69 @@ body {
     text-align: center;
     background: transparent !important;
 }
+body {
+    background: radial-gradient(circle at 50% 25%, #064e3b 0%, #020617 85%) !important;
+    background-color: #020617 !important;
+    margin: 0; padding: 0;
+}
+
+.hero-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 10px;
+}
+
+.combined-logo {
+    position: relative;
+    width: 280px; /* Šířka loga */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: -15px; /* Přitáhne zprávu blíž */
+}
+
+.skoda-img-blend {
+    width: 100%;
+    height: auto;
+    /* KLÍČOVÝ ŘÁDEK: Odstraní čtvercové pozadí obrázku a nechá jen logo */
+    mix-blend-mode: lighten; 
+    filter: brightness(1.2) contrast(1.1);
+    opacity: 0.8;
+}
+
+.logo-overlay {
+    position: absolute;
+    /* Posune ShiftMaster trochu výš, aby neseděl přímo na nápisu SKODA */
+    top: 35%; 
+    font-size: 44px !important;
+    font-weight: 300 !important;
+    letter-spacing: -1.5px;
+    margin: 0 !important;
+    color: white !important;
+    text-shadow: 0 0 20px rgba(0,0,0,1); /* Stín pro čitelnost */
+    z-index: 10;
+}
+.logo-overlay b { font-weight: 800 !important; color: #22c55e !important; }
+
+/* ZPRÁVA A KARTY BEZ MEZER */
+.message-box {
+    margin: 0 auto 5px auto !important; /* Minimální mezera dole */
+    max-width: 380px;
+    padding: 8px 20px !important;
+    font-size: 15px !important;
+    background: transparent !important;
+    text-transform: none !important;
+}
+
+/* Úplné odstranění loga dole */
+body::after { display: none !important; }
+
+/* Přitažení karet nahoru */
+#menuCard {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
 </style>
 </head>
 
@@ -513,17 +576,17 @@ body {
 
 <div class="app">
 
-<div class="header-section">
-    <!-- 1. Název aplikace úplně nahoře -->
-    <h1 class="logo">Shift<b>Master</b></h1>
-
-    <!-- 2. Logo ŠKODA jako vizuální prvek pod názvem -->
-    <div class="skoda-logo-box">
-        <img src="pozadi.jpg" class="skoda-img" alt="Škoda">
+<div class="hero-section">
+    <div class="combined-logo">
+        <!-- Logo Škoda jako podklad -->
+        <img src="pozadi.jpg" class="skoda-img-blend" alt="Škoda">
+        <!-- Nápis ShiftMaster přímo přes něj -->
+        <h1 class="logo-overlay">Shift<b>Master</b></h1>
     </div>
 
-    <!-- 3. Hromadná zpráva (přilepená hned pod logo) -->
+    <!-- Hromadná zpráva těsně pod tím -->
     <div id="broadcastText" class="message-box"></div>
+</div>
 </div>
 
 <div id="loading" class="card">
