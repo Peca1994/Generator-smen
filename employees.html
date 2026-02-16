@@ -333,51 +333,50 @@ input, select, textarea {
 }
 /* --- FINÁLNÍ ČISTÝ VZHLED S OSTRÝM LOGEM --- */
 
-/* 1. VYPNUTÍ ROZMAZÁNÍ A OSTRÉ POZADÍ */
-.container, .card, main, .app, body {
-    backdrop-filter: none !important;
+/* 1. SMAZÁNÍ VŠECH OHRANIČENÍ (Včetně hlavního boxu) */
+.container, .app, main, .card, body {
+    border: none !important;           /* Smaže hlavní ohraničení celku */
+    box-shadow: none !important;        /* Smaže případné stíny kolem celku */
+    backdrop-filter: none !important;   /* Vypne rozmazání loga */
     -webkit-backdrop-filter: none !important;
-    box-shadow: none !important;
 }
 
-/* 2. ZPRŮHLEDNĚNÍ VŠECH VNITŘNÍCH BLOKŮ (Modré pruhy, šedé karty) */
-/* Tohle vymaže pozadí u nadpisů a vnořených sekcí ze screenshotu */
-.btn-info, 
-.card-header, 
-.card, 
-fieldset, 
-section, 
-details, 
-summary,
-[style*="background-color"] {
-    background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-/* 3. JEDNA JEMNÁ VRSTVA PŘES LOGO (Pro čitelnost) */
-.container, .app {
-    background: rgba(0, 0, 0, 0.4) !important; /* Logo bude krásně vidět, ale text půjde přečíst */
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 20px;
+/* 2. TOTÁLNÍ ZPRŮHLEDNĚNÍ POZADÍ CELKU */
+/* Pokud chceš, aby pozadí boxu úplně zmizelo, změň 0.3 na 0 */
+.container, .app, main {
+    background: rgba(0, 0, 0, 0.3) !important; /* Velmi jemný tmavý závoj, aby byl text vidět */
+    border-radius: 0 !important;
     padding: 20px !important;
+    margin: 20px auto !important;
+    max-width: 420px !important;
 }
 
-/* 4. ČITELNOST TEXTU (Bílý s výrazným stínem) */
-label, p, span, summary, .btn-info, h1, h2, h3, .card-header {
+/* 3. VYČIŠTĚNÍ VNITŘNÍCH PRVKŮ (Modré pruhy, šedé linky) */
+.container *, fieldset, section, details, summary, .btn-info, .card-header {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* 4. ČITELNOST TEXTU (Musí mít stín, když zmizí ohraničení) */
+label, p, span, summary, h1, h2, h3, .btn-info {
     color: white !important;
     font-weight: 900 !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,1) !important; /* Černý obrys kolem písma */
+    text-shadow: 2px 2px 4px rgba(0,0,0,1) !important;
 }
 
-/* 5. INPUTY (Bílá políčka pro psaní) */
+/* 5. TLAČÍTKA A POLÍČKA (Zůstanou vidět) */
 input, select {
     background: white !important;
     color: black !important;
-    border-radius: 8px !important;
-    border: none !important;
-    padding: 10px !important;
+    border-radius: 10px !important;
+}
+
+.btn-warning, .btn-primary, .btn-success, #saveBtn {
+    background-color: initial !important; 
+    border-radius: 12px !important;
+    padding: 12px !important;
 }
 </style>
 </head>
