@@ -6,15 +6,16 @@
 <title>Statistiky</title>
 
 <style>
+/* 1. GLOBÁLNÍ NASTAVENÍ A POZADÍ (LOGO ŠKODA) */
 body {
     margin: 0;
     padding: 0;
-    /* Tyto 3 řádky smaž nebo nahraď tímto: */
-    display: block; 
+    display: block !important; /* Oprava pozice menu */
     min-height: 100vh;
     color: white;
     font-family: sans-serif;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('pozadi.jpg');
+    /* Pozadí s logem Škoda - OSTRÉ a CELÉ */
+    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('pozadi.jpg') !important;
     background-size: contain !important;
     background-position: center 10% !important;
     background-repeat: no-repeat !important;
@@ -22,222 +23,84 @@ body {
     background-color: #030712 !important;
 }
 
-.topbar{
- height:56px;display:flex;align-items:center;justify-content:space-between;
- padding:0 16px;background:#020617;border-bottom:1px solid #1f2937;
+/* 2. TOPBAR A MENU */
+.topbar {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: rgba(2, 6, 23, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.menuBtn{
- padding:8px 14px;border-radius:10px;border:none;font-weight:800;
- background:#334155;color:white;cursor:pointer;
+.menuBtn {
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 800;
+    background: #334155;
+    color: white;
+    cursor: pointer;
 }
 
-.container{max-width:1000px;margin:auto;padding:16px;}
-.card{background:#111827;border-radius:16px;padding:16px;margin-bottom:14px;}
-
-input{
- width:100%;padding:12px;border-radius:10px;border:none;
- margin-bottom:14px;font-weight:700;
-}
-
-.worker{font-weight:900;font-size:18px;margin-bottom:10px;}
-
-.row{display:flex;justify-content:space-between;margin:6px 0;font-weight:700;}
-
-.badge{padding:4px 10px;border-radius:999px;font-size:12px;font-weight:900;}
-.active{background:#16a34a;}
-.reserve{background:#2563eb;}
-.absence{background:#dc2626;}
-
-.barWrap{background:#020617;border-radius:10px;overflow:hidden;height:14px;margin-top:6px;}
-.bar{height:100%;background:linear-gradient(90deg,#22c55e,#4ade80);}
-
-.rankRow{
- display:flex;justify-content:space-between;padding:6px 0;
- font-weight:800;border-bottom:1px solid #1f2937;font-size:14px;
-}
-
-.posItem{font-size:13px;opacity:.9;}
-.loading{text-align:center;opacity:.7;font-weight:900;}
-body {
-    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('pozadi.jpg') !important;
-    background-size: cover !important;
-    background-position: center !important;
-    background-attachment: fixed !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    min-height: 100vh !important;
-}
-
-.card, [class*="card"] {
-    background: rgba(17, 24, 39, 0.5) !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    box-shadow: none !important;
-}
-
-/* Vypne stín a ohraničení u vnitřních bloků */
-.card .card, #menuCard, .menu {
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-}
-
-.roleTag { color: #22c55e !important; font-weight: bold !important; }
-body {
-    display: block !important; 
-    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('pozadi.jpg') !important;
-    background-size: cover !important;
-    background-position: center !important;
-    background-attachment: fixed !important;
-}
-
-/* 2. Zajištění, aby hlavní obsah byl uprostřed, ale menu nahoře */
-.container, main, .app {
-    margin: 20px auto !important;
+/* 3. HLAVNÍ KONTEJNER - BEZ OHRANIČENÍ A ROZMAZÁNÍ */
+.container, .app, main {
     max-width: 420px;
-}
-
-/* 3. Průhlednost karet (aby bylo vidět logo Škoda) */
-.card, [class*="card"] {
-    background: rgba(17, 24, 39, 0.5) !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-body {
-    /* Fixní pozice zajistí, že se logo nehýbe při scrollování */
-    background-attachment: fixed !important;
-    
-    /* Center zajistí vycentrování loga Škoda na střed */
-    background-position: center center !important;
-    
-    /* Cover roztáhne logo tak, aby vyplnilo celý displej mobilu */
-    background-size: cover !important;
-    
-    background-repeat: no-repeat !important;
-    
-    /* Zajištění, aby podklad pod logem byl tmavý */
-    background-color: #030712 !important;
-}
-
-/* Oprava pro iOS Safari (iPhony), které mají s background-attachment: fixed občas problém */
-@supports (-webkit-touch-callout: none) {
-    body {
-        background-attachment: scroll !important;
-    }
-}
-body {
-    /* 'contain' zajistí, že logo uvidíš vždy celé, nic se neořízne */
-    background-size: contain !important;
-    
-    /* Posune logo do horní části (cca 10 % odshora), aby nebylo schované pod kartou */
-    background-position: center 10% !important;
-    
-    background-repeat: no-repeat !important;
-    background-attachment: fixed !important;
-    background-color: #030712 !important; /* Tmavé pozadí vyplní zbytek displeje */
-}
-
-/* Speciální úprava pro mobily na výšku */
-@media (max-width: 480px) {
-    body {
-        /* Na mobilu logo trochu zvětšíme, ale pořád se nesmí oříznout */
-        background-size: 90% auto !important; 
-        background-position: center 5% !important;
-    }
-}
-table, thead, tbody, tr, th, td, ul, li, section, main {
-    background: transparent !important;
-    background-color: transparent !important;
-    border-color: rgba(255, 255, 255, 0.1) !important; /* Jemné linky místo tlustých čar */
+    margin: 20px auto !important;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.3) !important; /* Jemný závoj přes logo */
+    border: none !important;      /* SMAZÁNÍ HLAVNÍHO OHRANIČENÍ */
     box-shadow: none !important;
-}
-
-/* Pokud jsou v tabulkách bílé nebo šedé pruhy (zebra), vypneme je */
-tr:nth-child(even), tr:nth-child(odd) {
-    background: transparent !important;
-}
-
-/* Text v tabulkách musí zůstat čitelný */
-td, th {
-    color: white !important;
-    padding: 10px 5px !important;
-}
-.card div, .card section, fieldset, .container > div {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-/* 2. ZPRŮHLEDNĚNÍ HORNÍ LIŠTY (TOPBAR) */
-.topbar, header {
-    background: rgba(0, 0, 0, 0.4) !important; /* Poloprůhledná černá */
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-/* 3. ÚPRAVA INPUTŮ (DATUM A SMĚNA) - Aby nebyly tak zářivě bílé */
-input, select, textarea {
-    background: rgba(255, 255, 255, 0.9) !important;
-    border-radius: 8px !important;
-    border: 1px solid #ccc !important;
-    color: black !important; /* Text uvnitř musí být černý */
-}
-
-/* 4. ODSTRANĚNÍ DUPLICITNÍCH RÁMEČKŮ */
-.card {
-    margin-top: 20px !important;
-}
-/* --- FINÁLNÍ ČISTÝ VZHLED S OSTRÝM LOGEM --- */
-
-/* 1. SMAZÁNÍ VŠECH OHRANIČENÍ (Včetně hlavního boxu) */
-.container, .app, main, .card, body {
-    border: none !important;           /* Smaže hlavní ohraničení celku */
-    box-shadow: none !important;        /* Smaže případné stíny kolem celku */
-    backdrop-filter: none !important;   /* Vypne rozmazání loga */
+    backdrop-filter: none !important; /* LOGO BUDE OSTRÉ */
     -webkit-backdrop-filter: none !important;
 }
 
-/* 2. TOTÁLNÍ ZPRŮHLEDNĚNÍ POZADÍ CELKU */
-/* Pokud chceš, aby pozadí boxu úplně zmizelo, změň 0.3 na 0 */
-.container, .app, main {
-    background: rgba(0, 0, 0, 0.3) !important; /* Velmi jemný tmavý závoj, aby byl text vidět */
-    border-radius: 0 !important;
-    padding: 20px !important;
-    margin: 20px auto !important;
-    max-width: 420px !important;
-}
-
-/* 3. VYČIŠTĚNÍ VNITŘNÍCH PRVKŮ (Modré pruhy, šedé linky) */
-.container *, fieldset, section, details, summary, .btn-info, .card-header {
-    border: none !important;
+/* 4. ÚPLNÉ ZPRŮHLEDNĚNÍ VNITŘNÍCH PRVKŮ (Krabice v krabici) */
+.card, .card-header, .btn-info, fieldset, section, details, summary, .container > div {
     background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
     box-shadow: none !important;
-    outline: none !important;
+    padding: 10px 0 !important;
 }
 
-/* 4. ČITELNOST TEXTU (Musí mít stín, když zmizí ohraničení) */
-label, p, span, summary, h1, h2, h3, .btn-info {
+/* 5. ČITELNOST TEXTU (BÍLÝ SE STÍNEM) */
+label, p, span, summary, .worker, .row, h1, h2, h3, .btn-info {
     color: white !important;
     font-weight: 900 !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,1) !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,1) !important; /* Černý obrys písma */
 }
 
-/* 5. TLAČÍTKA A POLÍČKA (Zůstanou vidět) */
+/* 6. FORMULÁŘE A TLAČÍTKA */
 input, select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none !important;
+    margin-bottom: 14px;
     background: white !important;
     color: black !important;
-    border-radius: 10px !important;
+    font-weight: 700;
 }
 
-.btn-warning, .btn-primary, .btn-success, #saveBtn {
-    background-color: initial !important; 
+.btn-warning, .btn-primary, .btn-success, #saveBtn, .mainBtn {
+    width: 100%;
+    padding: 14px !important;
     border-radius: 12px !important;
-    padding: 12px !important;
+    border: none !important;
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 10px;
 }
+
+/* 7. POMOCNÉ PRVKY (Badge a Bary) */
+.badge { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 900; }
+.active { background: #16a34a !important; }
+.reserve { background: #2563eb !important; }
+.absence { background: #dc2626 !important; }
+.barWrap { background: #020617; border-radius: 10px; height: 14px; margin-top: 6px; overflow: hidden; }
+.bar { height: 100%; background: linear-gradient(90deg,#22c55e,#4ade80); }
 </style>
 </head>
 

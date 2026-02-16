@@ -6,16 +6,15 @@
 <title>Směnový graf</title>
 
 <style>
-
+/* 1. GLOBÁLNÍ NASTAVENÍ A OSTRÉ POZADÍ */
 body {
     margin: 0;
     padding: 0;
-    /* Tyto 3 řádky smaž nebo nahraď tímto: */
-    display: block; 
+    display: block !important;
     min-height: 100vh;
     color: white;
     font-family: sans-serif;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('pozadi.jpg');
+    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('pozadi.jpg') !important;
     background-size: contain !important;
     background-position: center 10% !important;
     background-repeat: no-repeat !important;
@@ -23,279 +22,85 @@ body {
     background-color: #030712 !important;
 }
 
-.topbar{
-  height:56px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 16px;
-  background:#020617;
-  border-bottom:1px solid #1f2937;
+/* 2. TOPBAR (HORNÍ LIŠTA) */
+.topbar {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: rgba(2, 6, 23, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.topTitle{
-  font-weight:800;
-  font-size:18px;
+.topTitle { font-weight: 800; font-size: 18px; }
+
+.menuBtn {
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 800;
+    background: #334155;
+    color: white;
+    cursor: pointer;
 }
 
-.menuBtn{
-  padding:8px 14px;
-  border-radius:10px;
-  border:none;
-  font-weight:800;
-  background:#334155;
-  color:white;
-  cursor:pointer;
-}
-
-.menuBtn:hover{
-  filter:brightness(1.15);
-}
-
-.menuBtn:active{
-  transform:scale(.96);
-}
-
-
-.container{
-  padding:16px;
-  max-width:1000px;
-  margin:auto;
-}
-
-.card{
-  background:#111827;
-  padding:16px;
-  border-radius:14px;
-  margin-bottom:14px;
-}
-
-input,select{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  margin-top:6px;
-}
-
-/* TABLE */
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:14px;
-}
-
-th,td{
-  padding:10px;
-  border-bottom:1px solid #1f2937;
-  text-align:center;
-}
-
-th{
-  background:#020617;
-}
-
-.posCol{
-  text-align:left;
-  font-weight:800;
-  background:#020617;
-}
-
-.highlight{
-  background:#064e3b;
-  font-weight:900;
-}
-
-.empty{
-  opacity:.4;
-}
-
-.infoRow{
-  display:flex;
-  justify-content:space-between;
-  font-weight:800;
-  margin:6px 0;
-}
-body {
-    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('pozadi.jpg') !important;
-    background-size: cover !important;
-    background-position: center !important;
-    background-attachment: fixed !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    min-height: 100vh !important;
-}
-
-.card, [class*="card"] {
-    background: rgba(17, 24, 39, 0.5) !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    box-shadow: none !important;
-}
-
-/* Vypne stín a ohraničení u vnitřních bloků */
-.card .card, #menuCard, .menu {
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-}
-
-.roleTag { color: #22c55e !important; font-weight: bold !important; }
-body {
-    display: block !important; 
-    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('pozadi.jpg') !important;
-    background-size: cover !important;
-    background-position: center !important;
-    background-attachment: fixed !important;
-}
-
-/* 2. Zajištění, aby hlavní obsah byl uprostřed, ale menu nahoře */
-.container, main, .app {
-    margin: 20px auto !important;
+/* 3. HLAVNÍ KONTEJNER A TABULKY - BEZ RÁMEČKŮ A ROZMAZÁNÍ */
+.container, .app, main {
     max-width: 420px;
-}
-
-/* 3. Průhlednost karet (aby bylo vidět logo Škoda) */
-.card, [class*="card"] {
-    background: rgba(17, 24, 39, 0.5) !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-body {
-    /* Fixní pozice zajistí, že se logo nehýbe při scrollování */
-    background-attachment: fixed !important;
-    
-    /* Center zajistí vycentrování loga Škoda na střed */
-    background-position: center center !important;
-    
-    /* Cover roztáhne logo tak, aby vyplnilo celý displej mobilu */
-    background-size: cover !important;
-    
-    background-repeat: no-repeat !important;
-    
-    /* Zajištění, aby podklad pod logem byl tmavý */
-    background-color: #030712 !important;
-}
-
-/* Oprava pro iOS Safari (iPhony), které mají s background-attachment: fixed občas problém */
-@supports (-webkit-touch-callout: none) {
-    body {
-        background-attachment: scroll !important;
-    }
-}
-body {
-    /* 'contain' zajistí, že logo uvidíš vždy celé, nic se neořízne */
-    background-size: contain !important;
-    
-    /* Posune logo do horní části (cca 10 % odshora), aby nebylo schované pod kartou */
-    background-position: center 10% !important;
-    
-    background-repeat: no-repeat !important;
-    background-attachment: fixed !important;
-    background-color: #030712 !important; /* Tmavé pozadí vyplní zbytek displeje */
-}
-
-/* Speciální úprava pro mobily na výšku */
-@media (max-width: 480px) {
-    body {
-        /* Na mobilu logo trochu zvětšíme, ale pořád se nesmí oříznout */
-        background-size: 90% auto !important; 
-        background-position: center 5% !important;
-    }
-}
-table, thead, tbody, tr, th, td, ul, li, section, main {
-    background: transparent !important;
-    background-color: transparent !important;
-    border-color: rgba(255, 255, 255, 0.1) !important; /* Jemné linky místo tlustých čar */
-    box-shadow: none !important;
-}
-
-/* Pokud jsou v tabulkách bílé nebo šedé pruhy (zebra), vypneme je */
-tr:nth-child(even), tr:nth-child(odd) {
-    background: transparent !important;
-}
-
-/* Text v tabulkách musí zůstat čitelný */
-td, th {
-    color: white !important;
-    padding: 10px 5px !important;
-}
-.card div, .card section, fieldset, .container > div {
-    background: transparent !important;
+    margin: 20px auto !important;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.3) !important;
     border: none !important;
-    box-shadow: none !important;
-}
-
-/* 2. ZPRŮHLEDNĚNÍ HORNÍ LIŠTY (TOPBAR) */
-.topbar, header {
-    background: rgba(0, 0, 0, 0.4) !important; /* Poloprůhledná černá */
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-/* 3. ÚPRAVA INPUTŮ (DATUM A SMĚNA) - Aby nebyly tak zářivě bílé */
-input, select, textarea {
-    background: rgba(255, 255, 255, 0.9) !important;
-    border-radius: 8px !important;
-    border: 1px solid #ccc !important;
-    color: black !important; /* Text uvnitř musí být černý */
-}
-
-/* 4. ODSTRANĚNÍ DUPLICITNÍCH RÁMEČKŮ */
-.card {
-    margin-top: 20px !important;
-}
-/* --- FINÁLNÍ ČISTÝ VZHLED S OSTRÝM LOGEM --- */
-
-/* 1. SMAZÁNÍ VŠECH OHRANIČENÍ (Včetně hlavního boxu) */
-.container, .app, main, .card, body {
-    border: none !important;           /* Smaže hlavní ohraničení celku */
-    box-shadow: none !important;        /* Smaže případné stíny kolem celku */
-    backdrop-filter: none !important;   /* Vypne rozmazání loga */
+    backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
 }
 
-/* 2. TOTÁLNÍ ZPRŮHLEDNĚNÍ POZADÍ CELKU */
-/* Pokud chceš, aby pozadí boxu úplně zmizelo, změň 0.3 na 0 */
-.container, .app, main {
-    background: rgba(0, 0, 0, 0.3) !important; /* Velmi jemný tmavý závoj, aby byl text vidět */
-    border-radius: 0 !important;
-    padding: 20px !important;
-    margin: 20px auto !important;
-    max-width: 420px !important;
-}
-
-/* 3. VYČIŠTĚNÍ VNITŘNÍCH PRVKŮ (Modré pruhy, šedé linky) */
-.container *, fieldset, section, details, summary, .btn-info, .card-header {
-    border: none !important;
+/* Totální zprůhlednění všech vnitřních tabulek a karet */
+.card, table, thead, tbody, tr, th, td, fieldset, section, details, summary {
     background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
     box-shadow: none !important;
-    outline: none !important;
+    color: white !important;
 }
 
-/* 4. ČITELNOST TEXTU (Musí mít stín, když zmizí ohraničení) */
-label, p, span, summary, h1, h2, h3, .btn-info {
+/* 4. ČITELNOST TEXTU (STÍN PRO OSTRÉ LOGO) */
+label, p, span, summary, .worker, .row, h1, h2, h3, .topTitle, th, td, .infoRow {
     color: white !important;
     font-weight: 900 !important;
     text-shadow: 2px 2px 4px rgba(0,0,0,1) !important;
 }
 
-/* 5. TLAČÍTKA A POLÍČKA (Zůstanou vidět) */
+/* 5. FORMULÁŘE (BÍLÁ POLÍČKA) */
 input, select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none !important;
+    margin-top: 6px;
     background: white !important;
     color: black !important;
-    border-radius: 10px !important;
+    font-weight: 700;
 }
 
-.btn-warning, .btn-primary, .btn-success, #saveBtn {
-    background-color: initial !important; 
+/* 6. TLAČÍTKA - ZACHOVÁNÍ BAREV */
+.btn-warning, .btn-primary, .btn-success, #saveBtn, .mainBtn {
+    width: 100%;
+    padding: 14px !important;
     border-radius: 12px !important;
-    padding: 12px !important;
+    border: none !important;
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 10px;
 }
+
+/* 7. SPECIFICKÉ PRVKY TABULKY */
+th { border-bottom: 2px solid rgba(255,255,255,0.1) !important; }
+.posCol { text-align: left; font-weight: 800; }
+.highlight { color: #22c55e !important; font-weight: 900; }
+.empty { opacity: .4; }
+.infoRow { display: flex; justify-content: space-between; margin: 6px 0; }
 </style>
 </head>
 
