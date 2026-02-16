@@ -6,7 +6,7 @@
 <title>Zaměstnanci</title>
 
 <style>
-/* 1. GLOBÁLNÍ NASTAVENÍ A OSTRÉ POZADÍ */
+/* 1. GLOBÁLNÍ RESET A OSTRÉ POZADÍ */
 body {
     margin: 0; padding: 0; display: block !important; min-height: 100vh;
     color: white; font-family: sans-serif;
@@ -16,221 +16,46 @@ body {
     background-color: #030712 !important;
 }
 
-/* 2. PRŮHLEDNÁ HORNÍ LIŠTA */
-.topbar {
-    height: 56px; display: flex; align-items: center; justify-content: space-between;
-    padding: 0 16px; background: transparent !important; border-bottom: none !important;
+/* 2. TOPBAR A KONTEJNERY */
+.topbar { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: transparent !important; }
+.container, .app, main { max-width: 420px; margin: 40px auto !important; padding: 16px; background: transparent !important; border: none !important; }
+
+/* 3. MODÁL A MŘÍŽKA POZIC */
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85) !important; z-index: 10000; overflow-y: auto !important; align-items: flex-start; justify-content: center; padding: 20px 10px; }
+.modalBox { background: #0f172a !important; padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); width: 100%; max-width: 450px; margin: 40px auto !important; box-shadow: 0 20px 50px #000; }
+
+.skills, .grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; margin-top: 15px !important; }
+
+/* Červené karty pozic */
+.grid > div, .skillItem {
+    background: rgba(220, 38, 38, 0.2) !important; border: 1px solid rgba(220, 38, 38, 0.5) !important;
+    padding: 10px !important; border-radius: 10px !important; cursor: pointer; text-align: center;
+    font-weight: 800; font-size: 10px; display: flex !important; align-items: center; justify-content: center; min-height: 45px;
 }
-.topTitle { color: white !important; font-weight: 900; text-shadow: 2px 2px 4px #000; }
+.skillItem.active, .grid > div.active { background: rgba(22, 163, 74, 0.6) !important; border: 1px solid #22c55e !important; }
+.grid input[type="checkbox"] { display: none !important; }
+
+/* 4. FORMULÁŘOVÁ POLE */
+input, select, textarea {
+    width: 100%; padding: 12px; border-radius: 10px; border: none !important;
+    margin-bottom: 12px; background: white !important; color: black !important; font-weight: 700; box-sizing: border-box !important;
+}
+textarea { min-height: 50px; resize: none; }
+label, h1, h2, h3 { color: white !important; font-weight: 900; text-shadow: 2px 2px 4px #000; }
+
+/* 5. TLAČÍTKA */
+.addBtn, .btn-success, .save { background: #22c55e !important; color: white !important; cursor: pointer; width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 800; margin-top: 10px; }
+.close { background: #334155 !important; }
 .menuBtn { padding: 8px 14px; border-radius: 10px; border: none; font-weight: 800; background: rgba(51, 65, 85, 0.8); color: white; cursor: pointer; }
 
-/* 3. HLAVNÍ KONTEJNER (LEVITUJÍCÍ STYL) */
-.container, .app, main {
-    max-width: 420px; margin: 40px auto !important; padding: 16px;
-    background: transparent !important; border: none !important; box-shadow: none !important;
-}
-
-/* 4. MODÁL - OPRAVA SCROLLOVÁNÍ A CENTROVÁNÍ */
-.modal {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0, 0, 0, 0.85) !important; z-index: 10000;
-    overflow-y: auto !important; /* POVOLÍ SCROLLOVÁNÍ CELÉHO OKNA */
-    padding: 20px 10px;
-    display: none; /* Nechat skryté, dokud JS nespustí display:flex */
-    align-items: flex-start; justify-content: center;
-}
-
-.modalBox {
-    background: #0f172a !important; padding: 25px; border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2); width: 100%; max-width: 600px;
-    box-shadow: 0 20px 50px #000; margin: 40px auto !important;
-    display: block !important; position: relative;
-}
-
-/* 5. MŘÍŽKA POZIC (DVA SLOUPCE) */
-.grid, [class*="grid"], .modalBox div[style*="grid"] {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important; /* Vynutí 2 sloupce */
-    gap: 10px !important; margin-top: 15px !important;
-    max-height: none !important; overflow: visible !important;
-}
-
-.grid > div, .skillItem {
-    background: rgba(255, 255, 255, 0.05) !important; padding: 12px !important;
-    border-radius: 10px !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    display: flex !important; justify-content: space-between !important;
-    align-items: center !important; font-size: 11px !important; font-weight: 800;
-}
-
-/* Aktivní zelená */
-.active, .selected { background: rgba(22, 163, 74, 0.5) !important; border: 1px solid #22c55e !important; }
-
-/* 6. FORMULÁŘE A TEXTY */
-.modalBox input, .modalBox select {
-    width: 100%; padding: 12px; border-radius: 10px; border: none !important;
-    margin-bottom: 12px; background: white !important; color: black !important; font-weight: 700;
-}
-label, p, span, h1, h2, h3 { color: white !important; font-weight: 900; text-shadow: 2px 2px 4px #000; }
-
-/* 7. TLAČÍTKA */
-.addBtn, .btn-success, .save { background: #22c55e !important; color: white !important; }
-.close { background: #334155 !important; color: white !important; }
-button { cursor: pointer; width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 800; margin-top: 10px; }
-/* 1. VYNUCENÍ DVOU SLOUPCŮ */
-.grid, [class*="grid"], .modalBox div[style*="grid"] {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important; /* Dva sloupce vedle sebe */
-    gap: 8px !important;
-    width: 100% !important;
-}
-
-/* 2. ZAROVNÁNÍ TEXTU DOLEVA A ÚPRAVA POLOŽKY */
-.grid > div, .skillItem {
-    display: flex !important;
-    flex-direction: row-reverse !important; /* Checkbox vlevo, text vpravo */
-    justify-content: flex-end !important;   /* Vše se tlačí doleva */
-    align-items: center !important;
-    padding: 10px !important;
-    gap: 12px !important;                    /* Mezera mezi checkboxem a textem */
-    text-align: left !important;
-    font-size: 10px !important;              /* Menší písmo pro mobil */
-    min-height: 40px !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-radius: 8px;
-}
-
-/* 3. ÚPRAVA SAMOTNÉHO TEXTU POZICE */
-.grid > div span, .grid > div label {
-    flex: 1; /* Text vyplní zbytek místa vlevo */
-    text-align: left !important;
-    white-space: nowrap; /* Zabrání rozhazování slov na dva řádky */
-}
-
-/* 4. ÚPRAVA CHECKBOXU (Aby nebyl uprostřed) */
-.grid > div input[type="checkbox"] {
-    margin: 0 !important;
-    order: -1; /* Posune checkbox na začátek řádku */
-}
-/* 1. SCHOVÁNÍ PŮVODNÍCH ČTVEREČKŮ (CHECKBOXŮ) */
-.grid input[type="checkbox"], .skillItem input[type="checkbox"] {
-    display: none !important;
-}
-
-/* 2. ZÁKLADNÍ VZHLED KARTY (ČERVENÁ - NEAKTIVNÍ) */
-.grid > div, .skillItem {
-    background: rgba(220, 38, 38, 0.2) !important; /* Jemná červená */
-    border: 1px solid rgba(220, 38, 38, 0.5) !important;
-    color: white !important;
-    padding: 12px !important;
-    border-radius: 10px !important;
-    cursor: pointer !important;
-    text-align: center !important; /* Text bude na střed karty */
-    font-weight: 800 !important;
-    font-size: 11px !important;
-    transition: 0.2s all;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-}
-
-/* 3. AKTIVNÍ STAV (ZELENÁ - PO KLIKNUTÍ) */
-/* Tato třída 'active' se přidá pomocí JavaScriptu */
-.grid > div.active, .skillItem.active, .grid > div.selected {
-    background: rgba(22, 163, 74, 0.6) !important; /* Škoda zelená */
-    border: 1px solid #22c55e !important;
-    transform: scale(0.98); /* Efekt zmáčknutí */
-}
-
-/* Efekt při najetí myší */
-.grid > div:hover {
-    filter: brightness(1.2);
-}
-/* VYNUCENÍ DVOU SLOUPCŮ PRO ČERVENÉ KARTY */
-.skills, .grid, [class*="grid"], .modalBox div[style*="grid"] {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important; /* Dva stejně široké sloupce */
-    gap: 10px !important;                      /* Mezera mezi kartami */
-    width: 100% !important;
-    margin-top: 15px !important;
-}
-
-/* ÚPRAVA VELIKOSTI KARET PRO DVA SLOUPCE */
-.grid > div, .skillItem {
-    min-height: 45px !important;               /* Trošku vyšší pro lepší klikání prstem */
-    padding: 8px !important;
-    font-size: 10px !important;                 /* Menší písmo, aby se tam dlouhé názvy vešly */
-    word-break: break-word !important;          /* Pokud je slovo moc dlouhé, zalomí se */
-}
-
-/* Aby Jméno a Příjmení nahoře zůstala pod sebou (pokud by se taky zvrhla do mřížky) */
-.modalBox input {
-    grid-column: span 2; 
-}
-/* SJEDNOCENÍ POZNÁMKY (TEXTAREA) S OSTATNÍMI POLI */
-/* FINÁLNÍ ZAROVNÁNÍ POZNÁMKY */
-textarea, .modalBox textarea {
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important; /* KLÍČOVÝ PŘÍKAZ PRO STEJNOU ŠÍŘKU */
-    padding: 12px !important;
-    border-radius: 10px !important;
-    border: none !important;
-    background: white !important;
-    color: black !important;
-    font-weight: 700 !important;
-    font-family: sans-serif !important;
-    margin-bottom: 12px !important;
-    display: block !important;
-    min-height: 50px !important; /* Můžeš nechat nižší, aby se tolik nelišila od jména */
-    resize: none; /* Zamezí uživateli, aby ji ručně roztáhl a rozbil design */
-}
-/* BAREVNÉ ROZLIŠENÍ STAVŮ */
-
-/* V práci - Zelená */
-.status-v-praci, [value="v-praci"] { color: #22c55e !important; font-weight: 900; }
-
-/* Dovolená - Žlutá */
-.status-dovolena, [value="dovolena"] { color: #f59e0b !important; font-weight: 900; }
-
-/* Paragraf - Fialová */
-.status-paragraf, [value="paragraf"] { color: #a855f7 !important; font-weight: 900; }
-
-/* Nemoc - Červená */
-.status-nemoc, [value="nemoc"] { color: #ef4444 !important; font-weight: 900; }
-
-/* Parťák - Bílá */
-.status-partak, [value="partak"], [value="shit-making"] { color: #ffffff !important; font-weight: 900; }
-
-/* Půjčený - Černá (s bílým obrysem, aby byl vidět) */
-.status-pujceny, [value="pujceny"] { 
-    color: #000000 !important; 
-    font-weight: 900; 
-    text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff; 
-}
-
-/* Propůjčený - Modrá */
-.status-propujceny, [value="propujceny"] { color: #3b82f6 !important; font-weight: 900; }
-/* 1. ZÁKLADNÍ STYL VÝBĚRU (VÝCHOZÍ BÍLÁ) */
-select#statusSelect {
-    width: 100% !important;
-    padding: 12px !important;
-    border-radius: 10px !important;
-    font-weight: 900 !important;
-    border: none !important;
-    cursor: pointer;
-    background-color: white !important;
-    color: black !important;
-}
-
-/* 2. BARVY PRO JEDNOTLIVÉ STAVY (BARVÍME POZADÍ POLÍČKA) */
-/* Tyto barvy se uplatní v seznamu, pokud to prohlížeč dovolí */
-option[value="v-praci"] { background: #22c55e; color: white; }
-option[value="dovolena"] { background: #f59e0b; color: black; }
-option[value="paragraf"] { background: #a855f7; color: white; }
-option[value="nemoc"] { background: #ef4444; color: white; }
-option[value="partak"] { background: #ffffff; color: black; }
-option[value="pujceny"] { background: #000000; color: white; }
-option[value="propujceny"] { background: #3b82f6; color: white; }
+/* 6. BAREVNÉ STAVY PRO CELÉ POLE SELECT */
+.bg-v-praci { background-color: #16a34a !important; color: white !important; }
+.bg-dovolena { background-color: #f59e0b !important; color: black !important; }
+.bg-paragraf { background-color: #a855f7 !important; color: white !important; }
+.bg-nemoc { background-color: #dc2626 !important; color: white !important; }
+.bg-partak { background-color: #ffffff !important; color: black !important; }
+.bg-pujceny { background-color: #000000 !important; color: white !important; border: 1px solid white !important; }
+.bg-propujceny { background-color: #2563eb !important; color: white !important; }
 </style>
 </head>
 
