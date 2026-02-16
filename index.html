@@ -245,6 +245,31 @@ hr, .divider, .separator {
 .header p, .header span {
     display: none !important;
 }
+.message-box {
+    margin: 20px auto !important;
+    max-width: 400px;
+    padding: 15px 20px !important;
+    border-radius: 20px !important; /* Moderní zaoblení */
+    background: rgba(30, 41, 59, 0.6) !important; /* Tmavé pozadí bez rozmazání */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #f1f5f9 !important;
+    font-family: 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    line-height: 1.5 !important;
+    text-align: center !important;
+    display: none; /* Skryje se, když je prázdná */
+}
+
+/* Zobrazí se pouze, pokud v ní něco je */
+.message-box:not(:empty) {
+    display: block !important;
+}
+
+/* Pokud zpráva obsahuje text, zobrazíme ji */
+.message-box:not(:empty) {
+    display: block;
+}
 </style>
 </head>
 
@@ -287,11 +312,7 @@ hr, .divider, .separator {
   background:#1e293b;
   border:2px solid #0ea5e9;
 ">
-  <div style="font-weight:900;margin-bottom:6px;">
-    📢 Hromadná zpráva
-  </div>
-  <div id="broadcastText" style="line-height:1.4;opacity:.95;"></div>
-</div>
+  <div id="broadcastText" class="message-box"></div>
 
 <!-- MOJE POZNÁMKA -->
 <div id="myNoteCard" class="card hidden" style="margin-bottom:14px;">
@@ -476,17 +497,16 @@ async function loadMyNote(user){
   }
 }
 
-async function loadBroadcast(){
+async function loadBroadcast() {
+  const snap = await getDoc(doc(db, "config", "global"));
+  const msg = snap.data()?.broadcastMessage || "";
+  const box = document.getElementById("broadcastText"); // Použijeme tvé ID z HTML
 
-  const snap = await getDoc(doc(db,"config","global"));
-
-  const msg = snap.data()?.broadcastMessage;
-
-  if(msg && msg.trim() !== ""){
-    broadcastTextEl.innerText = msg;
-    broadcastCard.classList.remove("hidden");
-  }else{
-    broadcastCard.classList.add("hidden");
+  if (msg.trim() !== "") {
+    box.innerText = msg;
+    box.style.display = "block"; // Zobrazí box
+  } else {
+    box.style.display = "none";  // Schová box, když je prázdný
   }
 }
 
