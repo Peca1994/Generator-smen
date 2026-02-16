@@ -132,6 +132,33 @@ label, p, span, h1, h2, h3, .empName {
 
 .save { background: #22c55e !important; color: white; }
 .close { background: #334155 !important; color: white; }
+/* 1. UNIVERZÁLNÍ OPRAVA PRO MŘÍŽKU POZIC */
+.grid, [class*="grid"], .modalBox div[style*="display: grid"] {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important; /* Dva sloupce */
+    gap: 10px !important;
+    margin-top: 15px !important;
+}
+
+/* 2. OPRAVA POLOŽEK (POZIC) */
+/* Pokud nemají třídu .skillItem, zkusíme vybrat divy uvnitř mřížky */
+.grid > div, .skillItem, [class*="Item"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    padding: 12px !important;
+    border-radius: 10px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    font-size: 11px !important;
+    font-weight: 800;
+}
+
+/* 3. AKTIVNÍ ZELENÁ BARVA */
+.active, [class*="active"], .selected {
+    background: rgba(22, 163, 74, 0.4) !important;
+    border: 1px solid #22c55e !important;
+}
 </style>
 </head>
 
