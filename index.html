@@ -245,14 +245,23 @@ hr, .divider, .separator {
 
 /* Styl pro zprávu - aby neodsunula tlačítka moc nízko */
 .message-box {
+    margin: 20px auto !important;
+    max-width: 400px;
+    padding: 18px 25px !important;
+    border-radius: 20px !important;
+    background: rgba(15, 23, 42, 0.6) !important; /* Tmavší, "skleněný" efekt */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-left: 4px solid #3b82f6 !important; /* Modrý akcent na straně */
+    
+    /* VYLEPŠENÍ PÍSMA */
+    color: #f1f5f9 !important;
     font-family: 'Segoe UI', Roboto, sans-serif !important;
-    font-size: 17px !important; /* Větší písmo */
-    font-weight: 400 !important;
-    letter-spacing: 0.5px;
-    line-height: 1.6;
-    color: #e2e8f0 !important;
-    border-left: 4px solid #16a34a; /* Zelený proužek na boku jako "tip" */
-    background: rgba(30, 41, 59, 0.7) !important;
+    font-size: 16px !important;
+    font-weight: 400 !important; /* Lehčí písmo působí luxusněji */
+    line-height: 1.6 !important; /* Větší mezery mezi řádky pro čitelnost */
+    text-align: left !important; /* Zarovnání doleva vypadá u zpráv lépe */
+    text-transform: none !important; /* ZRUŠÍ VELKÁ PÍSMENA */
+    letter-spacing: 0.2px;
 }
 
 /* Zobrazí se pouze, pokud v ní něco je */
