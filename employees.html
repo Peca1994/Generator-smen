@@ -159,6 +159,43 @@ label, p, span, h1, h2, h3, .empName {
     background: rgba(22, 163, 74, 0.4) !important;
     border: 1px solid #22c55e !important;
 }
+/* 1. ROZŠÍŘENÍ KONTEJNERU PRO KARTU ZAMĚSTNANCŮ */
+.modalBox, .container {
+    max-width: 800px !important; /* Zvětšíme šířku, aby se vešly dva sloupce */
+    width: 95% !important;
+}
+
+/* 2. OPRAVA MŘÍŽKY (GRIDU) POZIC */
+/* Vybereme všechny divy, které obsahují ty pozice */
+.modalBox div[style*="display: grid"], .grid, [class*="grid"] {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important; /* Vynutí dva sloupce */
+    gap: 10px !important;
+    max-height: none !important; /* Zabrání uříznutí seznamu */
+    overflow: visible !important; /* Zobrazí i ty "chybějící" pozice */
+}
+
+/* 3. OPRAVA JEDNOTLIVÝCH POLOŽEK */
+.skillItem, .grid > div {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05) !important;
+    padding: 10px !important;
+    border-radius: 8px;
+    font-size: 12px !important;
+    min-height: 40px;
+}
+
+/* 4. ABY SE TO NA MOBILU NESMRSKLO */
+@media (max-width: 600px) {
+    .modalBox {
+        padding: 15px !important;
+    }
+    .grid, [class*="grid"] {
+        grid-template-columns: 1fr 1fr !important; /* I na mobilu necháme dva sloupce, pokud jsou krátké názvy */
+    }
+}
 </style>
 </head>
 
