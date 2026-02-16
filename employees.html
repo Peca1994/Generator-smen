@@ -6,200 +6,99 @@
 <title>Zaměstnanci</title>
 
 <style>
+/* 1. GLOBÁLNÍ RESET A POZADÍ */
+* {
+    box-shadow: none !important;
+    border: none !important;
+    outline: none !important;
+}
 
 body {
     margin: 0;
     padding: 0;
-    /* Tyto 3 řádky smaž nebo nahraď tímto: */
-    display: block; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
     min-height: 100vh;
     color: white;
     font-family: sans-serif;
     background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('pozadi.jpg');
-    background-size: contain !important;
-    background-position: center 10% !important;
+    background-size: cover !important; /* Pro mobilní telefony lepší cover */
+    background-position: center !important;
     background-repeat: no-repeat !important;
     background-attachment: fixed !important;
     background-color: #030712 !important;
 }
 
-.header{
-  padding:16px;
-  background:#020617;
-  display:flex;
-  gap:12px;
-  align-items:center;
+/* 2. HLAVNÍ STRUKTURA (APP A KARTY) */
+.app {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+    background: transparent !important;
 }
 
-.back{
-  background:#334155;
-  border:none;
-  color:white;
-  padding:10px 14px;
-  border-radius:10px;
-  font-weight:700;
+.card {
+    background: rgba(17, 24, 39, 0.4) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-radius: 20px !important;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-.container{
-  padding:16px;
-  max-width:700px;
-  margin:auto;
+/* Úklid vnořených prvků a menu */
+.card .card, #menuCard, .menu, .app div:not(.card), main, section {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0;
 }
 
-.addBtn{
-  width:100%;
-  padding:16px;
-  border:none;
-  border-radius:14px;
-  font-weight:800;
-  background:#22c55e;
-  margin-bottom:16px;
+/* 3. TEXTOVÉ PRVKY */
+.logo { font-size: 34px; font-weight: 900; text-align: center; }
+.sub { text-align: center; opacity: .7; margin-bottom: 20px; }
+.roleTag { 
+    text-align: center; 
+    margin: 10px 0 !important; 
+    color: #22c55e !important; /* Škoda zelená */
+    font-weight: bold;
+    background: transparent !important;
 }
 
-.empRow{
-  background:#111827;
-  padding:14px;
-  border-radius:12px;
-  margin-bottom:10px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+/* 4. TLAČÍTKA A INTERAKCE */
+.menu button, .mainBtn {
+    width: 100%;
+    padding: 16px !important;
+    border-radius: 12px;
+    margin-top: 10px;
+    font-weight: 800;
+    font-size: 16px !important;
+    color: white !important;
+    transition: 0.15s;
+    cursor: pointer;
 }
 
-.empName{
-  font-weight:800;
-  cursor:pointer;
+/* Barevné a průhledné varianty tlačítek */
+.btnEmployees { background: rgba(124, 58, 237, 0.5) !important; }
+.btnGenerator { background: rgba(245, 158, 11, 0.5) !important; }
+.btnSchedule  { background: rgba(22, 163, 74, 0.5) !important; }
+.btnCalendar  { background: rgba(220, 38, 38, 0.5) !important; }
+.btnStats     { background: rgba(6, 182, 212, 0.5) !important; }
+.logout       { background: rgba(55, 65, 81, 0.5) !important; }
+
+.menu button:hover, .mainBtn:hover { filter: brightness(1.2); transform: scale(1.01); }
+.menu button:active { transform: scale(0.98); }
+
+/* 5. POMOCNÉ TŘÍDY */
+.hidden { display: none; }
+hr, .divider { display: none !important; }
+
+/* Responzivita pro malé mobily */
+@media (max-width: 400px) {
+    .app { padding: 10px; }
+    .logo { font-size: 28px; }
 }
-
-select{
-  padding:8px;
-  border-radius:8px;
-}
-
-/* modal */
-
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.7);
-  display:none;
-}
-
-.modalBox{
-  background:#020617;
-  margin:20px;
-  padding:18px;
-  border-radius:16px;
-  max-height:90vh;
-  overflow:auto;
-}
-
-input, textarea{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:none;
-  margin-bottom:10px;
-}
-
-.skills{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
-}
-
-.skillItem{
-  background:#111827;
-  padding:10px;
-  border-radius:10px;
-  cursor:pointer;
-  border:2px solid transparent;
-  font-size:13px;
-  user-select:none;
-}
-
-.skillItem.active{
-  border-color:#22c55e;
-  background:#052e1b;
-}
-.status-work{
-  background:#16a34a;
-  color:white;
-}
-
-.status-vacation{
-  background:#f59e0b;
-  color:black;
-}
-
-.status-sick,
-.status-paragraf{
-  background:#dc2626;
-  color:white;
-}
-
-.status-shitmaking{
-  background:#2563eb;
-  color:white;
-}
-
-.status-borrowed{
-  background:#a855f7;
-  color:white;
-}
-
-.status-loaned{
-  background:#14b8a6;
-  color:black;
-}
-
-
-.topbar{
-  height:56px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 16px;
-  background:#020617;
-  border-bottom:1px solid #1f2937;
-}
-
-.topTitle{
-  font-weight:800;
-  font-size:18px;
-}
-
-.menuBtn{
-  padding:8px 14px;
-  border-radius:10px;
-  border:none;
-  font-weight:800;
-  background:#334155;
-  color:white;
-  cursor:pointer;
-}
-
-.menuBtn:hover{
-  filter:brightness(1.15);
-}
-
-.menuBtn:active{
-  transform:scale(.96);
-}
-
-.modal button{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:12px;
-  font-weight:800;
-  margin-top:8px;
-}
-
-.save{ background:#22c55e; }
-.delete{ background:#ef4444; }
-.close{ background:#334155; }
-
 </style>
 </head>
 
