@@ -58,7 +58,21 @@ label, h1, h2, h3 { color: white !important; font-weight: 900; text-shadow: 2px 
 .bg-propujceny { background-color: #2563eb !important; color: white !important; }
 </style>
 </head>
+<script>
+// Funkce pro barvení políčka podle vybraného stavu
+const statusSelect = document.querySelector('select'); // vybere tvůj seznam stavů
 
+if(statusSelect) {
+    statusSelect.addEventListener('change', function() {
+        // Seznam všech možných barevných tříd
+        const colors = ['bg-v-praci', 'bg-dovolena', 'bg-paragraf', 'bg-nemoc', 'bg-partak', 'bg-pujceny', 'bg-propujceny'];
+        // Odstraní starou barvu
+        statusSelect.classList.remove(...colors);
+        // Přidá novou barvu podle value (např. bg-nemoc)
+        statusSelect.classList.add('bg-' + this.value);
+    });
+}
+</script>
 <body>
 
 <div class="topbar">
