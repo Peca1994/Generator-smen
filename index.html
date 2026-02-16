@@ -402,6 +402,59 @@ body::after {
 .hero-section {
     margin-bottom: -20px !important;
 }
+.hero-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 10px;
+    /* Horní zelená záře jako minule */
+    background: radial-gradient(circle at 50% 0%, rgba(34, 197, 94, 0.4) 0%, rgba(3, 7, 18, 0) 70%);
+    margin-bottom: 0 !important; /* ŽÁDNÁ MEZERA DOLE */
+}
+
+.skoda-svg {
+    width: 80px; /* Decentní velikost šípu */
+    height: 80px;
+    filter: drop-shadow(0 0 15px rgba(34, 197, 94, 0.6));
+    margin-bottom: -15px; /* Přitáhne nápis blíž */
+}
+
+.logo-overlay {
+    font-size: 44px !important;
+    font-weight: 300 !important;
+    letter-spacing: -1.5px;
+    margin: 0 !important;
+    color: white !important;
+    z-index: 10;
+}
+
+.logo-overlay b { font-weight: 800 !important; color: #22c55e !important; }
+
+.skoda-text {
+    font-family: sans-serif;
+    font-weight: 900;
+    font-size: 28px;
+    letter-spacing: 8px; /* Rozestupy jako má Škoda */
+    color: #22c55e;
+    margin-top: -5px;
+    margin-bottom: 10px;
+}
+
+/* NULOVÉ MEZERY U ZPRÁVY A KARET */
+.message-box {
+    margin: 0 auto !important; /* Přilepí zprávu nahoru */
+    width: 90%;
+    padding: 10px 15px !important;
+    background: rgba(15, 23, 42, 0.8) !important;
+    border-radius: 15px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* První karta se přilepí ke zprávě */
+#menuCard {
+    margin-top: 5px !important;
+}
 </style>
 </head>
 
@@ -410,13 +463,18 @@ body::after {
 <div class="app">
 
 <div class="hero-section">
-    <div class="logo-wrapper">
-        <!-- Nápis teď bude absolutně pozicován přes logo -->
-        <h1 class="logo-overlay">Shift<b>Master</b></h1>
-        <img src="pozadi.jpg" class="center-logo" alt="Škoda Logo">
-    </div>
+  <!-- Moderní čisté logo Škoda (SVG - nezabírá místo a je průhledné) -->
+  <svg class="skoda-svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="none" stroke="#22c55e" stroke-width="2""")/>>
+    <path d="M50 15 L35 45 L50 40 L65 45 Z" fill="#22c55e""")/>>
+    <path d="M50 45 L35 75 L50 70 L65 75 Z" fill="#22c55e""")/>>
+  </svg>
+  
+  <h1 class="logo-overlay">Shift<b>Master</b></h1>
+  <div class="skoda-text">ŠKODA</div>
 </div>
 
+<!-- Hromadná zpráva - teď bude nalepená pod tím -->
 <div id="broadcastText" class="message-box"></div>
 
 <div id="loading" class="card">
