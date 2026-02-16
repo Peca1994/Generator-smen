@@ -6,97 +6,144 @@
 <title>Směnový graf</title>
 
 <style>
-/* 1. GLOBÁLNÍ NASTAVENÍ A POZADÍ */
+
 body {
     margin: 0;
     padding: 0;
-    display: flex; /* Vrátí vycentrování celé karty */
-    justify-content: center;
-    align-items: center;
+    /* Tyto 3 řádky smaž nebo nahraď tímto: */
+    display: block; 
     min-height: 100vh;
     color: white;
     font-family: sans-serif;
     background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('pozadi.jpg');
-    background-size: cover !important;
-    background-position: center !important;
+    background-size: contain !important;
+    background-position: center 10% !important;
     background-repeat: no-repeat !important;
     background-attachment: fixed !important;
     background-color: #030712 !important;
 }
 
-/* 2. KONTEJNER A KARTA */
-.app {
-    width: 100%;
-    max-width: 420px;
-    padding: 20px;
-    box-sizing: border-box;
+.topbar{
+  height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px;
+  background:#020617;
+  border-bottom:1px solid #1f2937;
 }
 
-.card {
-    background: rgba(17, 24, 39, 0.6) !important; /* Průhledná karta */
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border-radius: 20px !important;
-    padding: 25px;
+.topTitle{
+  font-weight:800;
+  font-size:18px;
+}
+
+.menuBtn{
+  padding:8px 14px;
+  border-radius:10px;
+  border:none;
+  font-weight:800;
+  background:#334155;
+  color:white;
+  cursor:pointer;
+}
+
+.menuBtn:hover{
+  filter:brightness(1.15);
+}
+
+.menuBtn:active{
+  transform:scale(.96);
+}
+
+
+.container{
+  padding:16px;
+  max-width:1000px;
+  margin:auto;
+}
+
+.card{
+  background:#111827;
+  padding:16px;
+  border-radius:14px;
+  margin-bottom:14px;
+}
+
+input,select{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  margin-top:6px;
+}
+
+/* TABLE */
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+
+th,td{
+  padding:10px;
+  border-bottom:1px solid #1f2937;
+  text-align:center;
+}
+
+th{
+  background:#020617;
+}
+
+.posCol{
+  text-align:left;
+  font-weight:800;
+  background:#020617;
+}
+
+.highlight{
+  background:#064e3b;
+  font-weight:900;
+}
+
+.empty{
+  opacity:.4;
+}
+
+.infoRow{
+  display:flex;
+  justify-content:space-between;
+  font-weight:800;
+  margin:6px 0;
+}
+body {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('pozadi.jpg') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-attachment: fixed !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: 100vh !important;
+}
+
+.card, [class*="card"] {
+    background: rgba(17, 24, 39, 0.5) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important; /* Jemný stín pro hloubku */
-}
-
-/* Úklid vnořených prvků, aby nevrstvily šedou barvu */
-.card .card, #menuCard, .menu, main, section {
-    background: transparent !important;
-    border: none !important;
     box-shadow: none !important;
-    padding: 0;
 }
 
-/* 3. TEXTY */
-.logo { font-size: 34px; font-weight: 900; text-align: center; margin-bottom: 5px; }
-.sub { text-align: center; opacity: .7; margin-bottom: 20px; }
-.roleTag { 
-    text-align: center; 
-    margin: 15px 0 !important; 
-    color: #22c55e !important; /* Škoda zelená */
-    font-weight: bold;
-}
-
-/* 4. TLAČÍTKA - VRÁCENÍ BAREV A VELIKOSTI */
-.menu button, .mainBtn, .switch button {
-    width: 100%;
-    padding: 16px !important;
-    border-radius: 12px;
-    margin-top: 12px;
-    font-weight: 800;
-    font-size: 16px !important;
-    color: white !important;
+/* Vypne stín a ohraničení u vnitřních bloků */
+.card .card, #menuCard, .menu {
+    background: transparent !important;
+    box-shadow: none !important;
     border: none !important;
-    cursor: pointer;
-    transition: 0.2s;
 }
 
-/* Konkrétní barvy pro tlačítka (neprůhlednější, aby byla vidět) */
-.btnEmployees { background: #7c3aed !important; opacity: 0.8; }
-.btnGenerator { background: #f59e0b !important; opacity: 0.8; }
-.btnSchedule  { background: #16a34a !important; opacity: 0.8; }
-.btnCalendar  { background: #dc2626 !important; opacity: 0.8; }
-.btnStats     { background: #06b6d4 !important; opacity: 0.8; }
-.logout       { background: #374151 !important; opacity: 0.8; }
-
-.menu button:hover { opacity: 1; transform: scale(1.02); filter: brightness(1.1); }
-
-/* Vstupy (Inputy) - aby byly vidět */
-input {
-    width: 100%;
-    padding: 14px;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.1);
-    color: white;
-    border: 1px solid rgba(255,255,255,0.2);
-    margin-bottom: 10px;
-    box-sizing: border-box;
-}
-
-.hidden { display: none; }
+.roleTag { color: #22c55e !important; font-weight: bold !important; }
 </style>
 </head>
 
