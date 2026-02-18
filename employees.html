@@ -224,30 +224,39 @@ if (statusSelect) {
     <button class="close" onclick="closeBroadcast()">Zavřít</button>
   </div>
 <script type="module">
+import { initializeApp } from "https://www.gstatic.com";
+import { getFirestore, collection, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  doc,
-  setDoc,
-  deleteDoc,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// 1. PŘIDEJ TENTO IMPORT PRO PŘIHLÁŠENÍ
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com";
 
 const app = initializeApp({
-apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
-  authDomain: "generator-smen-9fba1.firebaseapp.com",
-  projectId: "generator-smen-9fba1",
-  storageBucket: "generator-smen-9fba1.firebasestorage.app",
-  messagingSenderId: "541779211883",
-  appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
-  measurementId: "G-1HF3R93D92"
+  apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+  // ... zbytek tvé konfigurace
 });
+
+const db = getFirestore(app);
+const auth = getAuth(app); // 2. DEFINUJ AUTH
+
+// 3. TADY ZAČÍNÁ KONTROLA
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    console.log("Uživatel přihlášen:", user.email);
+    
+    // Teprve až když je uživatel potvrzen, spustíme načítání dat
+    await loadWorkers();
+    await loadShift();
+    
+    // Pokud máš v souboru další startovací funkce, dej je SEM
+  } else {
+    // 4. POKUD NENÍ PŘIHLÁŠEN, PŘESMĚRUJ HO (aby se stránka pořád nenačítala)
+    console.warn("Uživatel není přihlášen! Přesměrovávám...");
+    window.location.href = "login.html"; // Změň na název tvé přihlašovací stránky
+  }
+});
+
+/* ... zbytek tvých funkcí (async function loadWorkers() atd.) zůstává pod tím ... */
+</script>
 
 const auth = getAuth(app);
 const db = getFirestore(app);
