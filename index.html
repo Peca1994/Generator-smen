@@ -883,9 +883,9 @@ onAuthStateChanged(auth, async user => {
     loadMyNote(user);
     loadBroadcast();
   } else {
-    // Pokud není uživatel přihlášen, pošli ho na login nebo schovej menu
-    location.href = "index.html"; // nebo tvoje přihlašovací stránka
-  }
+  if (loadingCard) loadingCard.style.display = "none";
+  if (authCard) authCard.style.display = "block";
+}
 });
 async function loadMyNote(user){
 
