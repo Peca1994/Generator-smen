@@ -786,128 +786,112 @@ body {
 </div>
 
 <script type="module">
-
+// 1. Správné importy z oficiálního CDN
 import { initializeApp } from "https://www.gstatic.com";
-import { getFirestore, collection, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com";
+import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com";
 
-// 1. PŘIDEJ TENTO IMPORT PRO PŘIHLÁŠENÍ
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com";
+// 2. Tvoje konfigurace (doplň chybějící údaje z Firebase konzole)
+const firebaseConfig = {
+  apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+  authDomain: "shiftmaster-skoda.firebaseapp.com", // uprav podle svého
+  projectId: "shiftmaster-skoda",                  // uprav podle svého
+  storageBucket: "shiftmaster-skoda.appspot.com",   // uprav podle svého
+  messagingSenderId: "...",
+  appId: "..."
+};
 
-const loading = document.getElementById("loading");
-const emailEl = document.getElementById("email");
-const passEl = document.getElementById("pass");
+// 3. Inicializace (pouze jednou)
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// 4. Načtení elementů z DOM
+const loadingCard = document.getElementById("loading");
 const authCard = document.getElementById("authCard");
 const menuCard = document.getElementById("menuCard");
-const roleLabel = document.getElementById("roleLabel");
-const myNoteCard = document.getElementById("myNoteCard");
-const myNoteText = document.getElementById("myNoteText");
-const broadcastCard = document.getElementById("broadcastCard");
-const broadcastTextEl = document.getElementById("broadcastText");
+const emailEl = document.getElementById("email");
+const passEl = document.getElementById("pass");
+const mainBtn = document.getElementById("mainBtn"); // Ujisti se, že máš toto ID v HTML
 
 let mode = "login";
 
-window.setMode = (m)=>{
+// 5. Přepínání Login/Registrace
+window.setMode = (m) => {
   mode = m;
-  tabLogin.classList.toggle("activeTab", m==="login");
-  tabReg.classList.toggle("activeTab", m==="register");
-  mainBtn.innerText = m==="login" ? "Přihlásit" : "Registrovat";
+  const tabLogin = document.getElementById("tabLogin");
+  const tabReg = document.getElementById("tabReg");
+  if(tabLogin) tabLogin.classList.toggle("activeTab", m === "login");
+  if(tabReg) tabReg.classList.toggle("activeTab", m === "register");
+  if(mainBtn) mainBtn.innerText = m === "login" ? "Přihlásit" : "Registrovat";
 };
 
-window.submitAuth = async ()=>{
-
-  try{
-
-    if(mode==="login"){
-      await signInWithEmailAndPassword(auth,emailEl.value,passEl.value);
-    }else{
-      const cred = await createUserWithEmailAndPassword(auth,emailEl.value,passEl.value);
-      await setDoc(doc(db,"users",cred.user.uid),{role:"user"});
+// 6. Autentizace
+window.submitAuth = async () => {
+  try {
+    if (mode === "login") {
+      await signInWithEmailAndPassword(auth, emailEl.value, passEl.value);
+    } else {
+      const cred = await createUserWithEmailAndPassword(auth, emailEl.value, passEl.value);
+      await setDoc(doc(db, "users", cred.user.uid), { role: "user" });
       alert("Registrace proběhla");
       setMode("login");
     }
-
-  }catch(e){
-
-    if(
-      e.code==="auth/user-not-found" ||
-      e.code==="auth/wrong-password" ||
-      e.code==="auth/invalid-credential"
-    ){
-      alert("Neplatné přihlášení — účet neexistuje nebo špatné heslo.");
-    }
-    else if(e.code==="auth/email-already-in-use"){
-      alert("Tento email už je registrovaný.");
-    }
-    else if(e.code==="auth/weak-password"){
-      alert("Heslo musí mít aspoň 6 znaků.");
-    }
-    else{
-      alert("Registrace OK");
-    }
+  } catch (e) {
+    console.error(e);
+    alert("Chyba: " + e.message);
   }
 };
 
-window.logout = ()=> signOut(auth);
-window.go = (p)=> location.href=p;
+window.logout = () => signOut(auth);
+window.go = (p) => location.href = p;
 
-onAuthStateChanged(auth, async user => {
-  
-  // SEM vložíš ten nový kód (místo původních řádků 444-465):
+// 7. Sledování stavu přihlášení (Sjednocená logika)
+onAuthStateChanged(auth, async (user) => {
   if (user) {
-     const loadingCard = document.getElementById("loading");
-    const menuCard = document.getElementById("menuCard");
-
-    if (loadingCard) {
-        loadingCard.style.setProperty("display", "none", "important");
-    }
-
+    // Uživatel JE přihlášen
+    if (loadingCard) loadingCard.style.display = "none";
+    if (authCard) authCard.style.display = "none";
     if (menuCard) {
-        menuCard.style.setProperty("display", "block", "important");
-        menuCard.classList.remove("hidden");
+      menuCard.style.display = "block";
+      menuCard.classList.remove("hidden");
     }
 
-    if (menuCard) {
-        menuCard.style.setProperty("display", "block", "important");
-        menuCard.classList.remove("hidden");
-    }
-
+    // Role a data
     const snap = await getDoc(doc(db, "users", user.uid));
     const role = snap.data()?.role || "user";
-
-    if (role !== "admin") {
-      document.querySelectorAll(".adminOnly").forEach(b => {
-        b.style.display = "none";
-      });
-    }
+    
+    document.querySelectorAll(".adminOnly").forEach(b => {
+      b.style.display = (role === "admin") ? "block" : "none";
+    });
 
     loadMyNote(user);
     loadBroadcast();
   } else {
-  if (loadingCard) loadingCard.style.display = "none";
-  if (authCard) authCard.style.display = "block";
-}
+    // Uživatel NENÍ přihlášen
+    if (loadingCard) loadingCard.style.display = "none";
+    if (menuCard) menuCard.style.display = "none";
+    if (authCard) authCard.style.display = "block";
+    console.log("Uživatel odhlášen.");
+  }
 });
-async function loadMyNote(user){
 
-  const q = query(
-    collection(db,"employees"),
-    where("email","==", user.email)
-  );
-
+async function loadMyNote(user) {
+  const myNoteCard = document.getElementById("myNoteCard");
+  const myNoteText = document.getElementById("myNoteText");
+  
+  const q = query(collection(db, "employees"), where("email", "==", user.email));
   const snap = await getDocs(q);
 
-  if(snap.empty){
-    myNoteCard.classList.add("hidden");
+  if (snap.empty || !myNoteCard) {
+    if(myNoteCard) myNoteCard.classList.add("hidden");
     return;
   }
 
   const emp = snap.docs[0].data();
-
-  if(emp.info && emp.info.trim() !== ""){
+  if (emp.info && emp.info.trim() !== "") {
     myNoteText.innerText = emp.info;
     myNoteCard.classList.remove("hidden");
-  }else{
-    myNoteCard.classList.add("hidden");
   }
 }
 
@@ -917,15 +901,10 @@ async function loadBroadcast() {
   const box = document.getElementById("broadcastText");
 
   if (box) {
-    if (msg.trim() !== "") {
-      box.innerText = msg;
-      box.style.display = "block";
-    } else {
-      box.style.display = "none";
-    }
+    box.innerText = msg;
+    box.style.display = msg.trim() !== "" ? "block" : "none";
   }
 }
-
 </script>
 <div class="disclaimer">
     © 2024 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.
