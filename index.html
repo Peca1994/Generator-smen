@@ -793,15 +793,6 @@ import { getFirestore, collection, getDocs, doc, setDoc, getDoc } from "https://
 // 1. PŘIDEJ TENTO IMPORT PRO PŘIHLÁŠENÍ
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com";
 
-const app = initializeApp({
-  apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
-  // ... zbytek tvé konfigurace
-});
-
-const db = getFirestore(app);
-const auth = getAuth(app); // 2. DEFINUJ AUTH
-
-
 const loading = document.getElementById("loading");
 const emailEl = document.getElementById("email");
 const passEl = document.getElementById("pass");
