@@ -787,36 +787,34 @@ body {
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com";
+import { getFirestore, collection, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com";
 
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  collection,
-  getDocs,
-  query,
-  where
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// 1. PŘIDEJ TENTO IMPORT PRO PŘIHLÁŠENÍ
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com";
 
+const app = initializeApp({
+  apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+  // ... zbytek tvé konfigurace
+});
 
-const firebaseConfig = {
-apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
-  authDomain: "generator-smen-9fba1.firebaseapp.com",
-  projectId: "generator-smen-9fba1",
-  storageBucket: "generator-smen-9fba1.firebasestorage.app",
-  messagingSenderId: "541779211883",
-  appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
-  measurementId: "G-1HF3R93D92"
-};
+const db = getFirestore(app);
+const auth = getAuth(app); // 2. DEFINUJ AUTH
+
+// 3. TADY ZAČÍNÁ KONTROLA
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // Uživatel je v pořádku, načti data
+  } else {
+    // POUZE pokud nejsi na index.html, tak tam přesměruj
+    if (!window.location.pathname.endsWith("index.html") && window.location.pathname !== "/") {
+      window.location.href = "index.html";
+    }
+  }
+});
+
+/* ... zbytek tvých funkcí (async function loadWorkers() atd.) zůstává pod tím ... */
+</script>
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
