@@ -802,36 +802,6 @@ const db = getFirestore(app);
 const auth = getAuth(app); // 2. DEFINUJ AUTH
 
 // 3. TADY ZAČÍNÁ KONTROLA
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    // Schovat loading a ukázat menu
-    const loadingCard = document.getElementById("loading");
-    const menuCard = document.getElementById("menuCard");
-    
-    if (loadingCard) loadingCard.style.display = "none";
-    if (menuCard) {
-      menuCard.style.display = "block";
-      menuCard.classList.remove("hidden");
-    }
-
-    // Načtení role a dat
-    const snap = await getDoc(doc(db, "users", user.uid));
-    const role = snap.data()?.role || "user";
-    
-    if (role !== "admin") {
-      document.querySelectorAll(".adminOnly").forEach(b => {
-        b.style.display = "none";
-      });
-    }
-    
-    loadMyNote(user);
-    loadBroadcast();
-  } else {
-    // Pokud není přihlášen a nejsi na index.html, tak tam neposílej (aby nebyla smyčka)
-    console.log("Uživatel odhlášen.");
-    // Zde nechej uživatele vidět přihlašovací formulář
-  }
-});
 
 </script>
 
