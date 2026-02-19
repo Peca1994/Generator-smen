@@ -6,79 +6,52 @@
 <title>Zaměstnanci | ShiftMaster</title>
 
 <style>
-/* 1. MODERNÍ POZADÍ - PŘESNÁ KOPIE Z TVÉHO INDEXU */
+/* 1. ZELENÁ ZÁŘE A HLUBOKÉ POZADÍ (PŘESNĚ JAKO INDEX) */
 body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: white;
-    font-family: sans-serif;
+    margin: 0; padding: 0; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    color: white; font-family: sans-serif;
     background-color: #030712 !important;
-    /* Tento gradient dělá tu zelenou záři nahoře */
     background-image: 
         radial-gradient(circle at 50% -20%, rgba(34, 197, 94, 0.4) 0%, rgba(3, 7, 18, 0) 60%),
         linear-gradient(to top, rgba(34, 197, 94, 0.1) 0%, rgba(3, 7, 18, 0) 40%) !important;
     background-attachment: fixed !important;
 }
 
-/* 2. LOGO ŠKODA ZAPUŠTĚNÉ V POZADÍ */
+/* 2. LOGO ŠKODA DOLE (ZAPUŠTĚNÉ) */
 body::after {
-    content: "";
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 150px;
-    height: 150px;
-    background-image: url('pozadi.jpg');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    opacity: 0.15; /* Jemné prosvítání */
-    filter: grayscale(100%) brightness(200%);
-    z-index: -1;
-    pointer-events: none;
+    content: ""; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 120px; background-image: url('pozadi.jpg');
+    background-size: contain; background-repeat: no-repeat; background-position: center;
+    opacity: 0.12; /* Velmi jemné prosvítání jako vodoznak */
+    filter: grayscale(100%) brightness(200%); z-index: -1; pointer-events: none;
 }
 
-/* 3. SKLENĚNÉ KARTY (GLASSMORPHISM) */
-.card {
-    background: rgba(17, 24, 39, 0.4) !important; /* Průhledná tmavá */
-    backdrop-filter: blur(12px) !important; /* Rozmazání pozadí */
-    -webkit-backdrop-filter: blur(12px) !important;
+/* 3. SKLENĚNÁ KARTA (GLASSMORPHISM) */
+.card, .empRow {
+    background: rgba(17, 24, 39, 0.4) !important;
+    backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 20px !important;
-    padding: 20px !important;
+    border-radius: 20px !important; padding: 20px !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-    width: 100%;
-    box-sizing: border-box;
 }
 
-/* 4. TOPBAR A HEADER */
+/* 4. TOPBAR A TLAČÍTKA */
 .topbar {
     width: 100%; height: 60px; display: flex; align-items: center; justify-content: space-between;
     padding: 0 20px; background: rgba(15, 23, 42, 0.8); border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     box-sizing: border-box; margin-bottom: 20px;
 }
-.logo-text { font-size: 24px; font-weight: 300; margin: 0; color: white; }
-.logo-text b { color: #22c55e; text-shadow: 0 0 15px rgba(34, 197, 94, 0.4); }
+.logo-header { font-size: 24px; font-weight: 300; margin: 0; color: white; }
+.logo-header b { color: #22c55e; text-shadow: 0 0 15px rgba(34, 197, 94, 0.4); }
 
 .menuBtn {
-    padding: 10px 20px; border-radius: 12px; border: none; font-weight: 800;
+    padding: 10px 18px; border-radius: 12px; border: none; font-weight: 800;
     background: #334155; color: white; cursor: pointer; transition: 0.2s;
 }
-
-/* 5. SEZNAM A TLAČÍTKA */
-.container { width: 100%; max-width: 450px; padding: 0 15px; box-sizing: border-box; }
 .addBtn { 
-    background: #22c55e; width: 100%; padding: 16px; border-radius: 15px; 
-    border: none; color: white; font-weight: 900; cursor: pointer; margin-bottom: 15px;
-}
-.empRow {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; margin-bottom: 10px;
+    background: #22c55e; width: 100%; padding: 16px; border-radius: 16px; 
+    border: none; color: white; font-weight: 900; cursor: pointer; margin-bottom: 20px;
 }
 </style>
 </head>
