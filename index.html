@@ -842,37 +842,25 @@ window.setMode = (m)=>{
   mainBtn.innerText = m==="login" ? "Přihlásit" : "Registrovat";
 };
 
-window.submitAuth = async ()=>{
+window.submitAuth = async () => {
+  try {
+    if (mode === "login") {
+      await signInWithEmailAndPassword(auth, emailEl.value, passEl.value);
+      
+      // --- PŘIDEJ TYTO ŘÁDKY SEM ---
+      if (loadingCard) loadingCard.style.display = "none";
+      if (authCard) authCard.style.display = "none";
+      if (menuCard) {
+          menuCard.style.display = "block";
+          menuCard.classList.remove("hidden");
+      }
+      // ----------------------------
 
-  try{
-
-    if(mode==="login"){
-      await signInWithEmailAndPassword(auth,emailEl.value,passEl.value);
-    }else{
-      const cred = await createUserWithEmailAndPassword(auth,emailEl.value,passEl.value);
-      await setDoc(doc(db,"users",cred.user.uid),{role:"user"});
-      alert("Registrace proběhla");
-      setMode("login");
+    } else {
+      // ... kód pro registraci
     }
-
-  }catch(e){
-
-    if(
-      e.code==="auth/user-not-found" ||
-      e.code==="auth/wrong-password" ||
-      e.code==="auth/invalid-credential"
-    ){
-      alert("Neplatné přihlášení — účet neexistuje nebo špatné heslo.");
-    }
-    else if(e.code==="auth/email-already-in-use"){
-      alert("Tento email už je registrovaný.");
-    }
-    else if(e.code==="auth/weak-password"){
-      alert("Heslo musí mít aspoň 6 znaků.");
-    }
-    else{
-      alert("Registrace OK");
-    }
+  } catch (e) {
+    alert("Chyba: " + e.message);
   }
 };
 
