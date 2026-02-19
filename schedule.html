@@ -3,334 +3,213 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Směnový graf</title>
+<title>Směnový graf | ShiftMaster</title>
 
 <style>
-/* 1. GLOBÁLNÍ NASTAVENÍ A OSTRÉ POZADÍ */
+/* 1. GLOBÁLNÍ DESIGN (Sjednoceno s index.html) */
 body {
-    margin: 0;
-    padding: 0;
-    display: block !important;
-    min-height: 100vh;
-    color: white;
-    font-family: sans-serif;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('pozadi.jpg') !important;
-    background-size: contain !important;
-    background-position: center 10% !important;
-    background-repeat: no-repeat !important;
-    background-attachment: fixed !important;
-    background-color: #030712 !important;
+    margin: 0; padding: 0; min-height: 100vh;
+    color: white; font-family: sans-serif;
+    /* Původní zelený gradient */
+    background: radial-gradient(circle at 50% 25%, #064e3b 0%, #020617 85%) !important;
+    background-color: #020617 !important;
+    background-attachment: fixed;
 }
 
-/* 2. TOPBAR (HORNÍ LIŠTA) */
+/* 2. TOPBAR */
 .topbar {
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    background: rgba(2, 6, 23, 0.8);
+    height: 60px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px; background: rgba(15, 23, 42, 0.9); 
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-
-.topTitle { font-weight: 800; font-size: 18px; }
-
+.topTitle { font-weight: 900; font-size: 18px; color: #22c55e; }
 .menuBtn {
-    padding: 8px 14px;
-    border-radius: 10px;
-    border: none;
-    font-weight: 800;
-    background: #334155;
-    color: white;
-    cursor: pointer;
+    padding: 8px 16px; border-radius: 10px; border: none; font-weight: 800;
+    background: #334155; color: white; cursor: pointer; transition: 0.2s;
+}
+.menuBtn:hover { background: #475569; }
+
+/* 3. KONTEJNER A SKLENĚNÉ KARTY */
+.container {
+    max-width: 500px; margin: 20px auto; padding: 10px;
+}
+.card {
+    background: rgba(17, 24, 39, 0.4) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 20px !important;
+    padding: 20px !important;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
-/* 3. HLAVNÍ KONTEJNER A TABULKY - BEZ RÁMEČKŮ A ROZMAZÁNÍ */
-.container, .app, main {
-    max-width: 420px;
-    margin: 20px auto !important;
-    padding: 16px;
-    background: rgba(0, 0, 0, 0.3) !important;
-    border: none !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-}
-
-/* Totální zprůhlednění všech vnitřních tabulek a karet */
-.card, table, thead, tbody, tr, th, td, fieldset, section, details, summary {
-    background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    color: white !important;
-}
-
-/* 4. ČITELNOST TEXTU (STÍN PRO OSTRÉ LOGO) */
-label, p, span, summary, .worker, .row, h1, h2, h3, .topTitle, th, td, .infoRow {
-    color: white !important;
-    font-weight: 900 !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,1) !important;
-}
-
-/* 5. FORMULÁŘE (BÍLÁ POLÍČKA) */
+/* 4. FORMULÁŘE (Bílá políčka se zachováním stylu) */
 input, select {
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    border: none !important;
-    margin-top: 6px;
-    background: white !important;
-    color: black !important;
-    font-weight: 700;
+    width: 100%; padding: 12px; border-radius: 12px; border: none;
+    margin-top: 8px; margin-bottom: 12px;
+    background: white !important; color: black !important;
+    font-weight: 700; box-sizing: border-box;
 }
+label { font-weight: 800; font-size: 13px; opacity: 0.8; text-shadow: 1px 1px 2px black; }
 
-/* 6. TLAČÍTKA - ZACHOVÁNÍ BAREV */
-.btn-warning, .btn-primary, .btn-success, #saveBtn, .mainBtn {
-    width: 100%;
-    padding: 14px !important;
-    border-radius: 12px !important;
-    border: none !important;
-    font-weight: 800;
-    cursor: pointer;
-    margin-top: 10px;
-}
+/* 5. TABULKA (Průhledná) */
+.table-wrapper { overflow-x: auto; border-radius: 15px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+th { color: #22c55e; font-weight: 900; background: rgba(0,0,0,0.2); }
+.posCol { text-align: left; font-weight: 900; color: #38bdf8; }
 
-/* 7. SPECIFICKÉ PRVKY TABULKY */
-th { border-bottom: 2px solid rgba(255,255,255,0.1) !important; }
-.posCol { text-align: left; font-weight: 800; }
-.highlight { color: #22c55e !important; font-weight: 900; }
+.highlight { color: #22c55e !important; font-weight: 900; background: rgba(34, 197, 94, 0.1); }
 .empty { opacity: .4; }
-.infoRow { display: flex; justify-content: space-between; margin: 6px 0; }
-/* SJEDNOCENÍ ŠÍŘKY VŠECH POLÍ (DATUM, SMĚNA, FILTR) */
-input, select, textarea {
-    width: 100% !important;        /* Roztáhne pole na celou šířku karty */
-    max-width: 100% !important;    /* Zabrání přetékání */
-    box-sizing: border-box !important; /* Zajistí, že padding (vnitřní okraj) nezvětší pole */
-    display: block !important;     /* Každé pole bude na vlastním řádku */
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-}
-
-/* Sjednocení odsazení textu nad poli */
-label, .label, p {
-    width: 100% !important;
-    text-align: left !important;
-    margin-bottom: 5px !important;
-}
+.infoRow { display: flex; justify-content: space-between; margin: 8px 0; font-weight: 700; }
 </style>
 </head>
 
 <body>
 
 <div class="topbar">
-  <div class="topTitle">📊 Směnový graf</div>
-  <button class="menuBtn" onclick="location.href='index.html'">
-    Menu
-  </button>
+  <div class="topTitle">📊 SMĚNOVÝ GRAF</div>
+  <button class="menuBtn" onclick="window.location.href='index.html'">Menu</button>
 </div>
 
 <div class="container">
+    <div class="card">
+        <label>DATUM</label>
+        <input type="date" id="date">
 
-<div class="card">
+        <label>SMĚNA</label>
+        <select id="shift">
+            <option value="ranni">Ranní (6:00 - 14:00)</option>
+            <option value="odpo">Odpolední (14:00 - 22:00)</option>
+            <option value="noc">Noční (22:00 - 6:00)</option>
+        </select>
 
-<label>Datum</label>
-<input type="date" id="date">
+        <label>VYHLEDAT JMÉNO</label>
+        <input id="nameFilter" placeholder="např. Pepa">
+    </div>
 
-<label>Směna</label>
-<select id="shift">
-<option value="ranni">Ranní</option>
-<option value="odpo">Odpolední</option>
-<option value="noc">Noční</option>
-</select>
+    <div class="card" id="shiftInfoBox" style="display:none">
+      <h3 style="color:#22c55e; margin-top:0;">ℹ️ Informace o výrobě</h3>
+      <div id="infoSK"></div>
+      <div id="infoFA"></div>
+      <div id="infoZA"></div>
+    </div>
 
-<label>Filtrovat jméno</label>
-<input id="nameFilter" placeholder="např. Pepa">
-
-</div>
-
-<div class="card" id="shiftInfoBox" style="display:none">
-  <h3>ℹ️ Informace o směně</h3>
-  <div id="infoSK"></div>
-  <div id="infoFA"></div>
-  <div id="infoZA"></div>
-</div>
-
-<div class="card">
-<table id="grid"></table>
-</div>
-
-
+    <div class="card">
+        <div class="table-wrapper">
+            <table id="grid"></table>
+        </div>
+    </div>
 </div>
 
 <script type="module">
-
+// 1. OPRAVENÉ IMPORTY PRO GITHUB
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, doc, getDoc, collection, getDocs }
-from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-/* FIREBASE */
+const firebaseConfig = {
+    apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+    authDomain: "generator-smen-9fba1.firebaseapp.com",
+    projectId: "generator-smen-9fba1",
+    storageBucket: "generator-smen-9fba1.firebasestorage.app",
+    messagingSenderId: "541779211883",
+    appId: "1:541779211883:web:1d8578ec61b0f428a4632e"
+};
 
-const app = initializeApp({
-apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
-  authDomain: "generator-smen-9fba1.firebaseapp.com",
-  projectId: "generator-smen-9fba1",
-  storageBucket: "generator-smen-9fba1.firebasestorage.app",
-  messagingSenderId: "541779211883",
-  appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
-  measurementId: "G-1HF3R93D92"
-});
-
+const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-/* DOM */
 
 const dateEl = document.getElementById("date");
 const shiftEl = document.getElementById("shift");
 const nameFilterEl = document.getElementById("nameFilter");
 const gridEl = document.getElementById("grid");
-
 const shiftInfoBox = document.getElementById("shiftInfoBox");
-const infoSK = document.getElementById("infoSK");
-const infoFA = document.getElementById("infoFA");
-const infoZA = document.getElementById("infoZA");
-
 
 dateEl.value = new Date().toISOString().slice(0,10);
 
-/* POZICE */
+const POSITIONS = ["DP-L","DP-P","ZRC-L","ZRC-P","T-L","T-P","AGR-LP","AGR-PP","AGR-PZ","AGR-LZ","MOT-L","MOT-P","LEP-LP","LEP-PP","LEP-Z","REPRO-L","REPRO-P","VYP1-L","VYP1-P","VYP2-L","VYP2-P","PR-L","PR-P","ZAM-L","ZAM-P","VET","VET2","INST","INST2","JINE","JINE2"];
 
-const POSITIONS = [
-"DP-L","DP-P","ZRC-L","ZRC-P","T-L","T-P",
-"AGR-LP","AGR-PP","AGR-PZ","AGR-LZ",
-"MOT-L","MOT-P","LEP-LP","LEP-PP","LEP-Z",
-"REPRO-L","REPRO-P","VYP1-L","VYP1-P",
-"VYP2-L","VYP2-P","PR-L","PR-P","ZAM-L","ZAM-P","VET","VET2","INST",
-"INST2","JINE","JINE2",
-];
-
-let workerMap = {}; // id -> name
+let workerMap = {}; 
 let phasesData = [];
 
-/* LOAD WORKERS MAP */
-
+// Načtení jmen (opraveno pro fName/lName)
 async function loadWorkers(){
-
- const snap = await getDocs(collection(db,"employees"));
- workerMap = {};
-
- snap.forEach(d=>{
-  const e=d.data();
-  workerMap[d.id] = e.name;
- });
+    const snap = await getDocs(collection(db, "employees"));
+    workerMap = {};
+    snap.forEach(d => {
+        const e = d.data();
+        workerMap[d.id] = (e.fName || e.name || "") + " " + (e.lName || "");
+    });
 }
-
-/* TIME LABELS */
 
 function phaseLabels(){
- const s=shiftEl.value;
- if(s==="ranni") return ["6:00-8:00","8:00-10:15","10:45-12:00","12:00-14:00"];
- if(s==="odpo") return ["14:00-16:00","16:00-18:15","18:45-20:00","20:00-22:00"];
- return ["22:00-00:00","00:00-02:15","02:45-04:00","04:00-06:00"];
+    const s = shiftEl.value;
+    if(s === "ranni") return ["6:00","8:00","10:45","12:00"];
+    if(s === "odpo") return ["14:00","16:00","18:45","20:00"];
+    return ["22:00","00:00","02:45","04:00"];
 }
-
-/* LOAD SHIFT */
 
 async function loadShift(){
+    const id = dateEl.value + "_" + shiftEl.value;
+    const snap = await getDoc(doc(db, "shifts", id));
 
- const id = dateEl.value + "_" + shiftEl.value;
+    if(!snap.exists()){
+        gridEl.innerHTML = "<tr><td style='padding:20px; opacity:0.5;'>Rozpis nenalezen.</td></tr>";
+        shiftInfoBox.style.display = "none";
+        return;
+    }
 
- const snap = await getDoc(doc(db,"shifts",id));
-
- if(!snap.exists()){
-   gridEl.innerHTML = "<tr><td>Směna nenalezena</td></tr>";
-   return;
- }
-
- const data = snap.data();
-
-phasesData = data.phases;
-
-// 🔷 info o směně pro usera
-renderShiftInfo(data.info);
-
-render();
-
+    const data = snap.data();
+    phasesData = data.phases || [];
+    renderShiftInfo(data.info);
+    render();
 }
 
-/* RENDER */
-
 function render(){
+    const filter = nameFilterEl.value.toLowerCase().trim();
+    const labels = phaseLabels();
+    let html = "<tr><th>Pozice</th>";
+    labels.forEach(l => html += `<th>${l}</th>`);
+    html += "</tr>";
 
- const filter = nameFilterEl.value.toLowerCase().trim();
- const labels = phaseLabels();
+    POSITIONS.forEach(pos => {
+        let rowNames = [];
+        for(let i=0; i<4; i++) {
+            const wid = phasesData[i] ? phasesData[i][pos] : null;
+            rowNames.push(wid ? workerMap[wid] || "???" : "");
+        }
 
- let html = "<tr><th>Pozice</th>";
- labels.forEach(l=> html+=`<th>${l}</th>`);
- html+="</tr>";
+        if(filter && !rowNames.some(n => n.toLowerCase().includes(filter))) return;
 
- POSITIONS.forEach(pos=>{
-
-   const names = phasesData.map(ph=>{
-     const wid = ph[pos];
-     return wid ? workerMap[wid] || "?" : "";
-   });
-
-   // filtr — zobraz jen když tam ten člověk někde je
-   if(filter){
-     if(!names.some(n=>n.toLowerCase().includes(filter))){
-       return;
-     }
-   }
-
-   html += `<tr><td class="posCol">${pos}</td>`;
-
-   names.forEach(n=>{
-     if(!n){
-       html+=`<td class="empty">—</td>`;
-     }else if(filter && n.toLowerCase().includes(filter)){
-       html+=`<td class="highlight">${n}</td>`;
-     }else{
-       html+=`<td>${n}</td>`;
-     }
-   });
-
-   html+="</tr>";
-
- });
-
- gridEl.innerHTML = html;
+        html += `<tr><td class="posCol">${pos}</td>`;
+        rowNames.forEach(n => {
+            if(!n) html += `<td class="empty">—</td>`;
+            else if(filter && n.toLowerCase().includes(filter)) html += `<td class="highlight">${n}</td>`;
+            else html += `<td>${n}</td>`;
+        });
+        html += "</tr>";
+    });
+    gridEl.innerHTML = html;
 }
 
 function renderShiftInfo(info){
-
- if(!info){
-   shiftInfoBox.style.display = "none";
-   return;
- }
-
- shiftInfoBox.style.display = "block";
-
- infoSK.innerHTML =
-   `<div class="infoRow">Scala/Kamiq<span>${info.sk?.start||""} → ${info.sk?.end||""}</span></div>`;
-
- infoFA.innerHTML =
-   `<div class="infoRow">Fabie<span>${info.fa?.start||""} → ${info.fa?.end||""}</span></div>`;
-
- infoZA.innerHTML =
-   `<div class="infoRow">Zásobník<span>${info.za?.start||""} → ${info.za?.end||""}</span></div>`;
+    if(!info) { shiftInfoBox.style.display = "none"; return; }
+    shiftInfoBox.style.display = "block";
+    document.getElementById("infoSK").innerHTML = `<div class="infoRow">Scala/Kamiq <span>${info.sk?.start || ""} → ${info.sk?.end || ""}</span></div>`;
+    document.getElementById("infoFA").innerHTML = `<div class="infoRow">Fabie <span>${info.fa?.start || ""} → ${info.fa?.end || ""}</span></div>`;
+    document.getElementById("infoZA").innerHTML = `<div class="infoRow">Zásobník <span>${info.za?.start || ""} → ${info.za?.end || ""}</span></div>`;
 }
-
-/* EVENTS */
 
 dateEl.onchange = loadShift;
 shiftEl.onchange = loadShift;
 nameFilterEl.oninput = render;
 
-/* INIT */
-
-await loadWorkers();
-await loadShift();
-
+// Spuštění
+(async () => {
+    await loadWorkers();
+    await loadShift();
+})();
 </script>
 
 </body>
