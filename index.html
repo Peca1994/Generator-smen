@@ -3,142 +3,961 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiftMaster | Menu</title>
+<title>PecaShifter</title>
+
 <style>
-/* --- GLOBÁLNÍ DESIGN --- */
+
+body  {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+    font-family: sans-serif;
+    padding-top: 5px !important;
+
+    /* ZÁKLADNÍ BARVA POZADÍ */
+    background-color: #030712 !important;
+
+    /* KOMBINACE EFEKTŮ */
+    background-image: 
+        /* 1. HORNÍ ZELENÁ ZÁŘE (začíná hned odshora) */
+        radial-gradient(circle at 50% -20%, rgba(34, 197, 94, 0.4) 0%, rgba(3, 7, 18, 0) 60%),
+        /* 2. SPODNÍ STÍNOVÁNÍ PRO SILUETU */
+        linear-gradient(to top, rgba(34, 197, 94, 0.1) 0%, rgba(3, 7, 18, 0) 40%);
+    
+    background-attachment: fixed !important;
+}
+
+.app div:not(.card) {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.logo {
+    font-size: 38px !important;
+    font-weight: 300 !important;
+    text-align: center;
+    margin-top: 0 !important; /* Odstraní mezeru nad nápisem */
+    margin-bottom: 5px !important; /* Přitáhne zprávu/karty blíž */
+    display: block;
+}
+
+.sub{
+  text-align:center;
+  opacity:.7;
+  margin-bottom:20px;
+}
+
+.card {
+    background: rgba(17, 24, 39, 0.4) !important; /* Hodně průhledná */
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+}
+
+
+#loading{
+  text-align:center;
+  opacity:.8;
+}
+
+/* switch */
+
+.switch{
+  display:flex;
+  background:#1f2937;
+  border-radius:12px;
+  overflow:hidden;
+  margin-bottom:14px;
+}
+
+.switch button{
+  flex:1;
+  padding:12px;
+  border:none;
+  font-weight:800;
+  background:#374151;
+  color:white;
+  transition:.15s;
+}
+
+.switch button:hover{ background:#4b5563; }
+
+.activeTab{
+  background:#22c55e !important;
+  color:black !important;
+}
+
+.switch button:active{
+  transform:scale(.96);
+}
+
+/* inputs */
+
+input{
+  width:100%;
+  padding:14px;
+  border-radius:10px;
+  border:none;
+  margin-bottom:10px;
+  font-size:16px;
+}
+
+/* main button */
+
+.mainBtn{
+  width:100%;
+  padding:16px;
+  border-radius:12px;
+  border:none;
+  font-size:16px;
+  font-weight:900;
+  background:#3b82f6;
+  color:white;
+  transition:.15s;
+}
+
+.mainBtn:hover{ background:#2563eb; }
+.mainBtn:active{
+  transform:scale(.97);
+  filter:brightness(.85);
+}
+
+/* menu buttons */
+
+.menu button {
+    width: 100%;
+    padding: 18px !important; /* Větší klikací plocha */
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.1);
+    margin-top: 12px;
+    font-weight: 800;
+    font-size: 16px !important; /* Oprava miniaturního textu */
+    color: white !important;
+    transition: .15s;
+    backdrop-filter: blur(5px);
+}
+
+.btnEmployees { background: rgba(124, 58, 237, 0.6) !important; } /* Fialová */
+.btnGenerator { background: rgba(245, 158, 11, 0.6) !important; }  /* Oranžová */
+.btnSchedule  { background: rgba(22, 163, 74, 0.6) !important; }   /* Zelená */
+.btnCalendar  { background: rgba(220, 38, 38, 0.6) !important; }   /* Červená */
+.btnStats     { background: rgba(6, 182, 212, 0.6) !important; }   /* Tyrkysová */
+.logout       { background: rgba(55, 65, 81, 0.6) !important; }    /* Šedá */
+
+.menu button:hover{ filter:brightness(1.1); }
+.menu button:active{
+  transform:scale(.97);
+  filter:brightness(.85);
+}
+
+.hidden{ display:none; }
+
+.roleTag, .sub, .logo {
+    background: transparent !important;
+    position: relative;
+    z-index: 2; /* Aby text nezanikl pod filtrem */
+}
+ main, section, article, .app div:not(.card) {
+      background: transparent !important;
+      background-color: transparent !important;
+      box-shadow: none !important;
+  }
+  div {
+    background-color: transparent !important;
+}
+
+/* A tímto nastavíme průhlednost přímo kartě */
+.card {
+    background: rgba(17, 24, 39, 0.4) !important; 
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+.card .card, .card div, .card section {
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* Pokud je to ohraničení způsobeno třídou .menu, vypneme ho i tam */
+.menu {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+hr, .divider, .separator {
+    display: none !important;
+}
+
+/* 2. Vypne horní a dolní ohraničení u všech prvků v kartě */
+.card *, .menu, .roleTag {
+    border-top: none !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* 3. Pokud je to ohraničení stín (shadow), tento ho vymaže */
+[class*="card"] {
+    box-shadow: none !important;
+}
+#menuCard {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* 2. Pokud chceš, aby celá ta velká plocha byla průhlednější, upravíme hlavní kartu */
+.card {
+    background: rgba(17, 24, 39, 0.4) !important; /* Číslo 0.4 znamená 40% průhlednost */
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 3. Odstranění té čáry nad nápisem Role */
+.roleTag {
+    border-top: none !important;
+    margin-top: 10px !important;
+    padding-top: 0 !important;
+}
+.header-container {
+    padding-top: 10px !important;
+    text-align: center;
+}
+
+.logo {
+    display: block !important;
+    text-align: center;
+    font-family: -apple-system, sans-serif !important;
+    
+    /* RADIKÁLNÍ ZVĚTŠENÍ */
+    font-size: 15vw !important; /* Velikost se teď automaticky přizpůsobí šířce displeje */
+    font-weight: 300 !important;
+    
+    /* ROZTAŽENÍ DO ŠÍŘKY */
+    letter-spacing: -2px !important; /* Těsnější prostrkání, aby se to tam vešlo */
+    transform: scaleX(1.5); /* Mírně nápis roztáhneme do stran pro "širokoúhlý" efekt */
+    
+    margin: 5px 0 0 0 !important;
+    width: 100%;
+    color: #ffffff !important;
+    text-shadow: 0 0 15px rgba(34, 197, 94, 0.4) !important;
+    white-space: nowrap; /* Zajistí, že se název nikdy nezalomí na dva řádky */
+}
+
+.logo b {
+    font-weight: 800 !important;
+    /* --- BARVA A MATNÝ OKRAJ PRO "Master" --- */
+    color: #22c55e !important; /* Sytá Škoda zelená */
+    text-shadow: 
+        0 0 12px rgba(34, 197, 94, 0.6), /* Sytější zelená záře */
+        0 0 25px rgba(34, 197, 94, 0.3) !important; /* Rozpitý matný okraj */
+}
+
+/* Na mobilu to trochu zmenšíme, aby to nebylo přes celý displej */
+@media (max-width: 480px) {
+    .logo { font-size: 38px !important; }
+}
+
+.main-logo-container {
+    margin-top: 5px !important;
+    margin-bottom: 10px !important;
+}
+
+.center-logo {
+    width: 320px !important; /* Opravdu masivní logo */
+    max-width: 90vw; /* Pojistka, aby na malých mobilech nepřeteklo */
+    height: auto;
+    filter: drop-shadow(0 0 30px rgba(34, 197, 94, 0.4));
+    opacity: 1;
+}
+
+/* HROMADNÁ ZPRÁVA - OPRAVENÁ VERZE */
+.message-box {
+    margin: 10px auto 30px auto !important;
+    max-width: 400px;
+    padding: 15px 25px !important;
+    background: rgba(15, 23, 42, 0.7) !important;
+    border-radius: 20px !important;
+    border-left: 4px solid #22c55e !important; /* Zelený proužek */
+    color: #f1f5f9 !important;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+    text-align: center !important;
+    text-transform: none !important; /* ZRUŠÍ VELKÁ PÍSMENA VE ZPRÁVĚ */
+    font-weight: 400 !important;
+}
+
+/* Zobrazí se pouze, pokud v ní něco je */
+.message-box:not(:empty) {
+    display: block !important;
+}
+
+/* Pokud zpráva obsahuje text, zobrazíme ji */
+.message-box:not(:empty) {
+    display: block;
+}
+/* --- MODERNIZACE TLAČÍTEK V MENU --- */
+.card {
+    border-radius: 20px !important;
+    padding: 18px !important;
+    margin-bottom: 12px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+    cursor: pointer;
+}
+
+.card:hover {
+    transform: translateY(-2px); /* Jemné nadzvednutí při najetí myší */
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4) !important;
+}
+
+/* Konkrétní syté barvy pro sekce */
+.bg-purple  { background: #7e22ce !important; } /* Zaměstnanci */
+.bg-orange  { background: #ea580c !important; } /* Generátor */
+.bg-green   { background: #16a34a !important; } /* Směnový graf */
+.bg-slate   { background: #475569 !important; } /* Kalendář (místo červené) */
+.bg-cyan    { background: #0891b2 !important; } /* Statistiky */
+.bg-logout  { background: rgba(255,255,255,0.1) !important; color: #f1f5f9; }
+/* --- SILUETA / ZÁŘE AUTA DOLE --- */
+body::after {
+    content: "";
+    position: fixed;
+    bottom: 20px; /* Umístění kousek nad spodní okraj */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px; /* Velikost loga - decentní, aby nerušilo */
+    height: 80px;
+    
+    /* VLOŽENÍ LOGA JAKO VODOZNAKU */
+    background-image: url('pozadi.jpg'); /* Použijeme stejný soubor */
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    
+    /* Jemnost: snížíme viditelnost, aby to nebilo do očí */
+    opacity: 0.3; 
+    filter: grayscale(100%) brightness(200%); /* Udělá logo stříbrno-bílé */
+    
+    /* Přidáme pod něj tu záři, co jsme dělali minule */
+    box-shadow: 0 20px 50px 20px rgba(34, 197, 94, 0.15);
+    z-index: -1;
+    pointer-events: none;
+}
+.main-logo-container {
+    text-align: center;
+    margin: 5px 0 10px 0 !important; /* Malé mezery, aby neodsouvalo karty */
+    width: 100%;
+}
+
+.center-logo {
+    width: 160px; /* Zvětšeno pro pořádný efekt */
+    height: auto;
+    filter: drop-shadow(0 0 15px rgba(34, 197, 94, 0.4)); /* Zelená záře */
+    opacity: 0.95;
+    display: inline-block;
+}
+.hero-section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding-top: 10px;
+}
+
+.logo-wrapper {
+    position: relative; /* Umožní nápisu vznášet se nad logem */
+    width: 320px; /* Šířka tvého loga */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.center-logo {
+    width: 100%;
+    height: auto;
+    /* MAGICKÝ ŘÁDEK: Odstraní černé pozadí z obrázku */
+    mix-blend-mode: screen; 
+    filter: brightness(1.2) drop-shadow(0 0 20px rgba(34, 197, 94, 0.4));
+    opacity: 0.9;
+}
+
+.logo-overlay {
+    position: absolute;
+    top: 50%; /* Vertikální střed */
+    left: 50%;
+    transform: translate(-50%, -50%); /* Přesný střed */
+    z-index: 10;
+    
+    /* Styl nápisu */
+    font-size: 42px !important;
+    font-weight: 300 !important;
+    letter-spacing: -1px;
+    margin: 0 !important;
+    white-space: nowrap; /* Aby se nápis nezalomil */
+    color: white !important;
+    text-shadow: 0 0 15px rgba(0,0,0,0.8); /* Stín, aby byl text čitelný přes logo */
+}
+
+.logo-overlay b {
+    font-weight: 800 !important;
+    color: #22c55e !important;
+}
+
+/* Zmenšení mezery pod celým tímto blokem */
+.hero-section {
+    margin-bottom: -20px !important;
+}
+.hero-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 10px;
+    /* Horní zelená záře jako minule */
+    background: radial-gradient(circle at 50% 0%, rgba(34, 197, 94, 0.4) 0%, rgba(3, 7, 18, 0) 70%);
+    margin-bottom: 0 !important; /* ŽÁDNÁ MEZERA DOLE */
+}
+
+.skoda-svg {
+    width: 80px; /* Decentní velikost šípu */
+    height: 80px;
+    filter: drop-shadow(0 0 15px rgba(34, 197, 94, 0.6));
+    margin-bottom: -15px; /* Přitáhne nápis blíž */
+}
+
+.logo-overlay {
+    font-size: 44px !important;
+    font-weight: 300 !important;
+    letter-spacing: -1.5px;
+    margin: 0 !important;
+    color: white !important;
+    z-index: 10;
+}
+
+.logo-overlay b { font-weight: 800 !important; color: #22c55e !important; }
+
+.skoda-text {
+    font-family: sans-serif;
+    font-weight: 900;
+    font-size: 28px;
+    letter-spacing: 8px; /* Rozestupy jako má Škoda */
+    color: #22c55e;
+    margin-top: -5px;
+    margin-bottom: 10px;
+}
+
+/* NULOVÉ MEZERY U ZPRÁVY A KARET */
+.message-box {
+    margin: 0 auto !important; /* Přilepí zprávu nahoru */
+    width: 90%;
+    padding: 10px 15px !important;
+    background: rgba(15, 23, 42, 0.8) !important;
+    border-radius: 15px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* První karta se přilepí ke zprávě */
+#menuCard {
+    margin-top: 5px !important;
+}
+body {
+    background: radial-gradient(circle at 50% 25%, #064e3b 0%, #020617 80%) !important;
+    background-color: #020617 !important;
+    margin: 0; padding: 0; min-height: 100vh;
+}
+
+.header-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+    width: 100%;
+}
+
+/* NÁZEV SHIFTMASTER */
+.logo {
+    font-size: 42px !important;
+    font-weight: 300 !important;
+    margin: 0 0 5px 0 !important; /* Minimální mezera pod názvem */
+    color: white !important;
+    text-transform: none !important;
+    letter-spacing: -1px;
+}
+.logo b { font-weight: 800 !important; color: #22c55e !important; }
+
+/* LOGO ŠKODA - MAGICKÉ ODSTRANĚNÍ POZADÍ */
+.skoda-logo-box {
+    width: 280px; /* Pořádná velikost loga */
+    margin: 0 !important;
+    display: flex;
+    justify-content: center;
+}
+
+.skoda-img {
+    width: 100%;
+    height: auto;
+    /* Tento řádek zneviditelní černou barvu z obrázku: */
+    mix-blend-mode: screen; 
+    filter: brightness(1.1);
+}
+
+/* ZPRÁVA - PŘILEPENÁ K LOGU */
+.message-box {
+    margin: -10px auto 10px auto !important; /* Záporná mezera přitáhne zprávu k logu */
+    max-width: 400px;
+    padding: 10px 20px !important;
+    font-size: 15px !important;
+    color: #e2e8f0;
+    text-align: center;
+    background: transparent !important;
+}
 body {
     background: radial-gradient(circle at 50% 25%, #064e3b 0%, #020617 85%) !important;
     background-color: #020617 !important;
-    margin: 0; padding: 0; min-height: 100vh;
-    font-family: sans-serif; color: white; overflow-x: hidden;
+    margin: 0; padding: 0;
 }
 
-/* HERO SEKCE S LOGEM */
-.hero-container { display: flex; flex-direction: column; align-items: center; width: 100%; margin-bottom: -10px; }
-.logo { font-size: 42px; font-weight: 300; margin: 20px 0 0 0; letter-spacing: -1px; text-align: center; }
-.logo b { font-weight: 800; color: #22c55e; }
+.hero-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 10px;
+}
+
+.combined-logo {
+    position: relative;
+    width: 280px; /* Šířka loga */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: -15px; /* Přitáhne zprávu blíž */
+}
+
+.skoda-img-blend {
+    width: 100%;
+    height: auto;
+    /* KLÍČOVÝ ŘÁDEK: Odstraní čtvercové pozadí obrázku a nechá jen logo */
+    mix-blend-mode: lighten; 
+    filter: brightness(1.2) contrast(1.1);
+    opacity: 0.8;
+}
+
+.logo-overlay {
+    position: absolute;
+    /* Posune ShiftMaster trochu výš, aby neseděl přímo na nápisu SKODA */
+    top: 35%; 
+    font-size: 44px !important;
+    font-weight: 300 !important;
+    letter-spacing: -1.5px;
+    margin: 0 !important;
+    color: white !important;
+    text-shadow: 0 0 20px rgba(0,0,0,1); /* Stín pro čitelnost */
+    z-index: 10;
+}
+.logo-overlay b { font-weight: 800 !important; color: #22c55e !important; }
+
+/* ZPRÁVA A KARTY BEZ MEZER */
+.message-box {
+    margin: 0 auto 5px auto !important; /* Minimální mezera dole */
+    max-width: 380px;
+    padding: 8px 20px !important;
+    font-size: 15px !important;
+    background: transparent !important;
+    text-transform: none !important;
+}
+
+/* Úplné odstranění loga dole */
+body::after { display: none !important; }
+
+/* Přitažení karet nahoru */
+#menuCard {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+.skoda-logo-container {
+    width: 240px; /* Mírně zmenšeno pro lepší eleganci */
+    margin: -10px auto 5px auto !important; /* Přitáhne logo ke kartám a zprávě */
+    text-align: center;
+}
+
+.skoda-img-blend {
+    width: 100%;
+    height: auto;
+    /* MAGICKÉ PROLNUTÍ: Odstraní ohraničení a černé pozadí */
+    mix-blend-mode: screen; 
+    opacity: 0.4; /* SNÍŽENÍ VIDITELNOSTI: Teď už to nebude "box", ale jemný odlesk */
+    filter: brightness(1.2) contrast(1.1) grayscale(100%); /* Udělá logo víc stříbrné */
+}
+
+/* ÚPRAVA MEZER, ABY VŠE SEDĚLO */
+.logo {
+    margin: 20px 0 5px 0 !important;
+}
+
+.message-box {
+    margin: 0 auto 5px auto !important;
+    padding-bottom: 0 !important;
+    background: transparent !important; /* Zpráva bude přímo v tom zeleném glow */
+}
+
+/* Karty hned pod logem */
+#menuCard {
+    margin-top: 0 !important;
+}
+.hero-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: -10px !important; /* Přitáhne karty nahoru */
+}
 
 .stack-box {
-    position: relative; width: 320px; height: 120px;
-    display: flex; justify-content: center; align-items: center; margin-top: -10px;
+    position: relative;
+    width: 320px;
+    height: 140px !important; /* Zmenšeno ze 200px - tím vytáhneme karty nahoru */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -10px !important;
+    margin-bottom: 0 !important; /* Žádná mezera pod logem */
+}
+
+/* Úprava první karty, aby se nalepila hned pod logo */
+#menuCard {
+    margin-top: -15px !important; 
+    padding-top: 0 !important;
 }
 
 .skoda-blend-layer {
-    width: 100%; height: auto; mix-blend-mode: lighten; 
-    filter: contrast(1.2) brightness(0.7) grayscale(1); opacity: 0.4;
-    position: absolute; z-index: 1;
+    width: 100%;
+    height: auto;
+    /* AGRESIVNÍ ODSTRANĚNÍ RÁMEČKU */
+    mix-blend-mode: lighten; 
+    filter: contrast(1.5) brightness(0.8) grayscale(1); 
+    opacity: 0.5; /* Udělá logo jemnější, aby text přes něj byl čitelný */
+    position: absolute;
+    z-index: 1;
 }
 
 .message-overlay {
-    position: relative; z-index: 10; text-align: center; padding: 0 20px;
-    font-size: 16px; font-weight: 600; text-shadow: 2px 2px 8px rgba(0,0,0,1);
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 0 20px;
+    color: #ffffff;
+    font-size: 16px !important;
+    font-weight: 600;
     line-height: 1.4;
+    text-shadow: 2px 2px 8px rgba(0,0,0,1); /* Klíčové pro čitelnost na logu */
+    text-transform: none !important;
 }
 
-/* KARTY */
-.card {
-    max-width: 400px; margin: 10px auto; background: rgba(17, 24, 39, 0.5);
-    backdrop-filter: blur(12px); border-radius: 20px; padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1); box-sizing: border-box;
+/* Úprava mezer u nápisu nahoře */
+.logo { margin-bottom: 0 !important; }
+.disclaimer {
+    position: relative; /* Změna z fixed na relative, aby netvořil prázdné místo pod sebou */
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.3); /* Decentní šedá */
+    text-align: left; /* Zarovnání doleva */
+    font-family: sans-serif;
+    line-height: 1.3;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.hidden { display: none !important; }
-
-/* TLAČÍTKA MENU */
-.menu button {
-    width: 100%; padding: 18px; border-radius: 16px; border: none;
-    margin-top: 12px; font-weight: 800; color: white; cursor: pointer;
-    transition: transform 0.2s, filter 0.2s; text-transform: uppercase;
+/* Oprava pro body, aby se netvořil scrollbar dolů */
+body {
+    overflow-x: hidden; /* Zabrání scrollování do stran */
+    height: auto;
+    min-height: 100vh;
 }
-.menu button:active { transform: scale(0.97); filter: brightness(0.8); }
 
-.bg-purple { background: #7e22ce; }
-.bg-orange { background: #ea580c; }
-.bg-green  { background: #16a34a; }
-.bg-slate  { background: #475569; }
-.bg-cyan   { background: #0891b2; }
-.bg-logout { background: rgba(255,255,255,0.1); margin-top: 25px !important; }
-
-/* AUTH FORMULÁŘ */
-.switch { display: flex; gap: 5px; margin-bottom: 15px; }
-.switch button { flex: 1; padding: 10px; border-radius: 10px; border: none; background: #374151; color: white; cursor: pointer; }
-.activeTab { background: #22c55e !important; color: black !important; }
-input { width: 100%; padding: 14px; border-radius: 12px; border: none; margin-bottom: 10px; box-sizing: border-box; font-size: 16px; }
-.mainBtn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: #3b82f6; color: white; font-weight: 900; cursor: pointer; }
-
-.roleTag { text-align: center; opacity: 0.6; font-size: 12px; margin-bottom: 15px; font-weight: 800; }
-.disclaimer { padding: 20px; font-size: 10px; color: rgba(255,255,255,0.3); text-align: center; line-height: 1.4; }
+/* Na mobilu to vycentrujeme, aby to nevypadalo utrženě */
+@media (max-width: 480px) {
+    .disclaimer {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        text-align: center;
+        width: 90%;
+        max-width: none;
+    }
+}
 </style>
 </head>
+
 <body>
+
+<div class="app">
 
 <div class="hero-container">
     <h1 class="logo">Shift<b>Master</b></h1>
+
     <div class="stack-box">
-        <!-- Logo Škoda jako podklad (soubor pozadi.jpg musí být ve stejné složce) -->
+        <!-- Logo jako podklad -->
         <img src="pozadi.jpg" class="skoda-blend-layer" alt="Škoda">
+        
         <!-- Text zprávy vznášející se nad logem -->
         <div id="broadcastText" class="message-overlay"></div>
     </div>
 </div>
 
-<div id="loading" class="card" style="text-align:center;">🔍 Ověřuji přihlášení…</div>
+<div id="loading" class="card">
+  Ověřuji přihlášení…
+</div>
 
-<!-- AUTH KARTA (PŘIHLÁŠENÍ / REGISTRACE) -->
+<!-- AUTH -->
 <div id="authCard" class="card hidden">
-    <div class="switch">
-        <button id="tabLogin" class="activeTab" onclick="setMode('login')">Přihlášení</button>
-        <button id="tabReg" onclick="setMode('register')">Registrace</button>
-    </div>
-    <input id="email" type="email" placeholder="Email">
-    <input id="pass" type="password" placeholder="Heslo">
-    <button class="mainBtn" id="mainBtn" onclick="submitAuth()">VSTOUPIT</button>
+
+ <div class="switch">
+    <button id="tabLogin" class="activeTab" onclick="setMode('login')">Přihlášení</button>
+    <button id="tabReg" onclick="setMode('register')">Registrace</button>
+  </div>
+
+  <input id="email" placeholder="Email">
+  <input id="pass" type="password" placeholder="Heslo">
+
+  <button class="mainBtn" id="mainBtn" onclick="submitAuth()">
+    Přihlásit
+  </button>
+
 </div>
 
-<!-- MENU KARTA (PO PŘIHLÁŠENÍ) -->
+<!-- MENU -->
 <div id="menuCard" class="card hidden">
-    <div id="roleLabel" class="roleTag"></div>
-    
-    <!-- MOJE POZNÁMKA (ZOBRAZÍ SE JEN POKUD MÁM NĚCO V KARTĚ ZAMĚSTNANCE) -->
-    <div id="myNoteCard" class="hidden" style="background:rgba(34,197,94,0.1); padding:15px; border-radius:15px; margin-bottom:15px; border:1px solid rgba(34,197,94,0.3);">
-        <div style="font-weight:800; color:#22c55e; font-size:12px; margin-bottom:5px;">📝 SOUKROMÁ POZNÁMKA</div>
-        <div id="myNoteText" style="font-size:14px; line-height:1.4; opacity:0.9;"></div>
-    </div>
+<div class="roleTag" id="roleLabel"></div>
+ <div id="broadcastText" class="message-box"></div>
 
-    <div class="menu">
-        <button class="adminOnly bg-purple hidden" onclick="location.href='zamestnanci.html'">👥 Karty zaměstnance</button>
-        <button class="adminOnly bg-orange hidden" onclick="location.href='generator.html'">⚙️ Generátor</button>
-        <button class="bg-green" onclick="location.href='graf.html'">📊 Směnový graf</button>
-        <button class="bg-slate" onclick="location.href='kalendar.html'">📅 Kalendář</button>
-        <button class="bg-cyan" onclick="location.href='statistiky.html'">📈 Statistiky</button>
-        <button class="bg-logout" onclick="handleLogout()">Odhlásit</button>
-    </div>
+<!-- MOJE POZNÁMKA -->
+<div id="myNoteCard" class="card hidden" style="margin-bottom:14px;">
+  <div style="font-weight:800;margin-bottom:6px;">
+    📝 Soukromá zpráva
+  </div>
+  <div id="myNoteText" style="opacity:.9; line-height:1.4;"></div>
 </div>
 
-<div class="disclaimer">
-    © 2024 ShiftMaster | Neoficiální nástroj.<br>Logo ŠKODA je majetkem ŠKODA AUTO a.s.
+  <div class="menu">
+
+    <button class="btnEmployees adminOnly bg-purple" onclick="go('employees.html')">
+      👥 Karty zaměstnance
+    </button>
+
+    <button class="btnGenerator adminOnly bg-orange" onclick="go('generator.html')">
+      ⚙️ Generátor
+    </button>
+
+    <button class="btnSchedule bg-green" onclick="go('schedule.html')">
+      📊 Směnový graf
+    </button>
+
+    <button class="btnCalendar bg-slate" onclick="go('date.html')">
+      📅 Kalendář
+    </button>
+
+    <button class="btnStats bg-cyan" onclick="go('stats.html')">
+      📈 Statistiky
+    </button>
+
+    <button class="logout bg-logout" onclick="logout()">
+      Odhlásit
+    </button>
+
+  </div>
+
+</div>
+
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com";
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com";
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
-    authDomain: "generator-smen-9fba1.firebaseapp.com",
-    projectId: "generator-smen-9fba1",
-    storageBucket: "generator-smen-9fba1.firebasestorage.app",
-    messagingSenderId: "541779211883",
-    appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
-    measurementId: "G-1HF3R93D92"
-  };
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  getDocs,
+  query,
+  where
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+  authDomain: "generator-smen-9fba1.firebaseapp.com",
+  projectId: "generator-smen-9fba1",
+  storageBucket: "generator-smen-9fba1.firebasestorage.app",
+  messagingSenderId: "541779211883",
+  appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
+  measurementId: "G-1HF3R93D92"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const loading = document.getElementById("loading");
+const emailEl = document.getElementById("email");
+const passEl = document.getElementById("pass");
+const authCard = document.getElementById("authCard");
+const menuCard = document.getElementById("menuCard");
+const roleLabel = document.getElementById("roleLabel");
+const myNoteCard = document.getElementById("myNoteCard");
+const myNoteText = document.getElementById("myNoteText");
+const broadcastCard = document.getElementById("broadcastCard");
+const broadcastTextEl = document.getElementById("broadcastText");
+
+let mode = "login";
+
+window.setMode = (m)=>{
+  mode = m;
+  tabLogin.classList.toggle("activeTab", m==="login");
+  tabReg.classList.toggle("activeTab", m==="register");
+  mainBtn.innerText = m==="login" ? "Přihlásit" : "Registrovat";
+};
+
+window.submitAuth = async ()=>{
+
+  try{
+
+    if(mode==="login"){
+      await signInWithEmailAndPassword(auth,emailEl.value,passEl.value);
+    }else{
+      const cred = await createUserWithEmailAndPassword(auth,emailEl.value,passEl.value);
+      await setDoc(doc(db,"users",cred.user.uid),{role:"user"});
+      alert("Registrace proběhla");
+      setMode("login");
+    }
+
+  }catch(e){
+
+    if(
+      e.code==="auth/user-not-found" ||
+      e.code==="auth/wrong-password" ||
+      e.code==="auth/invalid-credential"
+    ){
+      alert("Neplatné přihlášení — účet neexistuje nebo špatné heslo.");
+    }
+    else if(e.code==="auth/email-already-in-use"){
+      alert("Tento email už je registrovaný.");
+    }
+    else if(e.code==="auth/weak-password"){
+      alert("Heslo musí mít aspoň 6 znaků.");
+    }
+    else{
+      alert("Registrace OK");
+    }
+  }
+};
+
+window.logout = ()=> signOut(auth);
+window.go = (p)=> location.href=p;
+
+onAuthStateChanged(auth, async user => {
+  
+  // SEM vložíš ten nový kód (místo původních řádků 444-465):
+  if (user) {
+     const loadingCard = document.getElementById("loading");
+    const menuCard = document.getElementById("menuCard");
+
+    if (loadingCard) {
+        loadingCard.style.setProperty("display", "none", "important");
+    }
+
+    if (menuCard) {
+        menuCard.style.setProperty("display", "block", "important");
+        menuCard.classList.remove("hidden");
+    }
+
+    if (menuCard) {
+        menuCard.style.setProperty("display", "block", "important");
+        menuCard.classList.remove("hidden");
+    }
+
+    const snap = await getDoc(doc(db, "users", user.uid));
+    const role = snap.data()?.role || "user";
+
+    if (role !== "admin") {
+      document.querySelectorAll(".adminOnly").forEach(b => {
+        b.style.display = "none";
+      });
+    }
+
+    loadMyNote(user);
+    loadBroadcast();
+  } else {
+    // Pokud není uživatel přihlášen, pošli ho na login nebo schovej menu
+    location.href = "index.html"; // nebo tvoje přihlašovací stránka
+  }
+});
+async function loadMyNote(user){
+
+  const q = query(
+    collection(db,"employees"),
+    where("email","==", user.email)
+  );
+
+  const snap = await getDocs(q);
+
+  if(snap.empty){
+    myNoteCard.classList.add("hidden");
+    return;
+  }
+
+  const emp = snap.docs[0].data();
+
+  if(emp.info && emp.info.trim() !== ""){
+    myNoteText.innerText = emp.info;
+    myNoteCard.classList.remove("hidden");
+  }else{
+    myNoteCard.classList.add("hidden");
+  }
+}
+
+async function loadBroadcast() {
+  const snap = await getDoc(doc(db, "config", "global"));
+  const msg = snap.data()?.broadcastMessage || "";
+  const box = document.getElementById("broadcastText");
+
+  if (box) {
+    if (msg.trim() !== "") {
+      box.innerText = msg;
+      box.style.display = "block";
+    } else {
+      box.style.display = "none";
+    }
+  }
+}
+
 </script>
+<div class="disclaimer">
+    © 2024 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.
+</div>
 </body>
 </html>

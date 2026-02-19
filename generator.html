@@ -4,176 +4,640 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generátor směny | ShiftMaster</title>
+<title>Generátor směny</title>
 
 <style>
-/* 1. GLOBÁLNÍ RESET */
+/* 1. GLOBÁLNÍ RESET A OSTRÉ POZADÍ */
 body {
-    margin: 0; padding: 0; min-height: 100vh;
+    margin: 0; padding: 0; display: block !important; min-height: 100vh;
     color: white; font-family: sans-serif;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('pozadi.jpg');
-    background-size: cover; background-position: center;
-    background-repeat: no-repeat; background-attachment: fixed;
-    background-color: #030712;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('pozadi.jpg') !important;
+    background-size: contain !important; background-position: center 10% !important;
+    background-repeat: no-repeat !important; background-attachment: fixed !important;
+    background-color: #030712 !important;
 }
 
 /* 2. TOPBAR */
 .topbar {
-    height: 60px; display: flex; align-items: center; justify-content: space-between;
-    padding: 0 16px; background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    height: 56px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px; background: rgba(2, 6, 23, 0.8); border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .menuBtn {
-    padding: 8px 16px; border-radius: 10px; border: none; font-weight: 800;
-    background: #334155; color: white; cursor: pointer;
+    width: auto !important;      /* Zabere jen tolik místa, kolik potřebuje text */
+    padding: 8px 14px !important; /* Vrátí mu původní vnitřní prostor */
+    margin-top: 0 !important;     /* Odstraní horní odstup, který mají ostatní tlačítka */
+    display: inline-block !important;
 }
 
-/* 3. KONTEJNER */
-.container { max-width: 450px; margin: 15px auto; padding: 15px; }
+/* 3. HLAVNÍ KONTEJNER (BEZ OHRANIČENÍ A BLURU) */
+.container, .app, main {
+    max-width: 420px; margin: 20px auto !important; padding: 16px;
+    background: rgba(0, 0, 0, 0.3) !important; border: none !important;
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+}
 
-/* 4. KARTY A FORMULÁŘE */
-.card { background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 20px; margin-bottom: 15px; }
+/* 4. PRŮHLEDNOST VŠECH VNITŘNÍCH BOXŮ (Karty, Tabulky, Detaily) */
+.card, fieldset, section, details, summary, table, tr, td, th, .modalBox, .resBox {
+    background: transparent !important; background-color: transparent !important;
+    border: none !important; box-shadow: none !important; color: white !important;
+}
+
+/* 5. ČITELNOST TEXTU (STÍN PRO OSTRÉ LOGO) */
+label, p, span, summary, .worker, .row, h1, h2, h3, th, td, .lockCode, .lockName {
+    color: white !important; font-weight: 900 !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,1) !important;
+}
+
+/* 6. FORMULÁŘE A TLAČÍTKA */
 input, select {
-    width: 100%; padding: 12px; border-radius: 12px; border: none;
-    margin: 8px 0; background: white; color: black; font-weight: 700; box-sizing: border-box;
+    width: 100%; padding: 12px; border-radius: 10px; border: none !important;
+    margin-top: 6px; background: white !important; color: black !important; font-weight: 700;
 }
-
 button {
-    width: 100%; padding: 15px; border-radius: 15px; border: none;
-    font-weight: 800; cursor: pointer; margin-top: 10px; transition: 0.2s;
+    width: 100%; padding: 14px !important; border-radius: 12px !important;
+    border: none !important; font-weight: 800; cursor: pointer; margin-top: 10px;
 }
-.genBtn { background: #f59e0b; color: black; }
-.saveBtn { background: #22c55e; color: white; }
-.loadBtn { background: #2563eb; color: white; }
+.genBtn, .btn-warning { background: #f59e0b !important; }
+.saveBtn, .btn-success { background: #22c55e !important; }
+.loadBtn, .pickBtn, .btn-primary { background: #2563eb !important; color: white !important; }
+.removeBtn { background: #ef4444 !important; }
 
-/* 5. SPECIFICKÉ PRVKY */
-.lockList { max-height: 150px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
-.lockRow { display: flex; align-items: center; gap: 10px; padding: 5px; font-size: 13px; }
-
-#loading {
-    position: fixed; top: 10px; right: 10px; background: #f59e0b; color: black;
-    padding: 5px 15px; border-radius: 20px; font-weight: 800; font-size: 12px; z-index: 2000;
-    display: none;
-}
+/* 7. SPECIFICKÉ PRVKY (LOCKY, TABULKY, MODÁLY) */
+.lockList { max-height: 180px; overflow: auto; margin-top: 8px; }
+.lockRow { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 8px; }
+.lockRow:hover { background: rgba(255,255,255,0.1) !important; }
+.lockedRow, .outWorker { background: rgba(220,38,38,0.25) !important; }
 
 .modal {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-    display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+    display: none; align-items: center; justify-content: center; z-index: 1000;
 }
-.modalBox { background: #0f172a; padding: 25px; border-radius: 25px; width: 100%; max-width: 400px; border: 1px solid rgba(255,255,255,0.1); }
+.modalBox { border: 1px solid rgba(255,255,255,0.2) !important; background: #020617 !important; padding: 20px; border-radius: 20px; }
 
-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 10px; text-align: left; font-size: 14px; }
+/* PosCol a Table Borders */
+th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px; }
+.posCol { text-align: left; font-weight: 800; }
 </style>
 </head>
 
 <body>
 
-<div id="loading">🔍 Načítám data...</div>
+<div class="loading" id="loading">🔍 Pracuju…</div>
 
 <div class="topbar">
-    <div><b>⚙️ GENERÁTOR</b></div>
-    <button class="menuBtn" onclick="window.location.href='index.html'">Menu</button>
+<div><b>⚙️ Generátor směny</b></div>
+<button class="menuBtn" onclick="location.href='index.html'">Menu</button>
 </div>
 
 <div class="container">
-    <button id="infoBtn" class="loadBtn" style="margin-bottom:15px;">ℹ️ Informace o směně</button>
 
-    <div class="card">
-        <label>Datum a směna</label>
-        <input type="date" id="date">
-        <select id="shift">
-            <option value="ranni">Ranní směna</option>
-            <option value="odpo">Odpolední směna</option>
-            <option value="noc">Noční směna</option>
-        </select>
+  <button id="infoBtn" class="menuBtn" style="width:100%;margin-bottom:10px;">
+ℹ️ Informace o směně
+</button>
 
-        <details style="margin-top: 10px;">
-            <summary style="cursor:pointer; font-weight: 800;">🔒 Vyřadit pozice (Nastavení)</summary>
-            <div class="lockList" id="lockBox"></div>
-        </details>
+<div class="card">
+<label>Datum</label>
+<input type="date" id="date">
 
-        <button class="genBtn" id="genBtn">⚙️ Generovat rozpis</button>
-        <button class="loadBtn" id="loadBtn">📂 Načíst poslední uložený</button>
-    </div>
+<label>Směna</label>
+<select id="shift">
+<option value="ranni">Ranní</option>
+<option value="odpo">Odpolední</option>
+<option value="noc">Noční</option>
+</select>
 
-    <div class="card">
-        <table id="grid">
-            <thead><tr><th>Pozice</th><th>Zaměstnanec</th></tr></thead>
-            <tbody id="gridBody"></tbody>
-        </table>
-    </div>
+<details>
+<summary>🔒 Vyřadit pozice z generování</summary>
+<div class="lockList" id="lockBox"></div>
+</details>
 
-    <button class="saveBtn" id="saveBtn">💾 Uložit tento rozpis</button>
+<button class="genBtn" id="genBtn">⚙️ Generovat</button>
+<button class="loadBtn" id="loadBtn">📂 Načíst uloženou směnu</button>
 </div>
 
-<!-- MODÁLY -->
+<div class="card">
+<table id="grid"></table>
+</div>
+
+<div class="card">
+<h4>Náhradníci podle fází</h4>
+<div id="reservesBox"></div>
+</div>
+
+<button class="saveBtn" id="saveBtn">💾 Uložit</button>
+
+</div>
+
+<div class="modal" id="pickModal">
+<div class="modalBox">
+<div id="pickTitle"></div>
+<div id="pickList"></div>
+<button onclick="closePick()">Zavřít</button>
+</div>
+</div>
+
 <div class="modal" id="infoModal">
-    <div class="modalBox">
-        <h3>ℹ️ Detaily směny</h3>
-        <label>Scala / Kamiq</label>
-        <input id="skStart" placeholder="Začátek">
-        <input id="skEnd" placeholder="Konec">
-        <button id="infoSave" class="saveBtn">Uložit info</button>
-        <button onclick="document.getElementById('infoModal').style.display='none'" class="menuBtn" style="width:100%">Zavřít</button>
-    </div>
+<div class="modalBox">
+
+<h3>ℹ️ Informace o směně</h3>
+
+<b>Scala / Kamiq</b>
+<input id="skStart" placeholder="Začátek">
+<input id="skEnd" placeholder="Konec">
+
+<b>Fabie</b>
+<input id="faStart" placeholder="Začátek">
+<input id="faEnd" placeholder="Konec">
+
+<b>Zásobník</b>
+<input id="zaStart" placeholder="Začátek">
+<input id="zaEnd" placeholder="Konec">
+
+<button id="infoSave" class="saveBtn">Uložit</button>
+<button onclick="closeInfo()">Zavřít</button>
+
+</div>
 </div>
 
 <script type="module">
-// OPRAVENÉ IMPORTY
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, setDoc, getDoc }
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const app = initializeApp({
+ apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
   authDomain: "generator-smen-9fba1.firebaseapp.com",
   projectId: "generator-smen-9fba1",
   storageBucket: "generator-smen-9fba1.firebasestorage.app",
   messagingSenderId: "541779211883",
-  appId: "1:541779211883:web:1d8578ec61b0f428a4632e"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// KONSTANTY POZIC
-const POSITIONS = ["DP-L","DP-P","ZRC-L","ZRC-P","T-L","T-P","AGR-LP","AGR-PP","AGR-PZ","AGR-LZ","MOT-L","MOT-P","LEP-LP","LEP-PP","LEP-Z","REPRO-L","REPRO-P","VYP1-L","VYP1-P","VYP2-L","VYP2-P","PR-L","PR-P","ZAM-L","ZAM-P","VET","VET2","INST","INST2","JINE","JINE2"];
-const DEFAULT_LOCKED = ["ZAM-L","ZAM-P","VET","VET2","INST","INST2","JINE","JINE2"];
-
-// INICIALIZACE LOCKBOXU
-const lockBox = document.getElementById("lockBox");
-POSITIONS.forEach(p => {
-    const checked = DEFAULT_LOCKED.includes(p) ? "checked" : "";
-    lockBox.innerHTML += `<label class="lockRow"><input type="checkbox" value="${p}" ${checked}> <span>${p}</span></label>`;
+  appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
+  measurementId: "G-1HF3R93D92"
 });
 
-// LOGIKA NAČÍTÁNÍ
-async function loadWorkers() {
-    document.getElementById("loading").style.display = "block";
-    try {
-        const snap = await getDocs(collection(db, "employees"));
-        let workers = [];
-        snap.forEach(d => {
-            workers.push({ id: d.id, ...d.data() });
-        });
-        console.log("Zaměstnanci načteni:", workers.length);
-        return workers;
-    } catch (e) {
-        console.error("Chyba při načítání:", e);
-    } finally {
-        document.getElementById("loading").style.display = "none";
-    }
+const db = getFirestore(app);
+
+/* DOM */
+
+const loadingEl = document.getElementById("loading");
+const dateEl = document.getElementById("date");
+const shiftEl = document.getElementById("shift");
+const gridEl = document.getElementById("grid");
+const reservesBoxEl = document.getElementById("reservesBox");
+
+const genBtn = document.getElementById("genBtn");
+const loadBtn = document.getElementById("loadBtn");
+const saveBtn = document.getElementById("saveBtn");
+const lockBox = document.getElementById("lockBox");
+
+const pickModal = document.getElementById("pickModal");
+const pickTitle = document.getElementById("pickTitle");
+const pickList = document.getElementById("pickList");
+
+const infoBtn = document.getElementById("infoBtn");
+const infoModal = document.getElementById("infoModal");
+
+const skStart = document.getElementById("skStart");
+const skEnd   = document.getElementById("skEnd");
+const faStart = document.getElementById("faStart");
+const faEnd   = document.getElementById("faEnd");
+const zaStart = document.getElementById("zaStart");
+const zaEnd   = document.getElementById("zaEnd");
+
+dateEl.value = new Date().toISOString().slice(0,10);
+
+/* POSITIONS */
+
+const POSITIONS = [
+"DP-L","DP-P","ZRC-L","ZRC-P","T-L","T-P",
+"AGR-LP","AGR-PP","AGR-PZ","AGR-LZ",
+"MOT-L","MOT-P","LEP-LP","LEP-PP","LEP-Z",
+"REPRO-L","REPRO-P","VYP1-L","VYP1-P",
+"VYP2-L","VYP2-P","PR-L","PR-P","ZAM-L","ZAM-P","VET","VET2","INST",
+"INST2","JINE","JINE2",
+
+];
+
+/* DEFAULT ZAMČENÉ POZICE */
+
+const DEFAULT_LOCKED = new Set([
+ "ZAM-L","ZAM-P",
+ "VET","VET2",
+ "INST","INST2",
+ "JINE","JINE2"
+]);
+
+POSITIONS.forEach(p=>{
+
+ const checked = DEFAULT_LOCKED.has(p) ? "checked" : "";
+
+ lockBox.innerHTML += `
+ <label class="lockRow">
+  <input type="checkbox" value="${p}" ${checked}>
+  <span>${p}</span>
+ </label>`;
+});
+
+
+function lockedPositions(){
+ return [...lockBox.querySelectorAll("input:checked")].map(x=>x.value);
 }
 
-// OTEVŘENÍ MODÁLU INFO
-document.getElementById("infoBtn").onclick = () => {
-    document.getElementById("infoModal").style.display = "flex";
+function activePositions(){
+ const locked = lockedPositions();
+ return POSITIONS.filter(p=>!locked.includes(p));
+}
+
+/* STATE */
+
+let workers=[];
+let phases=[];
+let phaseReserves=[];
+let allWorkersMap={};   // ← NOVÉ
+let shiftInfo = {
+ sk:{start:"",end:""},
+ fa:{start:"",end:""},
+ za:{start:"",end:""}
 };
 
-// Nastavení dnešního data
-document.getElementById("date").value = new Date().toISOString().slice(0,10);
 
-// Zde by pokračovala tvá logika generování (shuffle atd.)
-// Pro funkčnost zatím stačí toto propojení.
+
+/* WORKERS */
+
+async function loadWorkers(){
+ const snap = await getDocs(collection(db,"employees"));
+ workers=[];
+
+ snap.forEach(d=>{
+  const e=d.data();
+  const st = e.statusToday;
+
+  // ❌ tihle se NIKDY negenerují
+  if(
+    st === "sick" ||
+    st === "vacation" ||
+    st === "paragraf" ||
+    st === "shitmaking" ||
+    st === "loaned" ||
+    st === "borrowed"
+  ){
+    return;
+  }
+
+  // ✅ jen skuteční pracovníci
+  if(st === "work"){
+    workers.push({
+      id:d.id,
+      name:e.name,
+      skills:e.skills || []
+    });
+  }
+
+ });
+}
+
+async function loadAllWorkers(){
+
+ const snap = await getDocs(collection(db,"employees"));
+ allWorkersMap={};
+
+ snap.forEach(d=>{
+  const e=d.data();
+  allWorkersMap[d.id]={
+    id:d.id,
+    name:e.name,
+    skills:e.skills||[],
+    status:e.statusToday||"work"
+  };
+ });
+
+}
+
+/* BUILD */
+
+if (typeof historyStats === 'undefined') { var historyStats = {}; }
+if (typeof lastPosByWorker === 'undefined') { var lastPosByWorker = {}; }
+
+function buildPhase(act) {
+  if (!act || !workers || workers.length < act.length) return null;
+
+  const map = {};
+  act.forEach(pos => {
+    map[pos] = workers.filter(w => w.skills && w.skills.includes(pos));
+  });
+  const orderedPos = [...act].sort((a, b) => map[a].length - map[b].length);
+
+  let bestResult = null;
+  let minScore = Infinity;
+
+  for (let i = 0; i < 20; i++) {
+    const attempt = runSmartAttempt(orderedPos, map);
+    
+    if (attempt) {
+      let currentScore = 0;
+      for (const pos in attempt) {
+        const wId = attempt[pos].id;
+        currentScore += (historyStats[wId + "_" + pos] || 0);
+      }
+
+      if (currentScore < minScore) {
+        minScore = currentScore;
+        bestResult = attempt;
+      }
+      if (minScore === 0) break;
+    }
+  }
+
+  if (bestResult) {
+    for (const p in bestResult) {
+      const wId = bestResult[p].id;
+      historyStats[wId + "_" + p] = (historyStats[wId + "_" + p] || 0) + 1;
+      lastPosByWorker[wId] = p; 
+    }
+    const usedIds = new Set(Object.values(bestResult).map(w=>w.id));
+const reserves = workers.filter(w=>!usedIds.has(w.id));
+
+return { assign: bestResult, reserves };
+
+  }
+
+  return null;
+}
+
+function runSmartAttempt(orderedPos, map) {
+  let assign = {};
+  let used = new Set();
+  let steps = 0;
+
+  function solve(index) {
+    steps++;
+    if (steps > 1500) return false; 
+    if (index === orderedPos.length) return true;
+
+    const pos = orderedPos[index];
+    let candidates = map[pos].filter(w => !used.has(w.id));
+
+    candidates.sort(() => Math.random() - 0.5); 
+    
+    candidates.sort((a, b) => {
+      if (a.skills.length !== b.skills.length) {
+        if (a.skills.length === 1) return -1;
+        if (b.skills.length === 1) return 1;
+      }
+
+      const aRepeats = (lastPosByWorker[a.id] === pos && a.skills.length > 1) ? 1 : 0;
+      const bRepeats = (lastPosByWorker[b.id] === pos && b.skills.length > 1) ? 1 : 0;
+      if (aRepeats !== bRepeats) return aRepeats - bRepeats;
+
+      return 0;
+    });
+
+    for (const worker of candidates) {
+      assign[pos] = worker;
+      used.add(worker.id);
+      if (solve(index + 1)) return true;
+      used.delete(worker.id);
+      delete assign[pos];
+    }
+    return false;
+  }
+  return solve(0) ? assign : null;
+    } 
+
+
+/* GENERATE */
+
+genBtn.onclick = async ()=>{
+
+ loadingEl.style.display="flex";
+
+ await loadWorkers();
+
+ const act = activePositions();   // ← TOHLE CHYBÍ
+
+ phases = [];
+ phaseReserves = [];
+ lastPosByWorker = {};
+
+ for(let i=0;i<4;i++){
+
+   const res = buildPhase(act);
+
+   if(!res){
+     alert("❌ Nelze obsadit všechny pozice — málo lidí / skillů");
+     loadingEl.style.display="none";
+     return;
+   }
+
+   phases.push(res.assign);
+   phaseReserves.push(res.reserves);
+ }
+
+ render();
+
+ loadingEl.style.display="none";
+};
+
+
+/* LOAD */
+
+loadBtn.onclick = async ()=>{
+
+ loadingEl.style.display="flex";
+
+ await loadWorkers();      // pro generátor
+ await loadAllWorkers();   // pro load směny
+
+ const id=dateEl.value+"_"+shiftEl.value;
+ const snap=await getDoc(doc(db,"shifts",id));
+
+ if(!snap.exists()){
+  alert("Směna neexistuje");
+  loadingEl.style.display="none";
+  return;
+ }
+
+ const data=snap.data();
+// ✅ načti info o směně (popup data)
+shiftInfo = data.info || {
+ sk:{start:"",end:""},
+ fa:{start:"",end:""},
+ za:{start:"",end:""}
+};
+ // 🔷 mapujeme z ALL workers — ne jen work
+ phases = data.phases.map(ph=>{
+  const o={};
+  Object.entries(ph).forEach(([pos,wid])=>{
+   o[pos] = allWorkersMap[wid] || {
+     id:wid,
+     name:"NEZNÁMÝ",
+     skills:[],
+     status:"missing"
+   };
+  });
+  return o;
+ });
+
+ // reserves jen z aktuálních WORK workers
+ phaseReserves = phases.map(ph=>{
+  const used=new Set(Object.values(ph).filter(Boolean).map(w=>w.id));
+  return workers.filter(w=>!used.has(w.id));
+ });
+
+ render();
+ loadingEl.style.display="none";
+};
+
+
+/* RENDER */
+
+function phaseLabels(){
+ const s=shiftEl.value;
+ if(s==="ranni") return ["6:00-8:00","8:00-10:15","10:45-12:00","12:00-14:00"];
+ if(s==="odpo") return ["14:00-16:00","16:00-18:15","18:45-20:00","20:00-22:00"];
+ return ["22:00-00:00","00:00-02:15","02:45-04:00","04:00-06:00"];
+}
+
+function render(){
+
+ const L=phaseLabels();
+ const locked = new Set(lockedPositions());
+
+ let html="<tr><th>Pozice</th>";
+ L.forEach(x=>html+=`<th>${x}</th>`);
+ html+="</tr>";
+
+ POSITIONS.forEach(pos=>{
+  const isLocked = locked.has(pos);
+  html+=`<tr class="${isLocked?'lockedRow':''}">
+  <td class="posCol">
+   ${pos} ${isLocked?'🔒':''}
+   <button onclick="toggleLock('${pos}')">🔓</button>
+  </td>`;
+
+  for(let p=0;p<4;p++){
+   const w=phases[p]?.[pos];
+   const cls = (w && w.status && w.status!=="work") ? "outWorker" : "";
+html+=`<td class="slot ${cls}" onclick="pick(${p},'${pos}')">${w?w.name:"—"}</td>`;
+
+  }
+
+  html+="</tr>";
+ });
+
+ gridEl.innerHTML=html;
+
+ reservesBoxEl.innerHTML =
+ phaseReserves.map((arr,i)=>
+ `<div class="resBox"><b>Fáze ${i+1}</b><br>${
+ arr.map(w=>w.name+" — "+w.skills.join(", ")).join("<br>")||"Nikdo"
+ }</div>`).join("");
+}
+
+/* LOCK TOGGLE */
+
+window.toggleLock=(pos)=>{
+ const cb=[...lockBox.querySelectorAll("input")].find(x=>x.value===pos);
+ if(cb) cb.checked=!cb.checked;
+ render();
+};
+
+/* PICK */
+
+let pickPhaseIndex,pickPosition;
+
+window.pick=(phase,pos)=>{
+ pickPhaseIndex=phase;
+ pickPosition=pos;
+ const list=phaseReserves[phase].filter(w=>w.skills.includes(pos));
+ pickTitle.innerText="Pozice "+pos;
+ pickList.innerHTML=
+ list.map(w=>`<button class="pickBtn" onclick="swapWorker('${w.id}')">${w.name}</button>`).join("")
+ + `<button class="pickBtn removeBtn" onclick="removeWorker()">Vyprázdnit</button>`;
+ pickModal.style.display="flex";
+};
+
+window.swapWorker=(wid)=>{
+ const w=workers.find(x=>x.id===wid);
+ const cur=phases[pickPhaseIndex][pickPosition];
+ if(cur) phaseReserves[pickPhaseIndex].push(cur);
+ phases[pickPhaseIndex][pickPosition]=w;
+ phaseReserves[pickPhaseIndex]=phaseReserves[pickPhaseIndex].filter(x=>x.id!==wid);
+ closePick(); render();
+};
+
+window.removeWorker=()=>{
+ const cur=phases[pickPhaseIndex][pickPosition];
+ if(cur) phaseReserves[pickPhaseIndex].push(cur);
+ phases[pickPhaseIndex][pickPosition]=null;
+ closePick(); render();
+};
+
+window.closePick=()=> pickModal.style.display="none";
+
+infoBtn.onclick = ()=>{
+ skStart.value = shiftInfo.sk.start;
+ skEnd.value   = shiftInfo.sk.end;
+ faStart.value = shiftInfo.fa.start;
+ faEnd.value   = shiftInfo.fa.end;
+ zaStart.value = shiftInfo.za.start;
+ zaEnd.value   = shiftInfo.za.end;
+
+ infoModal.style.display="flex";
+};
+
+window.closeInfo = ()=>{
+ infoModal.style.display="none";
+};
+
+document.getElementById("infoSave").onclick = ()=>{
+ shiftInfo = {
+  sk:{start:skStart.value,end:skEnd.value},
+  fa:{start:faStart.value,end:faEnd.value},
+  za:{start:zaStart.value,end:zaEnd.value}
+ };
+ infoModal.style.display="none";
+};
+
+/* SAVE */
+
+saveBtn.onclick = async ()=>{
+
+ if(!phases.length){
+  alert("Nejdřív generuj");
+  return;
+ }
+
+ // 🔷 phase data
+ const out = phases.map(ph=>{
+  const o={};
+  Object.entries(ph).forEach(([pos,w])=>{
+   if(w) o[pos]=w.id;
+  });
+  return o;
+ });
+
+ // 🔷 status snapshot zaměstnanců v den uložení
+ const empSnap = await getDocs(collection(db,"employees"));
+ const statusSnapshot = {};
+
+ empSnap.forEach(d=>{
+   statusSnapshot[d.id] = d.data().statusToday || "work";
+ });
+
+ await setDoc(doc(db,"shifts",dateEl.value+"_"+shiftEl.value),{
+ date:dateEl.value,
+ shift:shiftEl.value,
+ phases:out,
+ statusSnapshot,
+ info: shiftInfo,   // ← NOVÉ
+ createdAt:Date.now()
+});
+
+ alert("✅ Uloženo (včetně status snapshotu)");
+};
+
+
 </script>
 </body>
 </html>
