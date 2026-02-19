@@ -912,9 +912,12 @@ onAuthStateChanged(auth, async user => {
     loadMyNote(user);
     loadBroadcast();
   } else {
-    // Pokud není uživatel přihlášen, pošli ho na login nebo schovej menu
-    location.href = "index.html"; // nebo tvoje přihlašovací stránka
-  }
+    // Pokud není přihlášen, pouze schovej menu a ukaž přihlášení (neobnovuj stránku!)
+    if (loadingCard) loadingCard.classList.add("hidden");
+    if (menuCard) menuCard.classList.add("hidden");
+    if (authCard) authCard.classList.remove("hidden");
+    console.log("Uživatel odhlášen, čekám na přihlášení.");
+}
 });
 async function loadMyNote(user){
 
