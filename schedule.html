@@ -6,11 +6,10 @@
 <title>Směnový graf | ShiftMaster</title>
 
 <style>
-/* 1. GLOBÁLNÍ NASTAVENÍ A OSTRÉ LOGO ŠKODA NA POZADÍ */
+/* 1. GLOBÁLNÍ NASTAVENÍ A OSTRÉ POZADÍ */
 body {
     margin: 0; padding: 0; display: block !important; min-height: 100vh;
     color: white; font-family: sans-serif;
-    /* Kombinace zeleného nádechu a tvého loga pozadi.jpg */
     background-image: 
         radial-gradient(circle at 50% 25%, rgba(6, 78, 59, 0.4) 0%, rgba(2, 6, 23, 0.8) 80%),
         url('pozadi.jpg') !important;
@@ -21,7 +20,7 @@ body {
     background-color: #030712 !important;
 }
 
-/* 2. TOPBAR (HORNÍ LIŠTA) */
+/* 2. TOPBAR */
 .topbar {
     height: 56px; display: flex; align-items: center; justify-content: space-between;
     padding: 0 16px; background: rgba(2, 6, 23, 0.8);
@@ -34,14 +33,14 @@ body {
 }
 .menuBtn:hover { background: #475569; }
 
-/* 3. HLAVNÍ KONTEJNER A SKLENĚNÉ KARTY */
+/* 3. KONTEJNER A KARTY (BEZ ROZMAZÁNÍ - LOGO BUDE OSTRÉ) */
 .container {
     max-width: 450px; margin: 20px auto !important; padding: 16px;
 }
 .card {
-    background: rgba(17, 24, 39, 0.5) !important; /* Průhlednost, aby logo prosvítalo */
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
+    background: rgba(17, 24, 39, 0.6) !important; /* Průhlednost pro prosvítání loga */
+    backdrop-filter: none !important; /* ODSTRANĚNO ROZMAZÁNÍ */
+    -webkit-backdrop-filter: none !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     border-radius: 20px !important;
     padding: 20px !important;
@@ -49,14 +48,14 @@ body {
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-/* 4. ČITELNOST TEXTU (Silný stín kvůli logu) */
+/* 4. ČITELNOST TEXTU */
 label, p, span, summary, .topTitle, th, td, .infoRow, h3 {
     color: white !important;
     font-weight: 900 !important;
     text-shadow: 2px 2px 6px rgba(0,0,0,1) !important;
 }
 
-/* 5. FORMULÁŘE (Bílá políčka) */
+/* 5. FORMULÁŘE */
 input, select {
     width: 100% !important; padding: 12px; border-radius: 12px; border: none !important;
     margin-top: 6px; margin-bottom: 12px;
@@ -64,16 +63,14 @@ input, select {
     font-weight: 700; box-sizing: border-box !important;
 }
 
-/* 6. TABULKA (Průhledná s posuvem) */
+/* 6. TABULKA */
 .table-wrapper { overflow-x: auto; border-radius: 15px; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
 th { color: #22c55e; font-weight: 900; background: rgba(0,0,0,0.3); }
 .posCol { text-align: left; font-weight: 900; color: #38bdf8; background: rgba(0,0,0,0.1); }
-
 .highlight { color: #22c55e !important; font-weight: 900; background: rgba(34, 197, 94, 0.2); }
 .empty { opacity: .4; }
-.infoRow { display: flex; justify-content: space-between; margin: 8px 0; }
 </style>
 </head>
 
@@ -100,7 +97,6 @@ th { color: #22c55e; font-weight: 900; background: rgba(0,0,0,0.3); }
         <input id="nameFilter" placeholder="např. Pepa">
     </div>
 
-    <!-- INFO BOX -->
     <div class="card" id="shiftInfoBox" style="display:none">
       <h3 style="margin-top:0; color:#22c55e;">ℹ️ Informace o směně</h3>
       <div id="infoSK"></div>
@@ -108,7 +104,6 @@ th { color: #22c55e; font-weight: 900; background: rgba(0,0,0,0.3); }
       <div id="infoZA"></div>
     </div>
 
-    <!-- GRAF -->
     <div class="card">
         <div class="table-wrapper">
             <table id="grid"></table>
@@ -117,11 +112,9 @@ th { color: #22c55e; font-weight: 900; background: rgba(0,0,0,0.3); }
 </div>
 
 <script type="module">
-// 1. OPRAVENÉ IMPORTY PRO GITHUB PAGES
 import { initializeApp } from "https://www.gstatic.com";
 import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com";
 
-// 2. KONFIGURACE (Sjednoceno s tvým projektem)
 const firebaseConfig = {
     apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
     authDomain: "generator-smen-9fba1.firebaseapp.com",
@@ -134,21 +127,22 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// DOM ELEMENTY
 const dateEl = document.getElementById("date");
 const shiftEl = document.getElementById("shift");
 const nameFilterEl = document.getElementById("nameFilter");
 const gridEl = document.getElementById("grid");
 const shiftInfoBox = document.getElementById("shiftInfoBox");
 
-dateEl.value = new Date().toISOString().slice(0,10);
+// --- OPRAVA: NASTAVENÍ DNEŠNÍHO DATA PŘI NAČTENÍ ---
+const dnes = new Date();
+const formatData = dnes.getFullYear() + '-' + String(dnes.getMonth() + 1).padStart(2, '0') + '-' + String(dnes.getDate()).padStart(2, '0');
+dateEl.value = formatData;
 
 const POSITIONS = ["DP-L","DP-P","ZRC-L","ZRC-P","T-L","T-P","AGR-LP","AGR-PP","AGR-PZ","AGR-LZ","MOT-L","MOT-P","LEP-LP","LEP-PP","LEP-Z","REPRO-L","REPRO-P","VYP1-L","VYP1-P","VYP2-L","VYP2-P","PR-L","PR-P","ZAM-L","ZAM-P","VET","VET2","INST","INST2","JINE","JINE2"];
 
 let workerMap = {}; 
 let phasesData = [];
 
-// Načtení jmen (včetně fName/lName z tvé databáze)
 async function loadWorkers(){
     const snap = await getDocs(collection(db, "employees"));
     workerMap = {};
@@ -168,13 +162,11 @@ function phaseLabels(){
 async function loadShift(){
     const id = dateEl.value + "_" + shiftEl.value;
     const snap = await getDoc(doc(db, "shifts", id));
-
     if(!snap.exists()){
         gridEl.innerHTML = "<tr><td style='padding:20px; opacity:0.6;'>Směna pro tento den nebyla nalezena.</td></tr>";
         shiftInfoBox.style.display = "none";
         return;
     }
-
     const data = snap.data();
     phasesData = data.phases || [];
     renderShiftInfo(data.info);
@@ -187,16 +179,13 @@ function render(){
     let html = "<tr><th>Pozice</th>";
     labels.forEach(l => html += `<th>${l}</th>`);
     html += "</tr>";
-
     POSITIONS.forEach(pos => {
         let rowNames = [];
         for(let i=0; i<4; i++) {
             const wid = phasesData[i] ? phasesData[i][pos] : null;
             rowNames.push(wid ? workerMap[wid] || "???" : "");
         }
-
         if(filter && !rowNames.some(n => n.toLowerCase().includes(filter))) return;
-
         html += `<tr><td class="posCol">${pos}</td>`;
         rowNames.forEach(n => {
             if(!n) html += `<td class="empty">—</td>`;
@@ -211,17 +200,15 @@ function render(){
 function renderShiftInfo(info){
     if(!info) { shiftInfoBox.style.display = "none"; return; }
     shiftInfoBox.style.display = "block";
-    document.getElementById("infoSK").innerHTML = `<div class="infoRow">Scala/Kamiq <span>${info.sk?.start || ""} → ${info.sk?.end || ""}</span></div>`;
-    document.getElementById("infoFA").innerHTML = `<div class="infoRow">Fabie <span>${info.fa?.start || ""} → ${info.fa?.end || ""}</span></div>`;
-    document.getElementById("infoZA").innerHTML = `<div class="infoRow">Zásobník <span>${info.za?.start || ""} → ${info.za?.end || ""}</span></div>`;
+    document.getElementById("infoSK").innerHTML = `<div style="display:flex; justify-content:space-between; margin:8px 0; font-weight:700;">Scala/Kamiq <span>${info.sk?.start || ""} → ${info.sk?.end || ""}</span></div>`;
+    document.getElementById("infoFA").innerHTML = `<div style="display:flex; justify-content:space-between; margin:8px 0; font-weight:700;">Fabie <span>${info.fa?.start || ""} → ${info.fa?.end || ""}</span></div>`;
+    document.getElementById("infoZA").innerHTML = `<div style="display:flex; justify-content:space-between; margin:8px 0; font-weight:700;">Zásobník <span>${info.za?.start || ""} → ${info.za?.end || ""}</span></div>`;
 }
 
-// UDÁLOSTI
 dateEl.onchange = loadShift;
 shiftEl.onchange = loadShift;
 nameFilterEl.oninput = render;
 
-// START
 (async () => {
     await loadWorkers();
     await loadShift();
