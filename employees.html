@@ -8,12 +8,10 @@
 <style>
 /* 1. GLOBÁLNÍ RESET A OSTRÉ POZADÍ */
 body {
-    margin: 0; padding: 0; display: block !important; min-height: 100vh;
-    color: white; font-family: sans-serif;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('pozadi.jpg') !important;
-    background-size: contain !important; background-position: center 10% !important;
-    background-repeat: no-repeat !important; background-attachment: fixed !important;
-    background-color: #030712 !important;
+    background: url('pozadi.jpg') no-repeat center center fixed;
+    background-size: cover;
+    margin: 0;
+    padding: 0;
 }
 
 /* 2. TOPBAR A KONTEJNERY */
@@ -170,7 +168,10 @@ if (statusSelect) {
 </script>
 
 <body>
-
+<div class="background-logo" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: -1; opacity: 0.1; text-align: center; pointer-events: none;">
+    <img src="pozadi.jpg" alt="Škoda Logo" style="width: 300px; filter: grayscale(100%);">
+    <h1 style="font-size: 5rem; margin: 0; color: #000; letter-spacing: 10px; font-weight: bold; text-transform: uppercase; line-height: 1;">ŠKODA</h1>
+</div>
 <div class="topbar">
   <div class="topTitle">👥 Zaměstnanci</div>
   <button class="menuBtn" onclick="location.href='index.html'">
