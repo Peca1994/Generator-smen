@@ -120,117 +120,27 @@ input { width: 100%; padding: 14px; border-radius: 12px; border: none; margin-bo
 </div>
 
 <script type="module">
-// 1. OPRAVENÉ IMPORTY PRO GITHUB PAGES
-import { initializeApp } from "https://www.gstatic.com";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com";
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com";
-// 2. KONFIGURACE (Generator-Smen-9fba1)
-const firebaseConfig = {
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
     apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
     authDomain: "generator-smen-9fba1.firebaseapp.com",
     projectId: "generator-smen-9fba1",
     storageBucket: "generator-smen-9fba1.firebasestorage.app",
     messagingSenderId: "541779211883",
-    appId: "1:541779211883:web:1d8578ec61b0f428a4632e"
-};
+    appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
+    measurementId: "G-1HF3R93D92"
+  };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-// Globální ovládání režimu (Login/Reg)
-window.authMode = 'login';
-window.setMode = (m) => {
-    window.authMode = m;
-    document.getElementById("tabLogin").classList.toggle("activeTab", m === 'login');
-    document.getElementById("tabReg").classList.toggle("activeTab", m === 'register');
-    document.getElementById("mainBtn").innerText = m === 'login' ? "PŘIHLÁSIT" : "REGISTROVAT";
-};
-
-// Funkce pro odeslání přihlášení
-window.submitAuth = async () => {
-    const email = document.getElementById("email").value;
-    const pass = document.getElementById("pass").value;
-    try {
-        if (window.authMode === 'login') {
-            await signInWithEmailAndPassword(auth, email, pass);
-        } else {
-            const res = await createUserWithEmailAndPassword(auth, email, pass);
-            await setDoc(doc(db, "users", res.user.uid), { role: "user", email: email });
-            alert("Registrace úspěšná, nyní se můžete přihlásit.");
-            setMode('login');
-        }
-    } catch (e) {
-        alert("Chyba: " + e.message);
-    }
-};
-
-window.handleLogout = () => signOut(auth);
-
-// 3. SLEDOVÁNÍ STAVU PŘIHLÁŠENÍ (Sjednocená logika bez zacyklení)
-onAuthStateChanged(auth, async (user) => {
-    const loading = document.getElementById("loading");
-    const authCard = document.getElementById("authCard");
-    const menuCard = document.getElementById("menuCard");
-
-    loading.classList.add("hidden");
-
-    if (user) {
-        // PŘIHLÁŠEN
-        authCard.classList.add("hidden");
-        menuCard.classList.remove("hidden");
-        
-        // Načtení role z databáze
-        try {
-            const userSnap = await getDoc(doc(db, "users", user.uid));
-            const role = userSnap.exists() ? userSnap.data().role : "user";
-            document.getElementById("roleLabel").innerText = "ROLE: " + role.toUpperCase();
-
-            // Skrytí/Zobrazení admin tlačítek
-            document.querySelectorAll(".adminOnly").forEach(el => {
-                el.classList.toggle("hidden", role !== "admin");
-            });
-        } catch (e) { console.error("Chyba role:", e); }
-
-        loadMyNote(user.email);
-        loadBroadcast();
-    } else {
-        // ODHLÁŠEN
-        menuCard.classList.add("hidden");
-        authCard.classList.remove("hidden");
-        document.getElementById("broadcastText").innerText = ""; // Vyčistit zprávu
-    }
-});
-
-// Funkce pro načtení osobní poznámky
-async function loadMyNote(email) {
-    const myNoteCard = document.getElementById("myNoteCard");
-    const myNoteText = document.getElementById("myNoteText");
-    try {
-        const q = query(collection(db, "employees"), where("email", "==", email));
-        const snap = await getDocs(q);
-        if (!snap.empty) {
-            const empData = snap.docs[0].data();
-            if (empData.info && empData.info.trim() !== "") {
-                myNoteText.innerText = empData.info;
-                myNoteCard.classList.remove("hidden");
-                return;
-            }
-        }
-        myNoteCard.classList.add("hidden");
-    } catch (e) { console.error("Chyba poznámky:", e); }
-}
-
-// Funkce pro načtení globální zprávy (vznášející se nad logem)
-async function loadBroadcast() {
-    const broadcastTextEl = document.getElementById("broadcastText");
-    try {
-        const snap = await getDoc(doc(db, "config", "global"));
-        if (snap.exists()) {
-            broadcastTextEl.innerText = snap.data().broadcastMessage || "";
-        }
-    } catch (e) { console.error("Chyba zprávy:", e); }
-}
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
 </script>
 </body>
 </html>
