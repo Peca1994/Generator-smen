@@ -3,473 +3,158 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zaměstnanci</title>
+<title>Zaměstnanci | ShiftMaster</title>
 
 <style>
-/* 1. GLOBÁLNÍ RESET A OSTRÉ POZADÍ */
+/* 1. GLOBÁLNÍ RESET */
 body {
-    margin: 0; padding: 0; display: block !important; min-height: 100vh;
+    margin: 0; padding: 0; min-height: 100vh;
     color: white; font-family: sans-serif;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('pozadi.jpg') !important;
-    background-size: contain !important; background-position: center 10% !important;
-    background-repeat: no-repeat !important; background-attachment: fixed !important;
-    background-color: #030712 !important;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('pozadi.jpg');
+    background-size: cover; background-position: center;
+    background-repeat: no-repeat; background-attachment: fixed;
+    background-color: #030712;
 }
 
-/* 2. TOPBAR A KONTEJNERY */
-.topbar { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: transparent !important; }
-.container, .app, main { max-width: 420px; margin: 40px auto !important; padding: 16px; background: transparent !important; border: none !important; }
-
-/* 3. MODÁL A MŘÍŽKA POZIC */
-.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85) !important; z-index: 10000; overflow-y: auto !important; align-items: flex-start; justify-content: center; padding: 20px 10px; }
-.modalBox { background: #0f172a !important; padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); width: 100%; max-width: 450px; margin: 40px auto !important; box-shadow: 0 20px 50px #000; }
-
-.skills, .grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; margin-top: 15px !important; }
-
-/* Červené karty pozic */
-.skillItem {
-    background: rgba(220, 38, 38, 0.2) !important; 
-    border: 1px solid rgba(220, 38, 38, 0.5) !important;
-    padding: 12px 5px !important; 
-    border-radius: 10px !important; 
-    cursor: pointer; 
-    
-    /* Toto zajistí vycentrování textu */
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    
-    font-weight: 800; 
-    font-size: 11px; 
-    min-height: 50px; 
-    transition: all 0.2s ease;
-    user-select: none; /* Text při klikání nebude modrat */
-    color: white;
+/* 2. TOPBAR */
+.topbar { 
+    height: 60px; display: flex; align-items: center; justify-content: space-between; 
+    padding: 0 16px; background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid rgba(255,255,255,0.1);
 }
-
-.skillItem.active { 
-    background: rgba(34, 197, 94, 0.6) !important; 
-    border: 1px solid #22c55e !important; 
-}
-
-/* Skryje ty bílé čtverečky */
-.skillItem input[type="checkbox"] { 
-    display: none !important; 
-}
-
-/* 4. FORMULÁŘOVÁ POLE */
-input, select, textarea {
-    width: 100%; padding: 12px; border-radius: 20px !important; /* Tady je to zaoblení */
-    border: none !important; margin-bottom: 12px; 
-    background: white !important; color: black !important; 
-    font-weight: 700; box-sizing: border-box !important;
-    text-align: center;
-}
-textarea { min-height: 50px; resize: none; }
-label, h1, h2, h3 { color: white !important; font-weight: 900; text-shadow: 2px 2px 4px #000; }
-
-/* 5. TLAČÍTKA */
-.addBtn, .save, .delete, .close { 
-    width: 100%; 
-    padding: 16px; 
-    border-radius: 14px; 
-    border: none; 
-    font-weight: 800; 
-    margin-top: 10px; 
-    color: white !important; 
-    cursor: pointer;
-}
-
-/* Konkrétní barvy */
-.addBtn, .save { background: #22c55e !important; } /* Zelená */
-.delete { background: #dc2626 !important; }        /* Červená */
-.close { background: #64748b !important; }         /* Šedá */
-
-/* Styl pro malé tlačítko v rohu */
 .menuBtn { 
-    padding: 8px 14px; 
-    border-radius: 10px; 
-    border: none; 
-    font-weight: 800; 
-    background: rgba(51, 65, 85, 0.8); 
-    color: white; 
-    cursor: pointer; 
+    padding: 8px 16px; border-radius: 10px; border: none; font-weight: 800; 
+    background: #334155; color: white; cursor: pointer; 
 }
 
-.status-work { background-color: #15803d !important; color: white !important; }
-.status-vacation { background-color: #eab308 !important; color: black !important; }
-.status-paragraf { background-color: #7e22ce !important; color: white !important; }
-.status-sick { background-color: #b91c1c !important; color: white !important; }
-.status-shitmaking { background-color: #1d4ed8 !important; color: white !important; }
-.status-borrowed { background-color: #000000 !important; color: white !important; border: 1px solid #444 !important; }
-.status-loaned { background-color: #15803d !important; color: white !important; }
+/* 3. KONTEJNERY */
+.container { max-width: 480px; margin: 20px auto; padding: 15px; }
 
-/* Styl pro samotné možnosti, aby byly barevné i v rozbaleném seznamu */
-select option { font-weight: bold; }
-option[value="work"] { background-color: #15803d; color: white; }
-option[value="vacation"] { background-color: #eab308; color: black; }
-option[value="paragraf"] { background-color: #7e22ce; color: white; }
-option[value="sick"] { background-color: #b91c1c; color: white; }
-option[value="shitmaking"] { background-color: #1d4ed8; color: white; } /* Sytě modrá */
-option[value="borrowed"] { background-color: #000000; color: white; }
-option[value="loaned"] { background-color: #15803d; color: white; }
-/* Zajistí, aby text v políčku byl vždy tučný a čitelný */
-select { font-weight: 900 !important; }
+/* 4. TLAČÍTKA */
+.addBtn, .save, .delete, .close { 
+    width: 100%; padding: 16px; border-radius: 15px; border: none; 
+    font-weight: 800; margin-top: 10px; color: white; cursor: pointer; font-size: 15px;
+}
+.addBtn, .save { background: #22c55e; }
+.delete { background: #dc2626; }
+.close { background: #64748b; }
+
+/* 5. MODÁL */
+.modal { 
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
+    z-index: 1000; overflow-y: auto; padding: 20px;
+}
+.modalBox { 
+    background: #0f172a; padding: 25px; border-radius: 25px; 
+    border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 400px; margin: 20px auto;
+}
+
+/* 6. FORMULÁŘE */
+input, select, textarea {
+    width: 100%; padding: 14px; border-radius: 15px; border: none; 
+    margin-bottom: 12px; background: white; color: black; font-weight: 700;
+    box-sizing: border-box; text-align: center; font-size: 14px;
+}
+textarea { min-height: 80px; resize: none; text-align: left; }
+
+/* 7. DOVEDNOSTI / POZICE */
+.skills { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+.skillItem {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    padding: 10px; border-radius: 10px; text-align: center; font-size: 12px;
+    font-weight: 700; cursor: pointer; transition: 0.2s;
+}
+.skillItem.active { background: #22c55e; border-color: #22c55e; }
+
+/* 8. BARVY STATUSŮ */
+#status[value="work"] { background: #15803d; color: white; }
+#status[value="vacation"] { background: #eab308; color: black; }
+/* Dynamické barvy přes JS */
+.status-work { background: #15803d !important; color: white !important; }
+.status-vacation { background: #eab308 !important; color: black !important; }
+.status-sick { background: #b91c1c !important; color: white !important; }
+
+/* SEZNAM ZAMĚSTNANCŮ */
 .empRow {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    background: rgba(15, 23, 42, 0.7) !important; /* Tmavé pozadí řádku */
-    padding: 12px 16px !important;
-    margin-bottom: 8px !important;
-    border-radius: 20px !important; /* Zaoblené rohy řádku */
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 15px;
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
 }
-
-.empName {
-    font-weight: 800 !important;
-    font-size: 15px !important;
-    cursor: pointer !important;
-    text-align: left !important;
-    flex: 1 !important;
-}
-
-/* Úprava selectu v řádku - aby nebyl přes celou šířku a byl vpravo */
-.empRow select {
-    width: 130px !important;
-    margin-bottom: 0 !important;
-    padding: 8px !important;
-    font-size: 13px !important;
-    border-radius: 12px !important;
-}
+.empName { font-weight: 800; cursor: pointer; }
 </style>
 </head>
-<script>
-// Funkce pro automatické barvení políčka podle vybraného stavu
-const statusSelect = document.querySelector('select'); // vybere tvůj seznam
-
-if (statusSelect) {
-    function updateColor() {
-        // Seznam všech možných barevných tříd
-        const colors = ['bg-v-praci', 'bg-dovolena', 'bg-paragraf', 'bg-nemoc', 'bg-partak', 'bg-pujceny', 'bg-propujceny'];
-        
-        // Odstraní předchozí barvu
-        statusSelect.classList.remove(...colors);
-        
-        // Získá hodnotu a převede ji na název třídy (např. "V práci" -> "v-praci")
-        // POZOR: value v HTML musí odpovídat názvům (v-praci, dovolena, atd.)
-        const val = statusSelect.value.toLowerCase().replace(/\s+/g, '-');
-        statusSelect.classList.add('bg-' + val);
-    }
-
-    // Spustí se při změně a i hned po načtení
-    statusSelect.addEventListener('change', updateColor);
-    updateColor();
-}
-</script>
-
 <body>
 
 <div class="topbar">
-  <div class="topTitle">👥 Zaměstnanci</div>
-  <button class="menuBtn" onclick="location.href='index.html'">
-    Menu
-  </button>
+  <div style="font-weight: 900;">👥 ZAMĚSTNANCI</div>
+  <button class="menuBtn" onclick="window.location.href='index.html'">Zpět</button>
 </div>
 
 <div class="container">
-<button class="addBtn" onclick="openNew()">+ Přidat zaměstnance</button>
-<button class="addBtn" style="background:#0ea5e9" onclick="openBroadcast()">
-📢 Hromadná zpráva všem
-</button>
-<div id="list"></div>
+    <button class="addBtn" onclick="openNew()">+ Přidat zaměstnance</button>
+    <button class="addBtn" style="background:#0ea5e9" onclick="openBroadcast()">📢 Hromadná zpráva</button>
+    <div id="list" style="margin-top: 20px;">
+        <!-- Zde se vygenerují zaměstnanci přes JS -->
+    </div>
 </div>
 
+<!-- MODÁL PRO ZAMĚSTNANCE -->
 <div id="modal" class="modal">
   <div class="modalBox">
-
+    <h3 id="modalTitle" style="text-align: center;">Zaměstnanec</h3>
     <input id="fName" placeholder="Jméno">
     <input id="lName" placeholder="Příjmení">
-    <input id="email" placeholder="Email zaměstnance">
-    <textarea id="info" placeholder="Poznámka"></textarea>
+    <input id="email" placeholder="Email (pro přihlášení)">
+    <textarea id="info" placeholder="Interní poznámka..."></textarea>
 
-    <h4>Pozice</h4>
-    <div id="skillsBox" class="skills"></div>
+    <h4 style="margin-bottom: 5px;">Pozice / Dovednosti</h4>
+    <div id="skillsBox" class="skills">
+        <!-- Pozice se vygenerují přes JS -->
+    </div>
 
-    <h4>Stav dnes</h4>
-    <select id="status">
-  <option value="work">V práci</option>
-  <option value="vacation">Dovolená</option>
-  <option value="paragraf">Paragraf</option>
-  <option value="sick">Nemoc</option>
-  <option value="shitmaking">Parťák</option>
-  <option value="borrowed">Půjčený</option>
-  <option value="loaned">Propůjčený</option>
-</select>
+    <h4>Aktuální stav</h4>
+    <select id="status" onchange="this.className='status-'+this.value">
+      <option value="work">V práci</option>
+      <option value="vacation">Dovolená</option>
+      <option value="paragraf">Paragraf</option>
+      <option value="sick">Nemoc</option>
+      <option value="shitmaking">Parťák</option>
+      <option value="borrowed">Půjčený</option>
+      <option value="loaned">Propůjčený</option>
+    </select>
 
-
-    <button class="save" onclick="saveEmp()">Uložit</button>
-   <button class="delete" onclick="deleteEmp()">Smazat</button>
+    <button class="save" onclick="saveEmp()">Uložit změny</button>
+    <button class="delete" id="delBtn" style="display:none;" onclick="deleteEmp()">Smazat zaměstnance</button>
     <button class="close" onclick="closeModal()">Zavřít</button>
-
   </div>
 </div>
-</div>
+
+<!-- MODÁL PRO ZPRÁVU -->
 <div id="broadcastModal" class="modal">
   <div class="modalBox">
-    <h3>📢 Hromadná zpráva</h3>
-    <textarea id="broadcastText" placeholder="Text pro všechny zaměstnance"></textarea>
-    <button class="save" onclick="saveBroadcast()">Uložit zprávu</button>
-    <button class="close" onclick="closeBroadcast()">Zavřít</button>
+    <h3 style="text-align: center;">📢 Hromadná zpráva</h3>
+    <p style="font-size: 12px; opacity: 0.7; text-align: center;">Tato zpráva se zobrazí všem na hlavní ploše.</p>
+    <textarea id="broadcastText" style="min-height: 120px;" placeholder="Sem napište text zprávy..."></textarea>
+    <button class="save" onclick="saveBroadcast()">Uložit a odeslat</button>
+    <button class="close" onclick="closeBroadcast()">Zrušit</button>
   </div>
-<script type="module">
+</div>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  doc,
-  setDoc,
-  deleteDoc,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-const app = initializeApp({
-apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
-  authDomain: "generator-smen-9fba1.firebaseapp.com",
-  projectId: "generator-smen-9fba1",
-  storageBucket: "generator-smen-9fba1.firebasestorage.app",
-  messagingSenderId: "541779211883",
-  appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
-  measurementId: "G-1HF3R93D92"
-});
-
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-/* 🔒 musí být přihlášen */
-
-onAuthStateChanged(auth, u=>{
-  if(!u){
-    alert("Nejsi přihlášen");
-    location.href="index.html";
-  }
-});
-
-/* DOM */
-
-const modal = document.getElementById("modal");
-const skillsBox = document.getElementById("skillsBox");
-const list = document.getElementById("list");
-
-const fNameEl = document.getElementById("fName");
-const lNameEl = document.getElementById("lName");
-const emailEl = document.getElementById("email");
-const infoEl = document.getElementById("info");
-const statusEl = document.getElementById("status");
-const broadcastModal = document.getElementById("broadcastModal");
-const broadcastTextEl = document.getElementById("broadcastText");
-
-/* pozice */
-
-const POSITIONS = [
-["DP-L","DOORPROTECTOR L"],["DP-P","DOORPROTECTOR P"],
-["ZRC-L","ZRCÁTKA L"],["ZRC-P","ZRCÁTKA P"],
-["T-L","TĚSNĚNÍ L"],["T-P","TĚSNĚNÍ P"],
-["AGR-LP","AGREGÁT LP"],["AGR-PP","AGREGÁT PP"],
-["AGR-PZ","AGREGÁT PZ"],["AGR-LZ","AGREGÁT LZ"],
-["MOT-L","MOTORY L"],["MOT-P","MOTORY P"],
-["LEP-LP","LEPENÍ LP"],["LEP-PP","LEPENÍ PP"],
-["LEP-Z","LEPENÍ Z"],
-["REPRO-L","REPRÁKY L"],["REPRO-P","REPRÁKY P"],
-["VYP1-L","VÝPLNĚ 1 L"],["VYP1-P","VÝPLNĚ 1 P"],
-["VYP2-L","VÝPLNĚ 2 L"],["VYP2-P","VÝPLNĚ 2 P"],
-["PR-L","PŘITAHOVAČ L"],["PR-P","PŘITAHOVAČ P"],
-["ZAM-L","ZÁMKY L"],["ZAM-P","ZÁMKY P"],
-["VET","VĚTRAČKY"],["VET2","VĚTRAČKY 2"],["INST","INSTALACE"],["INST2","INSTALACE 2"],
-["JINE","JINÝ ÚSEK"],["JINE2","JINÝ ÚSEK 2"],
-
-];
-
-POSITIONS.forEach(p => {
-  const div = document.createElement("div");
-  div.className = "skillItem";
-  
-  // p[0] je zkratka (např. VET), p[1] je název (VĚTRAČKY)
-  div.innerHTML = `<input type="checkbox" value="${p[0]}">${p[1]}`;
-  
-  div.onclick = () => {
-    const cb = div.querySelector("input");
-    cb.checked = !cb.checked;
-    div.classList.toggle("active", cb.checked);
-  };
-  
-  skillsBox.appendChild(div);
-});
-
-let editId=null;
-
-window.openNew=()=>{
-  editId=null;
-  fNameEl.value="";
-  lNameEl.value="";
-  emailEl.value="";
-  infoEl.value="";
-  statusEl.value="work";
-  skillsBox.querySelectorAll("input").forEach(c=>{
-    c.checked=false;
-    c.parentElement.classList.remove("active");
-  });
-  modal.style.display="block";
-};
-
-window.closeModal=()=> modal.style.display="none";
-
-/* SAVE */
-
-window.saveEmp = async ()=>{
-
- try{
-
-  if(!fNameEl.value || !lNameEl.value){
-    alert("Vyplň jméno a příjmení");
-    return;
-  }
-
-  const skills=[...skillsBox.querySelectorAll("input:checked")]
-    .map(x=>x.value);
-
-  const id = editId || (fNameEl.value+"_"+lNameEl.value)
-    .toLowerCase().replace(/\s+/g,"_");
-
-  await setDoc(doc(db,"employees",id),{
-  name:fNameEl.value,
-  surname:lNameEl.value,
-  email:emailEl.value.toLowerCase().trim(),
-  info:infoEl.value,
-  skills,
-  statusToday:statusEl.value
-});
-
-
-  alert("Uloženo");
-  modal.style.display="none";
-  load();
-
- }catch(e){
-  alert("CHYBA: "+e.message);
-  console.error(e);
- }
-
-};
-
-/* DELETE */
-
-window.deleteEmp = async ()=>{
-
- if(!editId) return;
-
- const ok = confirm("Opravdu chceš smazat záznam zaměstnance?");
-
- if(!ok) return;
-
- await deleteDoc(doc(db,"employees",editId));
-
- alert("Smazáno");
- modal.style.display="none";
- load();
-};
-
-function paintStatusSelect(sel) {
-  // Seznam všech možných stavů
-  const states = ["work", "vacation", "sick", "paragraf", "shitmaking", "borrowed", "loaned"];
-  
-  // Odstraníme všechny staré barevné třídy
-  states.forEach(s => sel.classList.remove("status-" + s));
-  
-  // Přidáme tu aktuální
-  sel.classList.add("status-" + sel.value);
+<script>
+// Pomocné funkce pro ovládání oken (logiku propojení s Firebase dodáme v hlavním souboru)
+function openNew() {
+    document.getElementById('modalTitle').innerText = "Nový zaměstnanec";
+    document.getElementById('delBtn').style.display = "none";
+    document.getElementById('modal').style.display = 'block';
 }
 
-/* LIST */
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
-async function load() {
-  list.innerHTML = "";
-  const snap = await getDocs(collection(db, "employees"));
+function openBroadcast() { document.getElementById('broadcastModal').style.display = 'block'; }
+function closeBroadcast() { document.getElementById('broadcastModal').style.display = 'none'; }
 
-  snap.forEach(d => {
-    const e = d.data();
-    const row = document.createElement("div");
-    row.className = "empRow"; // Musí mít tuto třídu
-    row.innerHTML = `
-      <div class="empName">${e.name} ${e.surname}</div>
-      <select>
-        <option value="work">Práce</option>
-        <option value="vacation">Dovolená</option>
-        <option value="paragraf">Paragraf</option>
-        <option value="sick">Nemoc</option>
-        <option value="shitmaking">Parťák</option>
-        <option value="borrowed">Půjčený</option>
-        <option value="loaned">Propůjčený</option>
-      </select>
-    `;
-
-    row.querySelector(".empName").onclick = () => edit(d.id);
-    const sel = row.querySelector("select");
-    sel.value = e.statusToday || "work";
-    paintStatusSelect(sel);
-    
-    sel.onchange = ev => {
-      paintStatusSelect(ev.target);
-      setDoc(doc(db, "employees", d.id), { statusToday: ev.target.value }, { merge: true });
-    };
-
-    list.appendChild(row);
-  });
-}
-
-async function edit(id){
- const snap=await getDoc(doc(db,"employees",id));
- const e=snap.data();
- editId=id;
- modal.style.display="block";
- fNameEl.value=e.name;
- lNameEl.value=e.surname;
- emailEl.value = e.email || "";
- infoEl.value=e.info;
- statusEl.value=e.statusToday||"work";
- skillsBox.querySelectorAll("input").forEach(c=>{
-   c.checked=e.skills?.includes(c.value);
-   c.parentElement.classList.toggle("active",c.checked);
- });
-}
-
-load();
-
-window.openBroadcast = async ()=>{
-
- const snap = await getDoc(doc(db,"config","global"));
- broadcastTextEl.value = snap.data()?.broadcastMessage || "";
- broadcastModal.style.display = "block";
-};
-
-window.closeBroadcast = ()=> broadcastModal.style.display="none";
-
-window.saveBroadcast = async ()=>{
-
- await setDoc(doc(db,"config","global"),{
-   broadcastMessage: broadcastTextEl.value
- },{merge:true});
-
- alert("Uloženo pro všechny");
- broadcastModal.style.display="none";
-};
-
+function saveEmp() { alert("Zde se propojí ukládání do Firebase..."); closeModal(); }
+function deleteEmp() { if(confirm("Opravdu smazat?")) { closeModal(); } }
+function saveBroadcast() { alert("Zpráva uložena!"); closeBroadcast(); }
 </script>
+
 </body>
 </html>

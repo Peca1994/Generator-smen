@@ -3,326 +3,191 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Statistiky</title>
+<title>Směnový graf | ShiftMaster</title>
 
 <style>
-/* 1. GLOBÁLNÍ NASTAVENÍ A POZADÍ (LOGO ŠKODA) */
+/* 1. GLOBÁLNÍ DESIGN */
 body {
-    margin: 0;
-    padding: 0;
-    display: block !important; /* Oprava pozice menu */
-    min-height: 100vh;
-    color: white;
-    font-family: sans-serif;
-    /* Pozadí s logem Škoda - OSTRÉ a CELÉ */
-    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('pozadi.jpg') !important;
-    background-size: contain !important;
-    background-position: center 10% !important;
-    background-repeat: no-repeat !important;
-    background-attachment: fixed !important;
-    background-color: #030712 !important;
+    margin: 0; padding: 0; min-height: 100vh;
+    color: white; font-family: sans-serif;
+    background-image: radial-gradient(circle at 50% 25%, #064e3b 0%, #020617 85%);
+    background-color: #020617; background-attachment: fixed;
 }
 
-/* 2. TOPBAR A MENU */
+/* 2. TOPBAR */
 .topbar {
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    background: rgba(2, 6, 23, 0.8);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    height: 60px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px; background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-
 .menuBtn {
-    padding: 8px 14px;
-    border-radius: 10px;
-    border: none;
-    font-weight: 800;
-    background: #334155;
-    color: white;
-    cursor: pointer;
+    padding: 8px 16px; border-radius: 10px; border: none; font-weight: 800;
+    background: #334155; color: white; cursor: pointer;
 }
 
-/* 3. HLAVNÍ KONTEJNER - BEZ OHRANIČENÍ A ROZMAZÁNÍ */
-.container, .app, main {
-    max-width: 420px;
-    margin: 20px auto !important;
-    padding: 16px;
-    background: rgba(0, 0, 0, 0.3) !important; /* Jemný závoj přes logo */
-    border: none !important;      /* SMAZÁNÍ HLAVNÍHO OHRANIČENÍ */
-    box-shadow: none !important;
-    backdrop-filter: none !important; /* LOGO BUDE OSTRÉ */
-    -webkit-backdrop-filter: none !important;
-}
+/* 3. KONTEJNER */
+.container { max-width: 600px; margin: 15px auto; padding: 10px; }
+.card { background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); }
 
-/* 4. ÚPLNÉ ZPRŮHLEDNĚNÍ VNITŘNÍCH PRVKŮ (Krabice v krabici) */
-.card, .card-header, .btn-info, fieldset, section, details, summary, .container > div {
-    background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 10px 0 !important;
-}
-
-/* 5. ČITELNOST TEXTU (BÍLÝ SE STÍNEM) */
-label, p, span, summary, .worker, .row, h1, h2, h3, .btn-info {
-    color: white !important;
-    font-weight: 900 !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,1) !important; /* Černý obrys písma */
-}
-
-/* 6. FORMULÁŘE A TLAČÍTKA */
+/* 4. FORMULÁŘE */
 input, select {
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    border: none !important;
-    margin-bottom: 14px;
-    background: white !important;
-    color: black !important;
-    font-weight: 700;
+    width: 100%; padding: 12px; border-radius: 12px; border: none;
+    margin: 8px 0; background: white; color: black; font-weight: 700; box-sizing: border-box;
 }
 
-.btn-warning, .btn-primary, .btn-success, #saveBtn, .mainBtn {
-    width: 100%;
-    padding: 14px !important;
-    border-radius: 12px !important;
-    border: none !important;
-    font-weight: 800;
-    cursor: pointer;
-    margin-top: 10px;
-}
+/* 5. TABULKA GRAFU */
+.table-wrapper { overflow-x: auto; margin-top: 10px; border-radius: 15px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+th { background: rgba(255,255,255,0.1); font-weight: 800; color: #22c55e; }
+.posCol { text-align: left; font-weight: 900; color: #38bdf8; background: rgba(0,0,0,0.2); }
 
-/* 7. POMOCNÉ PRVKY (Badge a Bary) */
-.badge { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 900; }
-.active { background: #16a34a !important; }
-.reserve { background: #2563eb !important; }
-.absence { background: #dc2626 !important; }
-.barWrap { background: #020617; border-radius: 10px; height: 14px; margin-top: 6px; overflow: hidden; }
-.bar { height: 100%; background: linear-gradient(90deg,#22c55e,#4ade80); }
+.highlight { color: #22c55e !important; font-weight: 900; background: rgba(34, 197, 94, 0.1); }
+.empty { opacity: .3; }
+.infoRow { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px; border-bottom: 1px dotted rgba(255,255,255,0.2); padding-bottom: 4px; }
 </style>
 </head>
 
 <body>
 
 <div class="topbar">
- <div><b>📊 Statistiky</b></div>
- <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
+  <div style="font-weight: 900;">📊 SMĚNOVÝ GRAF</div>
+  <button class="menuBtn" onclick="window.location.href='index.html'">Menu</button>
 </div>
 
 <div class="container">
+    <div class="card">
+        <label style="font-weight: 800; font-size: 12px; opacity: 0.7;">VÝBĚR SMĚNY</label>
+        <input type="date" id="date">
+        <select id="shift">
+            <option value="ranni">Ranní (6:00 - 14:00)</option>
+            <option value="odpo">Odpolední (14:00 - 22:00)</option>
+            <option value="noc">Noční (22:00 - 6:00)</option>
+        </select>
+        <input id="nameFilter" placeholder="🔍 Hledat jméno (např. Pepa)">
+    </div>
 
-<input id="filter" placeholder="🔎 Filtr podle jména…">
+    <!-- INFO BOX -->
+    <div class="card" id="shiftInfoBox" style="display:none">
+      <h3 style="margin-top:0; color:#22c55e;">ℹ️ Detaily výroby</h3>
+      <div id="infoSK"></div>
+      <div id="infoFA"></div>
+      <div id="infoZA"></div>
+    </div>
 
-<div class="card"><h3>🚨 Největší absence</h3><div id="rankAbs"></div></div>
-
-
-
-<div id="cards"><div class="loading">Počítám data…</div></div>
-
+    <!-- TABULKA S GRAFEM -->
+    <div class="card">
+        <div class="table-wrapper">
+            <table id="grid"></table>
+        </div>
+    </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs }
-from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-const app = initializeApp({
-apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
-  authDomain: "generator-smen-9fba1.firebaseapp.com",
-  projectId: "generator-smen-9fba1",
-  storageBucket: "generator-smen-9fba1.firebasestorage.app",
-  messagingSenderId: "541779211883",
-  appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
-  measurementId: "G-1HF3R93D92"
-});
+const firebaseConfig = {
+    apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+    authDomain: "generator-smen-9fba1.firebaseapp.com",
+    projectId: "generator-smen-9fba1",
+    storageBucket: "generator-smen-9fba1.firebasestorage.app",
+    messagingSenderId: "541779211883",
+    appId: "1:541779211883:web:1d8578ec61b0f428a4632e"
+};
 
+const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const cardsEl = document.getElementById("cards");
-const filterEl = document.getElementById("filter");
-const rankAbsEl = document.getElementById("rankAbs");
+const dateEl = document.getElementById("date");
+const shiftEl = document.getElementById("shift");
+const nameFilterEl = document.getElementById("nameFilter");
+const gridEl = document.getElementById("grid");
+const shiftInfoBox = document.getElementById("shiftInfoBox");
 
+dateEl.value = new Date().toISOString().slice(0,10);
 
-/* =======================
-   LOAD
-======================= */
+const POSITIONS = ["DP-L","DP-P","ZRC-L","ZRC-P","T-L","T-P","AGR-LP","AGR-PP","AGR-PZ","AGR-LZ","MOT-L","MOT-P","LEP-LP","LEP-PP","LEP-Z","REPRO-L","REPRO-P","VYP1-L","VYP1-P","VYP2-L","VYP2-P","PR-L","PR-P","ZAM-L","ZAM-P","VET","VET2","INST","INST2","JINE","JINE2"];
 
-const empSnap = await getDocs(collection(db,"employees"));
-const shiftSnap = await getDocs(collection(db,"shifts"));
+let workerMap = {}; 
+let phasesData = [];
 
-const empCurrentStatus = {};
-const empNames = {};
-const stats = {};
-const posCount = {};
-
-empSnap.forEach(d=>{
- const e=d.data();
-
- empCurrentStatus[d.id] = e.statusToday || "work";
- empNames[d.id] = e.name+" "+e.surname;
-
- stats[d.id] = {
-  active:0,
-  reserve:0,
-  absence:0,
-  pos:{}
- };
-});
-
-/* =======================
-   HLAVNÍ VÝPOČET
-======================= */
-
-shiftSnap.forEach(docSnap=>{
-
- const shift = docSnap.data();
- const phases = shift.phases || [];
- const snapStatus = shift.statusSnapshot || {}; // ✅ snapshot dne
-
- // 🔷 LOANED = celá směna = všechny fáze
- Object.entries(snapStatus).forEach(([id,st])=>{
-   if(st === "loaned" && stats[id]){
-     stats[id].active += phases.length || 4;
-   }
- });
-
- phases.forEach(phase=>{
-
-   const used = new Set(Object.values(phase));
-
-   /* ===== AKTIVNÍ ===== */
-
-   Object.entries(phase).forEach(([pos,id])=>{
-
-     if(!stats[id]) return;
-
-     const st = snapStatus[id] || empCurrentStatus[id] || "work";
-
-     if(st === "loaned") return; // už započteno za směnu
-
-     // borrowed se počítá jen když JE na pozici → a to právě je
-     stats[id].active++;
-
-     stats[id].pos[pos] = (stats[id].pos[pos]||0)+1;
-     posCount[pos] = (posCount[pos]||0)+1;
-   });
-
-   /* ===== MIMO POZICE ===== */
-
-   Object.keys(stats).forEach(id=>{
-
-     if(used.has(id)) return;
-
-     const st = snapStatus[id] || empCurrentStatus[id] || "work";
-
-     if(st === "loaned") return;
-     if(st === "borrowed") return;
-
-     // ❌ nemoc + paragraf = absence
-if(st==="sick" || st==="paragraf"){
-  stats[id].absence++;
+async function loadWorkers(){
+    const snap = await getDocs(collection(db, "employees"));
+    workerMap = {};
+    snap.forEach(d => {
+        const e = d.data();
+        // Spojíme jméno a příjmení, pokud existují samostatně
+        workerMap[d.id] = (e.fName || e.name || "") + " " + (e.lName || "");
+    });
 }
 
-// 🟡 dovolená = nepočítat vůbec nic
-else if(st==="vacation"){
-  // nic
+function phaseLabels(){
+    const s = shiftEl.value;
+    if(s === "ranni") return ["6:00","8:00","10:45","12:00"];
+    if(s === "odpo") return ["14:00","16:00","18:45","20:00"];
+    return ["22:00","00:00","02:45","04:00"];
 }
 
-// ✅ normální pracovní stavy = náhradník
-else if(st==="work" || st==="shitmaking"){
-  stats[id].reserve++;
+async function loadShift(){
+    const id = dateEl.value + "_" + shiftEl.value;
+    const snap = await getDoc(doc(db, "shifts", id));
+
+    if(!snap.exists()){
+        gridEl.innerHTML = "<tr><td style='padding:20px; opacity:0.5;'>Rozpis pro tento den nebyl nalezen.</td></tr>";
+        shiftInfoBox.style.display = "none";
+        return;
+    }
+
+    const data = snap.data();
+    phasesData = data.phases || [];
+    renderShiftInfo(data.info);
+    render();
 }
-
-
-   });
-
- });
-
-});
-
-/* =======================
-   RANKINGS
-======================= */
-
-function top3(arr){
- return arr.sort((a,b)=>b.val-a.val).slice(0,3);
-}
-
-rankAbsEl.innerHTML="";
-
-
-/* ABSENCE */
-
-top3(
- Object.entries(stats)
-  .filter(([id,s])=>s.absence>0)
-  .map(([id,s])=>({
-    name:empNames[id],
-    val:s.absence
-  }))
-).forEach(x=>{
- rankAbsEl.innerHTML +=
-   `<div class="rankRow">${x.name}<span>${x.val}</span></div>`;
-});
-
-
-
-/* =======================
-   KARTY
-======================= */
 
 function render(){
+    const filter = nameFilterEl.value.toLowerCase().trim();
+    const labels = phaseLabels();
+    let html = "<tr><th>Pozice</th>";
+    labels.forEach(l => html += `<th>${l}</th>`);
+    html += "</tr>";
 
- const f = filterEl.value.toLowerCase();
- cardsEl.innerHTML="";
+    POSITIONS.forEach(pos => {
+        let rowNames = [];
+        for(let i=0; i<4; i++) {
+            const wid = phasesData[i] ? phasesData[i][pos] : null;
+            rowNames.push(wid ? workerMap[wid] || "???" : "");
+        }
 
- Object.entries(stats).forEach(([id,s])=>{
+        if(filter && !rowNames.some(n => n.toLowerCase().includes(filter))) return;
 
-  const name = empNames[id];
-  if(!name.toLowerCase().includes(f)) return;
-
-  const total = s.active+s.reserve+s.absence;
-  if(!total) return;
-
-  const pct = Math.round((s.active/total)*100);
-
-  const div=document.createElement("div");
-  div.className="card";
-
-  div.innerHTML=`
-   <div class="worker">${name}</div>
-
-   <div class="row">Aktivní<span class="badge active">${s.active}</span></div>
-   <div class="row">Náhradník<span class="badge reserve">${s.reserve}</span></div>
-   <div class="row">Absence<span class="badge absence">${s.absence}</span></div>
-
-   <div class="barWrap">
-     <div class="bar" style="width:${pct}%"></div>
-   </div>
-
-   <div style="margin-top:10px;font-weight:800;">
-     Pozice — součet:
-   </div>
-
-   ${
-     Object.entries(s.pos)
-       .sort((a,b)=>b[1]-a[1])
-       .map(([p,c])=>`<div class="posItem">${p} — ${c}×</div>`)
-       .join("")
-   }
-  `;
-
-  cardsEl.appendChild(div);
-
- });
-
+        html += `<tr><td class="posCol">${pos}</td>`;
+        rowNames.forEach(n => {
+            if(!n) html += `<td class="empty">—</td>`;
+            else if(filter && n.toLowerCase().includes(filter)) html += `<td class="highlight">${n}</td>`;
+            else html += `<td>${n}</td>`;
+        });
+        html += "</tr>";
+    });
+    gridEl.innerHTML = html;
 }
 
-filterEl.oninput = render;
-render();
+function renderShiftInfo(info){
+    if(!info) { shiftInfoBox.style.display = "none"; return; }
+    shiftInfoBox.style.display = "block";
+    document.getElementById("infoSK").innerHTML = `<div class="infoRow">Scala/Kamiq <span>${info.sk?.start || "?"} → ${info.sk?.end || "?"}</span></div>`;
+    document.getElementById("infoFA").innerHTML = `<div class="infoRow">Fabia <span>${info.fa?.start || "?"} → ${info.fa?.end || "?"}</span></div>`;
+    document.getElementById("infoZA").innerHTML = `<div class="infoRow">Zásobník <span>${info.za?.start || "?"} → ${info.za?.end || "?"}</span></div>`;
+}
 
+dateEl.onchange = loadShift;
+shiftEl.onchange = loadShift;
+nameFilterEl.oninput = render;
+
+// START
+(async () => {
+    await loadWorkers();
+    await loadShift();
+})();
 </script>
 </body>
 </html>

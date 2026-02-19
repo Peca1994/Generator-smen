@@ -3,82 +3,83 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kalendář směn</title>
+<title>Kalendář směn | ShiftMaster</title>
 
 <style>
-/* 1. GLOBÁLNÍ RESET A OSTRÉ POZADÍ */
+/* 1. GLOBÁLNÍ STYL */
 body {
-    margin: 0; padding: 0; display: block !important; min-height: 100vh;
-    color: white; font-family: sans-serif;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('pozadi.jpg') !important;
-    background-size: contain !important; background-position: center 10% !important;
-    background-repeat: no-repeat !important; background-attachment: fixed !important;
-    background-color: #030712 !important;
+    margin: 0; padding: 0; min-height: 100vh;
+    color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #030712;
+    /* Pozadí se snaží načíst lokálně nebo z rootu */
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('pozadi.jpg');
+    background-size: cover; background-position: center;
+    background-repeat: no-repeat; background-attachment: fixed;
 }
 
 /* 2. TOPBAR */
 .topbar {
-    height: 56px; display: flex; align-items: center; justify-content: space-between;
-    padding: 0 16px; background: rgba(2, 6, 23, 0.8); border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    height: 60px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; background: rgba(15, 23, 42, 0.9); 
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky; top: 0; z-index: 100;
 }
 .menuBtn {
-    padding: 8px 14px; border-radius: 10px; border: none; font-weight: 800;
-    background: #334155; color: white; cursor: pointer;
+    padding: 10px 18px; border-radius: 12px; border: none; font-weight: 700;
+    background: #1e293b; color: white; cursor: pointer; transition: 0.2s;
+}
+.menuBtn:hover { background: #334155; }
+
+/* 3. KONTEJNER */
+.container {
+    max-width: 500px; margin: 10px auto; padding: 10px;
 }
 
-/* 3. HLAVNÍ KONTEJNER - BEZ RÁMEČKŮ A BLURU */
-.container, .app, main {
-    max-width: 480px; margin: 20px auto !important; padding: 16px;
-    background: rgba(0, 0, 0, 0.3) !important; border: none !important;
-    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
-}
-
-/* 4. KALENDÁŘ - MŘÍŽKA A DNY (VŠE PRŮHLEDNÉ) */
-.card, .grid, .day, .monthBtn, fieldset, section {
-    background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-.grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+/* 4. KALENDÁŘ - MŘÍŽKA */
+.grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
 
 .day {
-    height: 72px; padding: 6px; display: flex; flex-direction: column;
-    justify-content: space-between; font-weight: 800;
-    border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;
+    aspect-ratio: 1 / 1.2; padding: 4px; display: flex; flex-direction: column;
+    justify-content: space-between; font-weight: 700;
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
 }
 
-/* 5. ČITELNOST TEXTU (STÍN PRO OSTRÉ LOGO) */
-label, p, span, .dayName, .monthBar, h1, h2, h3, .shift {
-    color: white !important; font-weight: 900 !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,1) !important;
+/* 5. TEXTY */
+.dayName { 
+    text-align: center; font-size: 11px; opacity: 0.7; padding-bottom: 5px;
+    text-transform: uppercase; letter-spacing: 1px;
 }
 
-.dayName { text-align: center; font-size: 12px; opacity: .8; }
+/* 6. SMĚNY A STAVY */
+.shift { 
+    align-self: center; padding: 2px 6px; border-radius: 6px; font-size: 11px; 
+    width: 80%; text-align: center; font-weight: 900;
+}
+.R { background: #16a34a !important; color: white; } 
+.N { background: #7c3aed !important; color: white; } 
+.O { background: #f59e0b !important; color: black; } 
 
-/* 6. SMĚNY A BADGE (BAREVNÉ BODY) */
-.shift { align-self: flex-start; padding: 3px 9px; border-radius: 999px; font-size: 12px; }
-.R { background: #16a34a !important; } /* Ranní */
-.N { background: #7c3aed !important; } /* Noční */
-.O { background: #f59e0b !important; color: black !important; } /* Odpolední */
+.today { border: 2px solid #38bdf8 !important; background: rgba(56, 189, 248, 0.1) !important; }
+.holiday { border: 1px solid #ef4444 !important; }
+.hBadge { 
+    background: #ef4444; color: white; font-size: 9px; padding: 1px 4px; 
+    border-radius: 4px; position: absolute; margin-top: -2px;
+}
 
-.today { outline: 2px solid #38bdf8 !important; }
-.holiday { outline: 2px solid #ef4444 !important; background: rgba(239, 68, 68, 0.1) !important; }
-.hBadge { background: #ef4444; color: white; font-size: 10px; padding: 2px 6px; border-radius: 999px; }
-
-/* 7. OVLÁDÁNÍ MĚSÍCE */
-.monthBar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+/* 7. OVLÁDÁNÍ */
+.monthBar { 
+    display: flex; justify-content: space-between; align-items: center; 
+    margin-bottom: 15px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 15px;
+}
 .monthBtn { 
-    background: rgba(255,255,255,0.1) !important; padding: 8px 12px; 
-    border-radius: 10px; cursor: pointer; color: white !important;
+    background: #334155; border: none; padding: 8px 15px; 
+    border-radius: 10px; cursor: pointer; color: white; font-size: 18px;
 }
+#title { font-size: 1.2rem; font-weight: 800; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
 
-/* 8. FORMULÁŘE (POKUD JSOU PŘÍTOMNY) */
-input, select {
-    background: white !important; color: black !important;
-    border-radius: 10px !important; padding: 10px !important;
-}
+/* Skrytí prázdných dnů na mobilu */
+.empty { opacity: 0; pointer-events: none; }
 </style>
 </head>
 
@@ -86,173 +87,100 @@ input, select {
 
 <div class="topbar">
  <div><b>📅 Kalendář</b></div>
- <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
+ <button class="menuBtn" onclick="window.location.href='index.html'">Zpět do Menu</button>
 </div>
 
 <div class="container">
-<div class="card">
+    <div class="monthBar">
+     <button class="monthBtn" onclick="changeMonth(-1)">◀</button>
+     <div id="title"></div>
+     <button class="monthBtn" onclick="changeMonth(1)">▶</button>
+    </div>
 
-<div class="monthBar">
- <button class="monthBtn" onclick="changeMonth(-1)">◀</button>
- <div id="title"></div>
- <button class="monthBtn" onclick="changeMonth(1)">▶</button>
-</div>
-
-<div class="grid" id="grid"></div>
-
-</div>
+    <div class="grid" id="grid"></div>
 </div>
 
 <script>
-
-/* ===== názvy ===== */
-
 const dayNames=["Po","Út","St","Čt","Pá","So","Ne"];
 const monthNames=["Leden","Únor","Březen","Duben","Květen","Červen",
 "Červenec","Srpen","Září","Říjen","Listopad","Prosinec"];
 
-/* ===== pevné svátky CZ ===== */
-
-const fixedHolidays = [
- "01-01",
- "05-01","05-08",
- "07-05","07-06",
- "09-28",
- "10-28",
- "11-17",
- "12-24","12-25","12-26"
-];
-
-/* ===== výpočet Velikonoc ===== */
+const fixedHolidays = ["01-01","05-01","05-08","07-05","07-06","09-28","10-28","11-17","12-24","12-25","12-26"];
 
 function easterSunday(year){
- const a = year % 19;
- const b = Math.floor(year/100);
- const c = year % 100;
- const d = Math.floor(b/4);
- const e = b % 4;
- const f = Math.floor((b+8)/25);
- const g = Math.floor((b-f+1)/3);
- const h = (19*a+b-d-g+15)%30;
- const i = Math.floor(c/4);
- const k = c % 4;
- const l = (32+2*e+2*i-h-k)%7;
- const m = Math.floor((a+11*h+22*l)/451);
- const month = Math.floor((h+l-7*m+114)/31);
- const day = ((h+l-7*m+114)%31)+1;
+ const a = year % 19; const b = Math.floor(year/100); const c = year % 100;
+ const d = Math.floor(b/4); const e = b % 4; const f = Math.floor((b+8)/25);
+ const g = Math.floor((b-f+1)/3); const h = (19*a+b-d-g+15)%30;
+ const i = Math.floor(c/4); const k = c % 4;
+ const l = (32+2*e+2*i-h-k)%7; const m = Math.floor((a+11*h+22*l)/451);
+ const month = Math.floor((h+l-7*m+114)/31); const day = ((h+l-7*m+114)%31)+1;
  return new Date(year, month-1, day);
 }
 
 function getEasterHolidays(year){
  const easter = easterSunday(year);
-
- const goodFriday = new Date(easter);
- goodFriday.setDate(easter.getDate()-2);
-
- const easterMonday = new Date(easter);
- easterMonday.setDate(easter.getDate()+1);
-
+ const goodFriday = new Date(easter); goodFriday.setDate(easter.getDate()-2);
+ const easterMonday = new Date(easter); easterMonday.setDate(easter.getDate()+1);
  return [goodFriday, easterMonday];
 }
 
 function isHoliday(date){
-
- const key =
-  String(date.getMonth()+1).padStart(2,"0")+"-"+
-  String(date.getDate()).padStart(2,"0");
-
+ const key = String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");
  if(fixedHolidays.includes(key)) return true;
-
  const easterDays = getEasterHolidays(date.getFullYear());
-
- return easterDays.some(d =>
-  d.getFullYear()===date.getFullYear() &&
-  d.getMonth()===date.getMonth() &&
-  d.getDate()===date.getDate()
- );
+ return easterDays.some(d => d.toDateString() === date.toDateString());
 }
 
-/* ===== SMĚNOVÝ CYKLUS ===== */
-
+// SMĚNOVÝ CYKLUS (Upravený start na únor 2026 dle tvého kódu)
 const cycleStartMonday = new Date(Date.UTC(2026,1,2));
 const weekCycle = ["R","N","O"];
 
-function getMondayUTC(d){
- const day=(d.getUTCDay()+6)%7;
- return new Date(Date.UTC(
-  d.getUTCFullYear(),
-  d.getUTCMonth(),
-  d.getUTCDate()-day
- ));
-}
-
-function weekType(i){
- return weekCycle[(i%3+3)%3];
-}
-
 function getShiftForDate(date){
-
  const day=(date.getDay()+6)%7;
- if(day>4) return null;
-
- const dUTC=new Date(Date.UTC(
-  date.getFullYear(),
-  date.getMonth(),
-  date.getDate()
- ));
-
- const monday=getMondayUTC(dUTC);
- const diffDays=Math.round((monday-cycleStartMonday)/86400000);
- const w=Math.floor(diffDays/7);
-
- return weekType(w);
+ if(day>4) return null; // Víkendy volno
+ const dUTC=new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+ const diffDays=Math.round((dUTC - (dUTC.getUTCDay() === 0 ? -6 : 1-dUTC.getUTCDay()) - cycleStartMonday)/86400000);
+ 
+ // Jednodušší výpočet týdne
+ const msInWeek = 604800000;
+ const diffWeeks = Math.floor((dUTC.getTime() - cycleStartMonday.getTime()) / msInWeek);
+ return weekCycle[(diffWeeks % 3 + 3) % 3];
 }
-
-/* ===== RENDER ===== */
 
 let current=new Date();
 
 function render(){
  const grid=document.getElementById("grid");
  grid.innerHTML="";
-
  const y=current.getFullYear();
  const m=current.getMonth();
  document.getElementById("title").innerText=monthNames[m]+" "+y;
 
  dayNames.forEach(n=>{
-  const e=document.createElement("div");
-  e.className="dayName";
-  e.innerText=n;
-  grid.appendChild(e);
+  const e=document.createElement("div"); e.className="dayName"; e.innerText=n; grid.appendChild(e);
  });
 
  const first=new Date(y,m,1);
  const start=(first.getDay()+6)%7;
 
  for(let i=0;i<start;i++){
-  const e=document.createElement("div");
-  e.className="day empty";
-  grid.appendChild(e);
+  const e=document.createElement("div"); e.className="day empty"; grid.appendChild(e);
  }
 
  const days=new Date(y,m+1,0).getDate();
  const today=new Date();
 
  for(let d=1; d<=days; d++){
-  const cell=document.createElement("div");
-  cell.className="day";
-
+  const cell=document.createElement("div"); cell.className="day";
   const dt=new Date(y,m,d);
 
-  if(dt.toDateString()===today.toDateString())
-    cell.classList.add("today");
-
-  if(isHoliday(dt))
-    cell.classList.add("holiday");
+  if(dt.toDateString()===today.toDateString()) cell.classList.add("today");
+  if(isHoliday(dt)) cell.classList.add("holiday");
 
   const num=document.createElement("div");
+  num.style.fontSize = "14px";
   num.innerText=d;
+  cell.appendChild(num);
 
   const s=getShiftForDate(dt);
   if(s){
@@ -261,27 +189,12 @@ function render(){
     b.innerText=s;
     cell.appendChild(b);
   }
-
-  if(isHoliday(dt)){
-    const h=document.createElement("div");
-    h.className="hBadge";
-    h.innerText="SV";
-    cell.appendChild(h);
-  }
-
-  cell.appendChild(num);
   grid.appendChild(cell);
  }
 }
 
-function changeMonth(x){
- current.setMonth(current.getMonth()+x);
- render();
-}
-
+function changeMonth(x){ current.setMonth(current.getMonth()+x); render(); }
 render();
-
 </script>
-
 </body>
 </html>
