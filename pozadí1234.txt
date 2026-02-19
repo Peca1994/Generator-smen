@@ -1,0 +1,6 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background-attachment: fixed; /* Aby se pozadí nehýbalo při skrolování */
+    margin: 0;
+}
