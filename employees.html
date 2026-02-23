@@ -7,15 +7,26 @@
 
 <style>
 body {
-    /* 1. Tmavý gradient jako clona */
+    /* 1. Tmavý přechod jako v indexu pro efekt zapuštění, 2. obrázek pozadí */
     background: linear-gradient(135deg, rgba(6, 33, 17, 0.94) 0%, rgba(0, 0, 0, 0.98) 100%), 
                 url('pozadi.jpg') no-repeat center center fixed !important;
-    background-size: cover !important;
+    
+    /* Zajišťuje, aby se obrázek na mobilu přizpůsobil a neořízl se důležitý obsah */
+    background-size: cover !important; 
     margin: 0;
     padding: 0;
     font-family: 'Inter', 'Segoe UI', sans-serif;
     color: white;
     min-height: 100vh;
+}
+
+/* Speciální úprava pro mobily, aby se logo "vlezlo" celé */
+@media (max-width: 600px) {
+    body {
+        background-size: contain !important; /* Na mobilu se obrázek zmenší, aby byl vidět celý */
+        background-position: top center !important; /* Posune logo nahoru, aby bylo vidět za tabulkami */
+        background-color: #000; /* Vyplní zbytek černou, pokud obrázek nestačí */
+    }
 }
 
 /* Moderní karty zaměstnanců jako na screenu */
