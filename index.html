@@ -700,7 +700,24 @@ body {
         max-width: none;
     }
 }
-
+.broadcast-msg {
+    font-family: 'Inter', 'Segoe UI', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 900 !important; /* Maximální tučnost */
+    color: #00ff88 !important;   /* Zářivá zelená */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    
+    /* POZICE: Vytáhne text nahoru nad logo ŠKODA */
+    margin: -40px auto 20px auto !important; 
+    position: relative;
+    z-index: 10;
+    
+    /* ZÁŘE: Aby to bylo čitelné přes logo */
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.8), 0 0 20px rgba(0, 0, 0, 1) !important;
+    line-height: 1.4;
+}
 </style>
 </head>
 
@@ -716,7 +733,7 @@ body {
         <img src="pozadi.jpg" class="skoda-blend-layer" alt="Škoda">
         
         <!-- Text zprávy vznášející se nad logem -->
-        <div id="broadcasttext" style="color: #00ff88 !important; font-weight: 900 !important; text-transform: uppercase; text-align: center; font-size: 16px; letter-spacing: 1.5px; margin: 10px auto 30px auto; text-shadow: 0 0 10px rgba(0, 255, 136, 0.8), 0 0 20px rgba(0, 0, 0, 1); line-height: 1.5; min-height: 24px; position: relative; z-index: 10;"></div>
+        <div id="broadcasttext" class="broadcast-msg"></div>
     </div>
 </div>
 
