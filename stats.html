@@ -8,19 +8,43 @@
 <style>
 /* 1. GLOBÁLNÍ NASTAVENÍ A POZADÍ (LOGO ŠKODA) */
 body {
+    /* Identické tmavě zelené pozadí */
+    background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
     margin: 0;
     padding: 0;
-    display: block !important; /* Oprava pozice menu */
-    min-height: 100vh;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
     color: white;
-    font-family: sans-serif;
-    /* Pozadí s logem Škoda - OSTRÉ a CELÉ */
-    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('pozadi.jpg') !important;
-    background-size: contain !important;
-    background-position: center 10% !important;
-    background-repeat: no-repeat !important;
-    background-attachment: fixed !important;
-    background-color: #030712 !important;
+    min-height: 100vh;
+}
+
+/* Zapuštěné logo ŠKODA na pozadí */
+.background-logo {
+    position: fixed;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+    text-align: center;
+    pointer-events: none;
+}
+
+.background-logo img {
+    width: 650px !important;
+    max-width: 90vw !important;
+    opacity: 0.12 !important;
+    filter: brightness(0.6) sepia(1) hue-rotate(85deg) saturate(2.5) blur(1px) !important;
+    mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
+    -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
+}
+
+.background-logo h1 {
+    font-size: 16vw !important;
+    margin-top: -30px !important;
+    letter-spacing: 25px !important;
+    color: #1a3a2a !important;
+    opacity: 0.5 !important;
+    font-weight: 900;
+    text-transform: uppercase;
 }
 
 /* 2. TOPBAR A MENU */
@@ -105,7 +129,10 @@ input, select {
 </head>
 
 <body>
+<div class="background-logo">
+    <img src="pozadi.jpg" alt="Logo">
 
+</div>
 <div class="topbar">
  <div><b>📊 Statistiky</b></div>
  <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
