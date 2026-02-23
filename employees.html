@@ -18,6 +18,20 @@ body {
     color: white;
     /* DŮLEŽITÉ: Smazali jsme display: flex, aby se tabulky nerozbily */
 }
+body::before {
+    content: "ŠKODA";
+    position: fixed;
+    top: 15%; /* Umístění nahoře jako na tvém vzoru */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 15vw; /* Velikost se přizpůsobí mobilu */
+    font-weight: 900;
+    letter-spacing: 15px;
+    color: rgba(25, 59, 39, 0.4); /* Tmavě zelená s průhledností pro zapuštění */
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    z-index: -1; /* Bude to pod tlačítky */
+    pointer-events: none;
+}
 
 /* Styl pro logo, které jen prosvítá zezadu */
 .background-logo {
