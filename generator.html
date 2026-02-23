@@ -48,10 +48,31 @@ body {
     text-transform: uppercase;
 }
 
-/* 2. TOPBAR */
 .topbar {
-    height: 56px; display: flex; align-items: center; justify-content: space-between;
-    padding: 0 16px; background: rgba(2, 6, 23, 0.8); border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100% !important;
+    height: 60px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important; /* Rozhodí nápis a Menu do rohů */
+    padding: 0 20px !important;
+    box-sizing: border-box !important;
+    /* ZRUŠENÍ OHRANIČENÍ A POZADÍ */
+    background: transparent !important; 
+    border: none !important;
+    box-shadow: none !important;
+    position: relative;
+    z-index: 1000;
+}
+
+/* Pokud tam máš nápis "Generátor směny" v nějakém divu, 
+   ujisti se, že má stejný styl jako u zaměstnanců: */
+.topTitle {
+    font-family: 'Inter', 'Segoe UI', sans-serif !important;
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    letter-spacing: -0.5px !important;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 .menuBtn {
     width: auto !important;      /* Zabere jen tolik místa, kolik potřebuje text */
@@ -108,6 +129,7 @@ button {
 /* PosCol a Table Borders */
 th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px; }
 .posCol { text-align: left; font-weight: 800; }
+
 </style>
 </head>
 
@@ -115,7 +137,6 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 <div class="background-logo">
     <img src="pozadi.jpg" alt="Logo">
 </div>
-<div class="loading" id="loading">🔍 Pracuju…</div>
 
 <div class="topbar">
 <div><b>⚙️ Generátor směny</b></div>
