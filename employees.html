@@ -306,6 +306,38 @@ select option {
     background-color: #0f172a !important;
     color: white !important;
 }
+.empRow select {
+    width: 140px !important;
+    padding: 10px !important;
+    border-radius: 12px !important; /* Elegantní zaoblení */
+    border: none !important;
+    font-weight: 800 !important;
+    font-size: 12px !important;
+    text-transform: uppercase;
+    text-align: center;
+    cursor: pointer;
+    /* Odstraní výchozí šedou šipku pro čistší vzhled */
+    appearance: none;
+    -webkit-appearance: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* OPRAVA ČITELNOSTI V ROZBALENÉM SEZNAMU (PRO MOBIL I PC) */
+select option {
+    background-color: #1e293b !important; /* Tmavé, ale čitelné pozadí */
+    color: white !important;
+    padding: 15px !important;
+    font-weight: 600 !important;
+}
+
+/* Barvy přímo na tlačítku, když je vybrané (aby "svítilo") */
+.status-work { background-color: #22c55e !important; color: white !important; }
+.status-vacation { background-color: #eab308 !important; color: black !important; }
+.status-sick { background-color: #ef4444 !important; color: white !important; }
+.status-paragraf { background-color: #a855f7 !important; color: white !important; }
+.status-shitmaking { background-color: #3b82f6 !important; color: white !important; }
+.status-borrowed { background-color: #475569 !important; color: white !important; }
+.status-loaned { background-color: #064e3b !important; color: white !important; }
 </style>
 </head>
 <script>
