@@ -183,25 +183,26 @@ select { font-weight: 900 !important; }
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    /* Průsvitné tmavé pozadí (skleněný efekt) */
-    background: rgba(255, 255, 255, 0.03) !important; 
-    backdrop-filter: blur(8px) !important; /* Rozmazání pozadí pod kartou */
-    padding: 12px 16px !important;
-    margin-bottom: 8px !important;
-    border-radius: 20px !important;
-    /* Velmi jemné a průsvitné ohraničení */
-    border: 1px solid rgba(255, 255, 255, 0.08) !important; 
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    /* Úplně smažeme pozadí a okraje */
+    background: transparent !important; 
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    
+    padding: 10px 0 !important; /* Necháme jen trochu místa mezi lidmi */
+    margin-bottom: 5px !important;
+    width: 100% !important;
+    /* Přidáme jemnou linku dospod, aby se lidi nepletli (volitelné) */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
 .empName {
     font-weight: 700 !important;
-    font-size: 15px !important;
-    color: rgba(255, 255, 255, 0.9) !important; /* Jemně průsvitné bílé písmo */
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    cursor: pointer !important;
-    text-align: left !important;
+    font-size: 16px !important;
+    color: white !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8); /* Silnější stín pro čitelnost na logu */
     flex: 1 !important;
+    text-align: left !important;
 }
 
 /* Úprava selectu v řádku - aby nebyl přes celou šířku a byl vpravo */
