@@ -6,56 +6,47 @@
 <title>Zaměstnanci</title>
 
 <style>
-/* 1. GLOBÁLNÍ RESET A OSTRÉ POZADÍ */
 body {
-    /* Tmavě zelený gradient a tvůj obrázek pozadi.jpg jako podklad */
-    background: linear-gradient(135deg, rgba(6, 33, 17, 0.96) 0%, rgba(0, 0, 0, 0.98) 100%), 
-                url('pozadi.jpg') no-repeat center center fixed !important;
-    background-size: cover !important;
+    /* Tmavé moderní pozadí ze vzoru */
+    background: radial-gradient(circle at center, #111827 0%, #000000 100%) !important;
     margin: 0;
-    padding: 20px;
-    min-height: 100vh;
+    padding: 0;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
     color: white;
-    /* DŮLEŽITÉ: Smazali jsme display: flex, aby se tabulky nerozbily */
-}
-body::before {
-    content: "ŠKODA";
-    position: fixed;
-    top: 15%; /* Umístění nahoře jako na tvém vzoru */
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 15vw; /* Velikost se přizpůsobí mobilu */
-    font-weight: 900;
-    letter-spacing: 15px;
-    color: rgba(25, 59, 39, 0.4); /* Tmavě zelená s průhledností pro zapuštění */
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    z-index: -1; /* Bude to pod tlačítky */
-    pointer-events: none;
+    min-height: 100vh;
 }
 
-/* Styl pro logo, které jen prosvítá zezadu */
+/* Moderní karty zaměstnanců jako na screenu */
+.employee-item {
+    background: rgba(30, 41, 59, 0.5) !important; /* Tmavě modrá s průhledností */
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    padding: 16px !important;
+    margin-bottom: 12px !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Styl pro nápis ŠKODA na pozadí */
 .background-logo {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: -1;
-    opacity: 0.1;
+    opacity: 0.05; /* Velmi jemné prolnutí */
     text-align: center;
     pointer-events: none;
 }
 
-.background-logo img {
-    width: 300px;
-    filter: grayscale(100%);
-}
-
 .background-logo h1 {
-    font-size: 12vw; /* Velikost se přizpůsobí mobilu i PC */
-    margin: 0;
+    font-size: 15vw;
+    font-weight: 900;
+    letter-spacing: 15px;
     color: #ffffff;
-    letter-spacing: 10px;
-    font-weight: bold;
     text-transform: uppercase;
 }
 
