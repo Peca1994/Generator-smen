@@ -135,7 +135,7 @@ th { color: #22c55e; font-weight: 900; background: rgba(0,0,0,0.2); }
     <img src="pozadi.jpg" alt="Logo">
 </div>
 <div class="topbar">
-  <div class="topTitle">📊 SMĚNOVÝ GRAF</div>
+  <div class="topTitle">📊 Směnový Graf</div>
   <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
 </div>
 
@@ -265,6 +265,17 @@ nameFilterEl.oninput = render;
     await loadWorkers();
     await loadShift();
 })();
+async function init() {
+    await loadWorkers(); // Nejdřív načteme jména ze seznamu zaměstnanců
+    await loadShift();   // Pak načteme samotný rozpis
+}
+
+// Reakce na změnu data nebo směny
+dateEl.addEventListener("change", loadShift);
+shiftEl.addEventListener("change", loadShift);
+nameFilterEl.addEventListener("input", render);
+
+init();
 </script>
 </body>
 </html>
