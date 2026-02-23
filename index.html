@@ -703,21 +703,19 @@ body {
 .broadcast-info {
     font-family: 'Inter', 'Segoe UI', sans-serif !important;
     font-size: 16px !important;
-    font-weight: 800 !important;
-    color: #00ff88 !important; /* Zářivě zelená ŠKODA */
+    font-weight: 800 !important; /* Opravdu tučné písmo */
+    color: #00ff88 !important;   /* Zářivě zelená */
     text-transform: uppercase;
     letter-spacing: 1.5px;
     text-align: center;
-    margin: 20px auto;
-    max-width: 400px;
+    
+    /* POZICOVÁNÍ - posune text výš nad ŠKODA */
+    margin: -20px auto 30px auto !important; 
+    position: relative;
+    z-index: 10; /* Aby text byl "nad" logem v pozadí */
+    
     line-height: 1.5;
-    /* Neonový efekt a jemné pozadí pro čitelnost */
-    text-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
-    background: rgba(0, 0, 0, 0.4);
-    padding: 15px;
-    border-radius: 15px;
-    border: 1px solid rgba(0, 255, 255, 0.1);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.8), 0 0 20px rgba(0, 0, 0, 0.9);
 }
 </style>
 </head>
@@ -734,7 +732,7 @@ body {
         <img src="pozadi.jpg" class="skoda-blend-layer" alt="Škoda">
         
         <!-- Text zprávy vznášející se nad logem -->
-       <div id="broadcasttest" class="message-overlay broadcast-info"></div>
+        <div id="broadcasttest" class="broadcast-info"></div>
     </div>
 </div>
 
