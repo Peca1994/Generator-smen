@@ -216,128 +216,25 @@ select { font-weight: 900 !important; }
 
 .empRow select {
     width: 130px !important;
-    padding: 8px !important;
-    font-size: 13px !important;
-    border-radius: 12px !important;
-    border: none !important;
-    font-weight: 800 !important;
-    cursor: pointer;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-/* MODERNÍ ZAOBLENÉ VOLBY (SELECTY) */
-select, .empRow select {
-    width: 135px !important;
     padding: 8px 12px !important;
-    border-radius: 20px !important; /* Hodně zaoblené rohy */
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    background-color: #1e293b !important; /* Tmavé pozadí pro mobil */
-    color: white !important;
+    border-radius: 20px !important;
     font-weight: 800 !important;
-    font-size: 13px !important;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    appearance: none; /* Odstraní výchozí šipku prohlížeče */
-    text-align: center;
-    transition: transform 0.2s;
-}
-
-/* Oprava pro mobil - aby políčka nebyla bílá */
-select:focus, input:focus {
-    outline: none !important;
-    background-color: #2d3748 !important; /* Trochu světlejší při kliknutí */
-}
-
-/* Aby i ty rozbalené možnosti uvnitř nebyly bílé */
-select option {
-    background-color: #0f172a !important;
     color: white !important;
-    padding: 10px;
-}
-.empRow select {
-    border-radius: 20px !important; /* Zaoblené "pilulky" místo obdélníků */
     border: none !important;
-    padding: 8px 15px !important;
-    font-weight: 800 !important;
-    text-transform: uppercase;
-    font-size: 11px !important;
-    letter-spacing: 0.5px;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    transition: transform 0.2s, brightness 0.2s;
-}
-
-.empRow select:hover {
-    transform: scale(1.05);
-    filter: brightness(1.1);
-}
-
-/* Jednotlivé barvy pro každý stav */
-.status-work { 
-    background-color: #22c55e !important; 
-    color: white !important; 
-}
-.status-vacation { 
-    background-color: #eab308 !important; 
-    color: black !important; 
-}
-.status-paragraf { 
-    background-color: #a855f7 !important; 
-    color: white !important; 
-}
-.status-sick { 
-    background-color: #ef4444 !important; 
-    color: white !important; 
-}
-.status-shitmaking { 
-    background-color: #3b82f6 !important; /* Modrá pro Parťáka */
-    color: white !important; 
-}
-.status-borrowed { 
-    background-color: #475569 !important; /* Břidlicová pro Půjčeného */
-    color: white !important; 
-}
-.status-loaned { 
-    background-color: #064e3b !important; /* Tmavě zelená pro Propůjčeného */
-    color: white !important; 
-}
-
-/* Oprava pro mobil, aby políčka nebyla bílá při rozbalení */
-select option {
-    background-color: #0f172a !important;
-    color: white !important;
-}
-.empRow select {
-    width: 140px !important;
-    padding: 10px !important;
-    border-radius: 12px !important; /* Elegantní zaoblení */
-    border: none !important;
-    font-weight: 800 !important;
-    font-size: 12px !important;
-    text-transform: uppercase;
     text-align: center;
-    cursor: pointer;
-    /* Odstraní výchozí šedou šipku pro čistší vzhled */
-    appearance: none;
-    -webkit-appearance: none;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    appearance: none; /* Skryje šipku pro čistší vzhled */
+    transition: all 0.3s ease;
 }
 
-/* OPRAVA ČITELNOSTI V ROZBALENÉM SEZNAMU (PRO MOBIL I PC) */
-select option {
-    background-color: #1e293b !important; /* Tmavé, ale čitelné pozadí */
-    color: white !important;
-    padding: 15px !important;
-    font-weight: 600 !important;
-}
-
-/* Barvy přímo na tlačítku, když je vybrané (aby "svítilo") */
-.status-work { background-color: #22c55e !important; color: white !important; }
-.status-vacation { background-color: #eab308 !important; color: black !important; }
-.status-sick { background-color: #ef4444 !important; color: white !important; }
-.status-paragraf { background-color: #a855f7 !important; color: white !important; }
-.status-shitmaking { background-color: #3b82f6 !important; color: white !important; }
-.status-borrowed { background-color: #475569 !important; color: white !important; }
-.status-loaned { background-color: #064e3b !important; color: white !important; }
+/* Konkrétní barvy, které JavaScript aktivuje */
+.bg-work { background-color: #22c55e !important; }      /* Zelená */
+.bg-vacation { background-color: #eab308 !important; color: black !important; } /* Žlutá */
+.bg-paragraf { background-color: #a855f7 !important; }  /* Fialová */
+.status-sick, .bg-sick { background-color: #ef4444 !important; } /* Červená */
+.bg-shitmaking { background-color: #3b82f6 !important; } /* Modrá */
+.bg-borrowed { background-color: #475569 !important; }   /* Šedá */
+.bg-loaned { background-color: #064e3b !important; }
 </style>
 </head>
 <script>
