@@ -8,11 +8,26 @@
 <style>
 /* 1. GLOBÁLNÍ RESET A OSTRÉ POZADÍ */
  body {
-    /* Zeleno-černý gradient a tvůj obrázek pozadi.jpg */
-    background: linear-gradient(135deg, rgba(0, 40, 0, 0.9) 0%, rgba(0, 0, 0, 0.9) 100%), url('pozadi.jpg') no-repeat center center fixed;
+    /* Toto vytvoří ten tmavě zelený efekt a zapuštěné logo přímo v pozadí */
+    background: linear-gradient(135deg, rgba(0, 40, 0, 0.9) 0%, rgba(0, 0, 0, 0.95) 100%), 
+                url('pozadi.jpg') no-repeat center center fixed;
     background-size: cover;
     margin: 0;
-    padding: 20px; /* Nechá trochu místa od krajů pro tvůj obsah */
+    padding: 20px;
+    color: white; /* Aby byl text na tmavém pozadí dobře vidět */
+    min-height: 100vh;
+    /* DŮLEŽITÉ: Žádný display: flex, aby tabulky zůstaly široké */
+}
+
+/* Pokud chceš, aby tvoje tabulky/kontejnery měly mírně průhledné pozadí, přidej toto: */
+.container {
+    background-color: rgba(255, 255, 255, 0.1); /* Jemně průhledná bílá */
+    backdrop-filter: blur(10px); /* Rozmazání pozadí pod tabulkou */
+    border-radius: 12px;
+    padding: 20px;
+    width: 95%; /* Tabulka bude skoro přes celou šířku */
+    max-width: 1200px;
+    margin: 20px auto;
 }
 
 /* Styl pro logo zapuštěné do pozadí */
@@ -195,10 +210,6 @@ if (statusSelect) {
 </script>
 
 <body>
-<div class="background-logo">
-    <img src="pozadi.jpg" alt="Škoda Logo">
-    <h1>ŠKODA</h1>
-</div>
 <div class="topbar">
   <div class="topTitle">👥 Zaměstnanci</div>
   <button class="menuBtn" onclick="location.href='index.html'">
