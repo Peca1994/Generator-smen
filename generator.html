@@ -82,10 +82,16 @@ body {
 }
 
 /* 3. HLAVNÍ KONTEJNER (BEZ OHRANIČENÍ A BLURU) */
-.container, .app, main {
-    max-width: 420px; margin: 20px auto !important; padding: 16px;
-    background: rgba(0, 0, 0, 0.3) !important; border: none !important;
-    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+.container, .app, .main {
+    max-width: 450px !important; /* Sjednotíme maximální šířku */
+    width: 95% !important;
+    margin: 20px auto !important;
+    padding: 10px !important;
+    background: transparent !important; /* ÚPLNĚ PRŮHLEDNÉ */
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    color: white !important;
 }
 
 /* 4. PRŮHLEDNOST VŠECH VNITŘNÍCH BOXŮ (Karty, Tabulky, Detaily) */
@@ -102,8 +108,26 @@ label, p, span, summary, .worker, .row, h1, h2, h3, th, td, .lockCode, .lockName
 
 /* 6. FORMULÁŘE A TLAČÍTKA */
 input, select {
-    width: 100%; padding: 12px; border-radius: 10px; border: none !important;
-    margin-top: 6px; background: white !important; color: black !important; font-weight: 700;
+    width: 100% !important; /* Rozprostře se na celou šířku */
+    box-sizing: border-box !important; /* Aby padding nerozšiřoval políčko */
+    padding: 14px !important;
+    border-radius: 15px !important; /* Moderní zaoblení */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: white !important;
+    font-weight: 700 !important;
+    text-align: center;
+    margin-bottom: 15px !important;
+}
+
+/* Aby texty "Datum" a "Směna" (labely) byly tučné */
+label {
+    display: block;
+    font-weight: 800;
+    font-size: 14px;
+    color: #00ff88;
+    margin-bottom: 8px;
+    text-transform: uppercase;
 }
 button {
     width: 100%; padding: 14px !important; border-radius: 12px !important;
