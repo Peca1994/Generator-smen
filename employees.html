@@ -6,42 +6,39 @@
 <title>Zaměstnanci</title>
 
 <style>
-/* 1. GLOBÁLNÍ RESET A OSTRÉ POZADÍ */
 body {
-    /* Zeleno-černý gradient a tvůj obrázek pozadi.jpg */
-    background: linear-gradient(135deg, rgba(0, 40, 0, 0.9) 0%, rgba(0, 0, 0, 0.95) 100%), 
-                url('pozadi.jpg') no-repeat center center fixed !important;
-    background-size: cover !important;
+    /* Tmavě zelený gradient na pozadí */
+    background: linear-gradient(135deg, #062111 0%, #000000 100%) !important;
     margin: 0;
-    padding: 20px;
-    color: white;
+    padding: 0;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-/* Styl pro logo, které jen prosvítá zezadu */
-.background-logo {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: -1;
-    opacity: 0.1;
+/* Styl pro nápis a logo ŠKODA - přesně jako na screenu */
+.brand-container {
     text-align: center;
+    margin: 20px 0;
     pointer-events: none;
 }
 
-.background-logo img {
-    width: 300px;
-    filter: grayscale(100%);
+.brand-container img {
+    width: 100px; /* Menší logo pro mobil */
+    opacity: 0.3;
+    filter: brightness(0.5) sepia(1) hue-rotate(70deg) saturate(3); /* Udělá logo zelené */
 }
 
-.background-logo h1 {
-    font-size: 12vw; /* Velikost se přizpůsobí mobilu i PC */
-    margin: 0;
-    color: #ffffff;
-    letter-spacing: 10px;
-    font-weight: bold;
+.brand-container h1 {
+    font-size: 3.5rem;
+    margin: -10px 0 0 0;
+    color: #1a3a2a; /* Tmavě zelená barva nápisu */
+    letter-spacing: 8px;
+    font-weight: 900;
     text-transform: uppercase;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8), -1px -1px 0 rgba(255,255,255,0.05);
+    opacity: 0.8;
 }
 
 /* 2. TOPBAR A KONTEJNERY */
@@ -198,7 +195,10 @@ if (statusSelect) {
 </script>
 
 <body>
-
+<div class="brand-container">
+    <img src="pozadi.jpg" alt="Logo">
+    <h1>SKODA</h1>
+</div>
 <div class="topbar">
   <div class="topTitle">👥 Zaměstnanci</div>
   <button class="menuBtn" onclick="location.href='index.html'">
