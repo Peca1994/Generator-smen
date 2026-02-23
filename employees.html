@@ -58,7 +58,15 @@
 
 /* 2. TOPBAR A KONTEJNERY */
 .topbar { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: transparent !important; }
-.container, .app, main { max-width: 420px; margin: 40px auto !important; padding: 16px; background: transparent !important; border: none !important; }
+.container, .app, main { 
+    width: 95%; /* Na mobilu využije skoro celou šířku */
+    max-width: 500px; /* Na PC to nebude zbytečně široké */
+    margin: 20px auto !important; 
+    padding: 10px; 
+    background: transparent !important; 
+    border: none !important; 
+    box-sizing: border-box; /* Důležité: aby padding nerozšiřoval stránku */
+}
 
 /* 3. MODÁL A MŘÍŽKA POZIC */
 .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85) !important; z-index: 10000; overflow-y: auto !important; align-items: flex-start; justify-content: center; padding: 20px 10px; }
