@@ -53,19 +53,17 @@ body {
     height: 60px;
     display: flex !important;
     align-items: center !important;
-    justify-content: space-between !important; /* Rozhodí nápis a Menu do rohů */
+    justify-content: space-between !important;
     padding: 0 20px !important;
     box-sizing: border-box !important;
-    /* ZRUŠENÍ OHRANIČENÍ A POZADÍ */
-    background: transparent !important; 
+    background: transparent !important;
     border: none !important;
-    box-shadow: none !important;
-    position: relative;
+    position: sticky;
+    top: 0;
     z-index: 1000;
 }
 
-/* Pokud tam máš nápis "Generátor směny" v nějakém divu, 
-   ujisti se, že má stejný styl jako u zaměstnanců: */
+/* Moderní tučný nápis vlevo */
 .topTitle {
     font-family: 'Inter', 'Segoe UI', sans-serif !important;
     font-size: 22px !important;
@@ -74,11 +72,25 @@ body {
     letter-spacing: -0.5px !important;
     text-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
+
+/* Zaoblená ikona MENU vpravo */
 .menuBtn {
-    width: auto !important;      /* Zabere jen tolik místa, kolik potřebuje text */
-    padding: 8px 14px !important; /* Vrátí mu původní vnitřní prostor */
-    margin-top: 0 !important;     /* Odstraní horní odstup, který mají ostatní tlačítka */
-    display: inline-block !important;
+    padding: 8px 18px !important;
+    border-radius: 25px !important; /* Pill tvar */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    font-weight: 800 !important;
+    background: rgba(15, 23, 42, 0.6) !important; /* Tmavě průhledná */
+    backdrop-filter: blur(5px);
+    color: white !important;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-size: 13px !important;
+    transition: transform 0.2s;
+}
+
+.menuBtn:hover {
+    transform: scale(1.05);
+    background: rgba(30, 41, 59, 0.8) !important;
 }
 
 /* 3. HLAVNÍ KONTEJNER (BEZ OHRANIČENÍ A BLURU) */
