@@ -29,27 +29,27 @@ body {
 
 .background-logo img {
     /* Zvětšení rozměrů pro dominantní vzhled */
-    width: 750px !important; 
-    max-width: 95vw !important;
+    width: 650px !important; 
+    max-width: 90vw !important;
     
-    /* KLÍČ K ZAPUŠTĚNÍ: Rozmazání okrajů a prolnutí */
-    opacity: 0.15 !important;
-    filter: brightness(0.5) sepia(1) hue-rotate(85deg) saturate(2) blur(8px) !important; /* Vyšší blur skryje hrany */
+    /* Vyladění ostrosti a zapuštění */
+    opacity: 0.12 !important;
+    /* Blur jsme snížili na minimum (1px), aby logo bylo ostré */
+    filter: brightness(0.6) sepia(1) hue-rotate(85deg) saturate(2.5) blur(1px) !important;
     
-    /* Tato maska zajistí, že okraje obrázku plynule zmizí do ztracena */
-    mask-image: radial-gradient(circle, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 80%);
-    -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 80%);
+    /* TATO ČÁST VYMAŽE OKRAJE - kruh od středu do ztracena */
+    mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
+    -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
 }
 
 .background-logo h1 {
-    font-size: 18vw !important;
-    margin-top: -50px !important;
-    letter-spacing: 30px !important;
-    
-    /* Nápis ŠKODA taky trochu rozmažeme pro efekt hloubky */
-    filter: blur(2px) !important;
+    font-size: 16vw !important;
+    margin-top: -30px !important;
+    letter-spacing: 25px !important;
+    /* Nápis taky necháme ostrý bez blur */
+    filter: none !important;
     color: #1a3a2a !important;
-    opacity: 0.4 !important;
+    opacity: 0.5 !important;
     text-shadow: 0 0 15px rgba(0,0,0,0.8) !important;
 }
 
