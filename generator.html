@@ -242,10 +242,8 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, setDoc, getDoc }
-from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+import { initializeApp } from "https://www.gstatic.com";
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com";
 const app = initializeApp({
  apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
   authDomain: "generator-smen-9fba1.firebaseapp.com",
@@ -487,7 +485,10 @@ function runSmartAttempt(orderedPos, map) {
 
 
 /* GENERATE */
-
+function activePositions() {
+  // Vrací seznam pozic ze tvého pole POSITIONS
+  return POSITIONS; 
+}
 genBtn.onclick = async ()=>{
 
  loadingEl.style.display="flex";
