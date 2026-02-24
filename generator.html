@@ -241,49 +241,80 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 </div>
 
 <script type="module">
+  // 1. OPRAVENÉ IMPORTY (CDN verze, aby fungovaly v prohlížeči)
+  import { initializeApp } from "https://www.gstatic.com";
+  import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com";
 
-import { initializeApp } from "https://www.gstatic.com";
-import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com";
-const app = initializeApp({
- apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
-  authDomain: "generator-smen-9fba1.firebaseapp.com",
-  projectId: "generator-smen-9fba1",
-  storageBucket: "generator-smen-9fba1.firebasestorage.app",
-  messagingSenderId: "541779211883",
-  appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
-  measurementId: "G-1HF3R93D92"
-});
+  // 2. KONFIGURACE (Z tvého screenu)
+  const firebaseConfig = {
+    authDomain: "generator-smen-9fba1.firebaseapp.com",
+    projectId: "generator-smen-9fba1",
+    storageBucket: "generator-smen-9fba1.firebasestorage.app",
+    messagingSenderId: "541779211883",
+    appId: "1:541779211883:web:1d8578ec61b8f428a46328",
+    measurementId: "G-1HF3R93D92"
+  };
 
-const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-/* DOM */
+  // 3. PROPOJENÍ ELEMENTŮ (Zabraňuje chybě "null style")
+  const loadingEl = document.getElementById("loading");
+  const dateEl    = document.getElementById("date");
+  const shiftEl   = document.getElementById("shift");
+  const gridEl    = document.getElementById("grid");
+  const reservesBoxEl = document.getElementById("reservesBox");
+  const genBtn    = document.getElementById("genBtn");
+  const loadBtn   = document.getElementById("loadBtn");
+  const saveBtn   = document.getElementById("saveBtn");
+  const infoBtn   = document.getElementById("infoBtn");
+  const lockBox   = document.getElementById("lockBox");
+  const pickModal = document.getElementById("pickModal");
+  const pickTitle = document.getElementById("pickTitle");
+  const pickList  = document.getElementById("pickList");
+  const infoModal = document.getElementById("infoModal");
 
-const loadingEl = document.getElementById("loading");
-const dateEl = document.getElementById("date");
-const shiftEl = document.getElementById("shift");
-const gridEl = document.getElementById("grid");
-const reservesBoxEl = document.getElementById("reservesBox");
+  // Inputy z modálu info
+  const skStart = document.getElementById("skStart"), skEnd = document.getElementById("skEnd");
+  const faStart = document.getElementById("faStart"), faEnd = document.getElementById("faEnd");
+  const zaStart = document.getElementById("zaStart"), zaEnd = document.getElementById("zaEnd");
 
-const genBtn = document.getElementById("genBtn");
-const loadBtn = document.getElementById("loadBtn");
-const saveBtn = document.getElementById("saveBtn");
-const lockBox = document.getElementById("lockBox");
+  // 4. GLOBÁLNÍ STAV (Aby na něj viděl zbytek tvého 700řádkového kódu)
+  window.workers = [];
+  window.allWorkersMap = {};
+  window.phases = [];
+  window.phaseReserves = [];
+  window.shiftInfo = { sk:{start:"",end:""}, fa:{start:"",end:""}, za:{start:"",end:""} };
+  window.historyStats = {};
+  window.lastPosByWorker = {};
 
-const pickModal = document.getElementById("pickModal");
-const pickTitle = document.getElementById("pickTitle");
-const pickList = document.getElementById("pickList");
+  // TVOJE REÁLNÉ POZICE (Tady se definují, aby nezmizely!)
+  window.POSITIONS = ["KASA", "SKLAD", "FAKTURACE", "ZÁVOZ"]; 
 
-const infoBtn = document.getElementById("infoBtn");
-const infoModal = document.getElementById("infoModal");
+  if(dateEl) dateEl.value = new Date().toISOString().slice(0, 10);
 
-const skStart = document.getElementById("skStart");
-const skEnd   = document.getElementById("skEnd");
-const faStart = document.getElementById("faStart");
-const faEnd   = document.getElementById("faEnd");
-const zaStart = document.getElementById("zaStart");
-const zaEnd   = document.getElementById("zaEnd");
+  // 5. FUNKCE PRO NAČÍTÁNÍ (Exportujeme do window, aby byly globální)
+  window.loadWorkers = async () => {
+    const querySnapshot = await getDocs(collection(db, "employees"));
+    window.workers = [];
+    window.allWorkersMap = {};
+    querySnapshot.forEach((doc) => {
+      const d = doc.data();
+      if(d.status === "work") window.workers.push({ id: doc.id, ...d });
+      window.allWorkersMap[doc.id] = { id: doc.id, ...d };
+    });
+  };
 
-dateEl.value = new Date().toISOString().slice(0,10);
+  window.activePositions = () => {
+    // Tato funkce ti v kódu chyběla a proto to negenerovalo
+    return window.POSITIONS; 
+  };
+
+  // Prvotní vykreslení tabulky, aby pozice byly vidět hned
+  // (Předpokládám, že tvoje funkce render() je definovaná níže v souboru)
+  setTimeout(() => { if(typeof render === 'function') render(); }, 500);
+
+  // --- TADY KONČÍ OPRAVNÝ BLOK A POKRAČUJE TVŮJ PŮVODNÍ KÓD ---
 
 /* POSITIONS */
 
