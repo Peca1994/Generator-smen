@@ -412,17 +412,13 @@ function buildPhase(act) {
   act.forEach(pos => {
     map[pos] = workers.filter(w => w.skills && w.skills.includes(pos));
   });
-  
-  // Seřadíme pozice od těch nejtěžších na obsazení (nejméně lidí se skillem)
   const orderedPos = [...act].sort((a, b) => map[a].length - map[b].length);
 
   let bestResult = null;
   let minScore = Infinity;
 
-  // Funkce, která z "DP-L" udělá "DP"
   const getBasePos = (p) => p.split('-')[0];
 
-  // Zvýšíme počet pokusů na 100, aby algoritmus opravdu hledal nejlepší rotaci
   for (let i = 0; i < 100; i++) {
     const attempt = runSmartAttempt(orderedPos, map);
     
@@ -431,24 +427,40 @@ function buildPhase(act) {
       
       for (const pos in attempt) {
         const wId = attempt[pos].id;
-        const lastPos = lastPosByWorker[wId]; 
-        
+        const lastPos = lastPosByWorker[wId];
+        const currentBase = getBasePos(pos);
+
         if (lastPos) {
           const lastBase = getBasePos(lastPos);
-          const currentBase = getBasePos(pos);
 
-          // 1. KRITICKÁ PENALIZACE: Úplně stejná pozice (DP-L -> DP-L)
+          // 1. KRITICKÁ PENALIZACE: Úplně stejná pozice (DP-L -> DP-L) hned po sobě
           if (lastPos === pos) {
             currentScore += 1000; 
           } 
-          // 2. VYSOKÁ PENALIZACE: Stejná operace, jiná strana (DP-L -> DP-P)
-          // Pokud je to stejný základ (např. DP), dáme velký trest, aby to algoritmus nechtěl udělat
+          // 2. VYSOKÁ PENALIZACE: Stejná operace, jiná strana (DP-L -> DP-P) hned po sobě
           else if (lastBase === currentBase) {
             currentScore += 500;
           }
         }
 
-        // 3. DROBNÁ PENALIZACE: Historie za celý den (aby se lidi střídali fér)
+        // 3. NOVINKA: AGRESIVNÍ PENALIZACE ZA CELÝ DEN (aby se nevraceli na stejnou věc v 3. fázi)
+        // Projdeme historii, jestli už ten člověk DNES dělal cokoli se stejným základem (např. AGR)
+        let alreadyDidThisTypeToday = false;
+        for (const recordKey in historyStats) {
+          if (recordKey.startsWith(wId + "_")) {
+            const pastPosFromKey = recordKey.split('_')[1];
+            if (getBasePos(pastPosFromKey) === currentBase) {
+              alreadyDidThisTypeToday = true;
+              break;
+            }
+          }
+        }
+
+        if (alreadyDidThisTypeToday) {
+          currentScore += 2000; // Obrovská pokuta, aby ho to tam nedalo znovu, pokud existuje jiná možnost
+        }
+
+        // 4. DROBNÁ PENALIZACE: Pro jemné doladění spravedlnosti
         currentScore += (historyStats[wId + "_" + pos] || 0) * 10;
       }
 
@@ -456,9 +468,7 @@ function buildPhase(act) {
         minScore = currentScore;
         bestResult = attempt;
       }
-      
-      // Pokud najdeme řešení, kde nikdo neopakuje ani stranu, ani operaci (score 0), bereme hned
-      if (minScore === 0) break;
+      if (minScore === 0) break; 
     }
   }
 
@@ -470,10 +480,8 @@ function buildPhase(act) {
     }
     const usedIds = new Set(Object.values(bestResult).map(w => w.id));
     const reserves = workers.filter(w => !usedIds.has(w.id));
-
     return { assign: bestResult, reserves };
   }
-
   return null;
 }
 
