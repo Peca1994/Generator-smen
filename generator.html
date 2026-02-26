@@ -241,29 +241,22 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 </div>
 
 <script type="module">
-  // Import základních funkcí Firebase z CDN (není potřeba nic instalovat)
-  import { initializeApp } from "https://www.gstatic.com";
-import { getFirestore, collection, getDocs, getDoc, setDoc, doc } from "https://www.gstatic.com";
 
-  // Konfigurace z tvého screenshotu
-  const firebaseConfig = {
-    apiKey: "AIzaSyA219e/9HsWbrLwf+RoRpPZuVYlp6pg6uE",
-    authDomain: "generator-smen-9fba1.firebaseapp.com",
-    projectId: "generator-smen-9fba1",
-    storageBucket: "generator-smen-9fba1.firebasestorage.app",
-    messagingSenderId: "541779211883",
-    appId: "1:541779211883:web:1d8578ec61b8f428a4632a",
-    measurementId: "G-1HF3RP3D92"
-  };
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, setDoc, getDoc }
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  // Inicializace Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+const app = initializeApp({
+ apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+  authDomain: "generator-smen-9fba1.firebaseapp.com",
+  projectId: "generator-smen-9fba1",
+  storageBucket: "generator-smen-9fba1.firebasestorage.app",
+  messagingSenderId: "541779211883",
+  appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
+  measurementId: "G-1HF3R93D92"
+});
 
-  // Testovací výpis do konzole prohlížeče (stiskni F12 pro kontrolu)
-  console.log("Firebase byla úspěšně připojena k projektu:", firebaseConfig.projectId);
-
-  // Sem pak budeme přidávat funkce pro tlačítka "Generovat" a "Uložit"
+const db = getFirestore(app);
 
 /* DOM */
 
