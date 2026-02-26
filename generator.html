@@ -497,68 +497,7 @@ function runSmartAttempt(orderedPos, map) {
     return false;
   }
   return solve(0) ? assign : null;
-}
-
-function runSmartAttempt(orderedPos, map) {
-  let assign = {}; let used = new Set(); let steps = 0;
-  function solve(index) {
-    steps++; 
-    if (steps > 10000) return false; // ZVÝŠENO: Více času na hledání řešení
-    if (index === orderedPos.length) return true;
-
-    const pos = orderedPos[index];
-    let candidates = map[pos].filter(w => !used.has(w.id));
-    candidates.sort(() => Math.random() - 0.5);
-
-    for (const worker of candidates) {
-      assign[pos] = worker; used.add(worker.id);
-      if (solve(index + 1)) return true;
-      used.delete(worker.id); delete assign[pos];
-    }
-    return false;
-  }
-  return solve(0) ? assign : null;
-}
-
-function runSmartAttempt(orderedPos, map) {
-  let assign = {};
-  let used = new Set();
-  let steps = 0;
-
-  function solve(index) {
-    steps++;
-    if (steps > 1500) return false; 
-    if (index === orderedPos.length) return true;
-
-    const pos = orderedPos[index];
-    let candidates = map[pos].filter(w => !used.has(w.id));
-
-    candidates.sort(() => Math.random() - 0.5); 
-    
-    candidates.sort((a, b) => {
-      if (a.skills.length !== b.skills.length) {
-        if (a.skills.length === 1) return -1;
-        if (b.skills.length === 1) return 1;
-      }
-
-      const aRepeats = (lastPosByWorker[a.id] === pos && a.skills.length > 1) ? 1 : 0;
-      const bRepeats = (lastPosByWorker[b.id] === pos && b.skills.length > 1) ? 1 : 0;
-      if (aRepeats !== bRepeats) return aRepeats - bRepeats;
-
-      return 0;
-    });
-
-    for (const worker of candidates) {
-      assign[pos] = worker;
-      used.add(worker.id);
-      if (solve(index + 1)) return true;
-      used.delete(worker.id);
-      delete assign[pos];
-    }
-    return false;
-  }
-  return solve(0) ? assign : null;
-    } 
+} 
 
 
 /* GENERATE */
