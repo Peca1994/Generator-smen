@@ -417,9 +417,11 @@ function buildPhase(act) {
   let bestResult = null;
   let minScore = Infinity;
 
-  const getBasePos = (p) => p.split('-')[0];
+  // OPRAVENÁ FUNKCE: vrací text, ne pole!
+  const getBasePos = (p) => p ? p.split('-')[0] : ""; 
 
-  for (let i = 0; i < 100; i++) {
+  // ZVÝŠENO NA 500 POKUSŮ pro důkladnější hledání
+  for (let i = 0; i < 500; i++) {
     const attempt = runSmartAttempt(orderedPos, map);
     
     if (attempt) {
@@ -433,35 +435,22 @@ function buildPhase(act) {
         if (lastPos) {
           const lastBase = getBasePos(lastPos);
 
-          // 1. KRITICKÁ PENALIZACE: Úplně stejná pozice (DP-L -> DP-L) hned po sobě
-          if (lastPos === pos) {
-            currentScore += 1000; 
-          } 
-          // 2. VYSOKÁ PENALIZACE: Stejná operace, jiná strana (DP-L -> DP-P) hned po sobě
-          else if (lastBase === currentBase) {
-            currentScore += 500;
-          }
+          // Penalizace za stejnou židli po sobě
+          if (lastPos === pos) currentScore += 5000; 
+          // Penalizace za stejný typ operace (i jiná strana) po sobě
+          else if (lastBase === currentBase) currentScore += 2000;
         }
 
-        // 3. NOVINKA: AGRESIVNÍ PENALIZACE ZA CELÝ DEN (aby se nevraceli na stejnou věc v 3. fázi)
-        // Projdeme historii, jestli už ten člověk DNES dělal cokoli se stejným základem (např. AGR)
-        let alreadyDidThisTypeToday = false;
+        // AGRESIVNÍ HISTORIE CELÉHO DNE
         for (const recordKey in historyStats) {
           if (recordKey.startsWith(wId + "_")) {
-            const pastPosFromKey = recordKey.split('_')[1];
+            const pastPosFromKey = recordKey.split('_')[1]; // získáme název pozice
             if (getBasePos(pastPosFromKey) === currentBase) {
-              alreadyDidThisTypeToday = true;
-              break;
+              // Pokud už dnes tuto operaci dělal, obrovská penalizace
+              currentScore += 3000; 
             }
           }
         }
-
-        if (alreadyDidThisTypeToday) {
-          currentScore += 2000; // Obrovská pokuta, aby ho to tam nedalo znovu, pokud existuje jiná možnost
-        }
-
-        // 4. DROBNÁ PENALIZACE: Pro jemné doladění spravedlnosti
-        currentScore += (historyStats[wId + "_" + pos] || 0) * 10;
       }
 
       if (currentScore < minScore) {
@@ -483,6 +472,27 @@ function buildPhase(act) {
     return { assign: bestResult, reserves };
   }
   return null;
+}
+
+function runSmartAttempt(orderedPos, map) {
+  let assign = {}; let used = new Set(); let steps = 0;
+  function solve(index) {
+    steps++; 
+    if (steps > 10000) return false; // ZVÝŠENO: Více času na hledání řešení
+    if (index === orderedPos.length) return true;
+
+    const pos = orderedPos[index];
+    let candidates = map[pos].filter(w => !used.has(w.id));
+    candidates.sort(() => Math.random() - 0.5);
+
+    for (const worker of candidates) {
+      assign[pos] = worker; used.add(worker.id);
+      if (solve(index + 1)) return true;
+      used.delete(worker.id); delete assign[pos];
+    }
+    return false;
+  }
+  return solve(0) ? assign : null;
 }
 
 function runSmartAttempt(orderedPos, map) {
