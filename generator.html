@@ -142,49 +142,36 @@ button {
 .removeBtn { background: #ef4444 !important; }
 
 .lockList { 
-    max-height: 250px; 
-    overflow: auto; 
-    margin-top: 15px; 
     display: flex; 
     flex-wrap: wrap; 
-    gap: 8px; 
+    gap: 10px; 
+    padding: 15px 0;
+    max-height: 300px;
+    overflow-y: auto;
 }
 
-/* ZÁKLADNÍ STAV (Zelená = Aktivní) */
 .lockRow { 
-    display: inline-flex !important; 
-    align-items: center; 
-    justify-content: center; 
-    padding: 10px 16px !important; 
-    border-radius: 12px !important; 
+    display: inline-block !important; /* DŮLEŽITÉ: Aby label fungoval jako plocha */
+    padding: 10px 15px !important; 
+    border-radius: 10px !important; 
     cursor: pointer !important; 
     font-weight: 800 !important; 
-    transition: 0.2s all ease; 
-    background-color: #22c55e !important; /* Škodovácká zelená */
-    border: 1px solid rgba(255,255,255,0.1) !important;
+    background-color: #22c55e !important; /* VÝCHOZÍ ZELENÁ */
     color: white !important;
-    min-width: 100px;
+    border: 1px solid rgba(255,255,255,0.2) !important;
     text-align: center;
+    transition: 0.2s;
+    user-select: none;
 }
 
-/* STAV PŘI VYŘAZENÍ (Červená = Pozice je vypnutá) */
+/* Změna na ČERVENOU po kliknutí */
 .lockRow:has(input:checked) { 
-    background-color: #ef4444 !important; /* Červená */
-    border: 1px solid #b91c1c !important;
+    background-color: #ef4444 !important; 
+    border-color: #b91c1c !important;
 }
 
-.lockRow:hover { 
-    filter: brightness(1.2); 
-    transform: translateY(-1px);
-}
-
-.lockRow:active {
-    transform: scale(0.96);
-}
-
-/* Odstranění stínu pro čitelnost názvů pozic */
-.lockRow span { 
-    text-shadow: none !important; 
+.lockRow:hover {
+    filter: brightness(1.2);
 }
 
 .modal {
