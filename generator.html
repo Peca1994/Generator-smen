@@ -417,63 +417,62 @@ function buildPhase(act) {
   let bestResult = null;
   let minScore = Infinity;
 
-  // ✅ OPRAVENÁ FUNKCE: vrací vždy TEXT (např. "DP"), ne pole!
-  const getBasePos = (p) => {
-    if (!p) return "";
-    return p.split('-')[0]; 
-  };
+  const getBasePos = (p) => (p && p.includes('-')) ? p.split('-')[0] : (p || "");
 
-  // 500 pokusů pro nalezení nejlepší rotace
-  for (let i = 0; i < 500; i++) {
+  // Získáme aktuální index fáze (0 až 3)
+  const currentPhaseIdx = phases.length; 
+
+  for (let i = 0; i < 300; i++) {
     const attempt = runSmartAttempt(orderedPos, map);
-    
-    if (attempt) {
-      let currentScore = 0;
+    if (!attempt) continue;
+
+    let currentScore = 0;
+    for (const pos in attempt) {
+      const wId = attempt[pos].id;
+      const currentBase = getBasePos(pos);
+      const lastPos = lastPosByWorker[wId];
+
+      // 1. OCHRANA PROTI OPAKOVÁNÍ HNED PO SOBĚ (např. 1 -> 2)
+      if (lastPos) {
+        if (lastPos === pos) currentScore += 1000; 
+        else if (getBasePos(lastPos) === currentBase) currentScore += 400;
+      }
+
+      // 2. CÍLENÁ OCHRANA PROTI "SKÁKÁNÍ" (1 -> 3 nebo 2 -> 4)
+      // Díváme se do historie o 2 fáze zpět
+      if (currentPhaseIdx >= 2) {
+        const phaseBack2 = phases[currentPhaseIdx - 2]; // fáze předminulá
+        // Najdeme, co ten konkrétní člověk dělal před dvěma fázemi
+        const posBack2 = Object.keys(phaseBack2).find(p => phaseBack2[p].id === wId);
+        
+        if (posBack2) {
+           if (posBack2 === pos) {
+             currentScore += 800; // Návrat na stejnou židli ob jednu fázi
+           } else if (getBasePos(posBack2) === currentBase) {
+             currentScore += 350; // Návrat na stejný typ operace ob jednu fázi
+           }
+        }
+      }
       
-      for (const pos in attempt) {
-        const wId = attempt[pos].id;
-        const lastPos = lastPosByWorker[wId];
-        const currentBase = getBasePos(pos);
-
-        // 1. Penalizace za stejnou židli po sobě (1. -> 2. fáze)
-        if (lastPos) {
-          const lastBase = getBasePos(lastPos);
-          if (lastPos === pos) currentScore += 5000; 
-          else if (lastBase === currentBase) currentScore += 2000;
-        }
-
-        // 2. AGRESIVNÍ HISTORIE CELÉHO DNE (řeší 1. -> 3. fázi)
-        for (const recordKey in historyStats) {
-          if (recordKey.startsWith(wId + "_")) {
-            // recordKey vypadá takto: "IDZAMESTNANCE_DP-L"
-            const pastPosFull = recordKey.split('_')[1]; 
-            const pastBase = getBasePos(pastPosFull);
-            
-            if (pastBase === currentBase) {
-              // Pokud už dnes tento TYP operace dělal, obrovská penalizace
-              currentScore += 3000; 
-            }
-          }
-        }
-      }
-
-      if (currentScore < minScore) {
-        minScore = currentScore;
-        bestResult = attempt;
-      }
-      if (minScore === 0) break; 
+      // 3. DROBNÁ PENALIZACE ZA HISTORII (obecná férovost dne)
+      currentScore += (historyStats[wId + "_" + pos] || 0) * 50;
     }
+
+    if (currentScore < minScore) {
+      minScore = currentScore;
+      bestResult = attempt;
+    }
+    if (minScore === 0) break;
   }
 
   if (bestResult) {
     for (const p in bestResult) {
       const wId = bestResult[p].id;
       historyStats[wId + "_" + p] = (historyStats[wId + "_" + p] || 0) + 1;
-      lastPosByWorker[wId] = p; 
+      lastPosByWorker[wId] = p;
     }
     const usedIds = new Set(Object.values(bestResult).map(w => w.id));
-    const reserves = workers.filter(w => !usedIds.has(w.id));
-    return { assign: bestResult, reserves };
+    return { assign: bestResult, reserves: workers.filter(w => !usedIds.has(w.id)) };
   }
   return null;
 }
