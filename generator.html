@@ -453,26 +453,32 @@ function buildPhase(act) {
     let candidates = map[pos].filter(w => !usedIds.has(w.id));
     candidates.sort(() => Math.random() - 0.5);
 
-    let selectedWorker = null;
+  let selectedWorker = null;
 
-    // 3. Hledáme ideálního kandidáta (ne 1-2-1 a ne 1-3-1)
+    // 1. POKUS: Najít ideálního (ne 1-2-1 a ne 1-3-1)
     for (const worker of candidates) {
       const wId = worker.id;
-      
-      // KONTROLA 1-2-1 (předchozí fáze)
-      if (lastPosByWorker[wId] === pos) continue;
+      if (lastPosByWorker[wId] === pos) continue; // 1-2-1 stop
 
-      // KONTROLA 1-3-1 (fáze ob jednu zpět)
       if (currentPhaseIdx >= 2) {
         const phBack2 = phases[currentPhaseIdx - 2];
-        if (Object.keys(phBack2).find(p => phBack2[p]?.id === wId) === pos) continue;
+        if (Object.keys(phBack2).find(p => phBack2[p]?.id === wId) === pos) continue; // 1-3-1 stop
       }
-
       selectedWorker = worker;
       break;
     }
 
-    // 4. POJISTKA: Pokud nikdo ideální není, vezmeme kohokoliv se skillem (aby se to nezaseklo)
+    // 2. POKUS (POJISTKA): Pokud jsme nenašli ideál, zkusíme najít aspoň někoho, kdo tam neseděl hned předtím
+    if (!selectedWorker) {
+      for (const worker of candidates) {
+        if (lastPosByWorker[worker.id] !== pos) {
+          selectedWorker = worker;
+          break;
+        }
+      }
+    }
+
+    // 3. POKUS (POSLEDNÍ ZÁCHRANA): Pokud fakt nikdo nezbývá, vezmi kohokoliv se skillem
     if (!selectedWorker && candidates.length > 0) {
       selectedWorker = candidates[0];
     }
