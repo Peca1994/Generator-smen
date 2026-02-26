@@ -141,11 +141,51 @@ button {
 .loadBtn, .pickBtn, .btn-primary { background: #2563eb !important; color: white !important; }
 .removeBtn { background: #ef4444 !important; }
 
-/* 7. SPECIFICKÉ PRVKY (LOCKY, TABULKY, MODÁLY) */
-.lockList { max-height: 180px; overflow: auto; margin-top: 8px; }
-.lockRow { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 8px; }
-.lockRow:hover { background: rgba(255,255,255,0.1) !important; }
-.lockedRow, .outWorker { background: rgba(220,38,38,0.25) !important; }
+.lockList { 
+    max-height: 250px; 
+    overflow: auto; 
+    margin-top: 15px; 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 8px; 
+}
+
+/* ZÁKLADNÍ STAV (Zelená = Aktivní) */
+.lockRow { 
+    display: inline-flex !important; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 10px 16px !important; 
+    border-radius: 12px !important; 
+    cursor: pointer !important; 
+    font-weight: 800 !important; 
+    transition: 0.2s all ease; 
+    background-color: #22c55e !important; /* Škodovácká zelená */
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    color: white !important;
+    min-width: 100px;
+    text-align: center;
+}
+
+/* STAV PŘI VYŘAZENÍ (Červená = Pozice je vypnutá) */
+.lockRow:has(input:checked) { 
+    background-color: #ef4444 !important; /* Červená */
+    border: 1px solid #b91c1c !important;
+}
+
+.lockRow:hover { 
+    filter: brightness(1.2); 
+    transform: translateY(-1px);
+}
+
+.lockRow:active {
+    transform: scale(0.96);
+}
+
+/* Odstranění stínu pro čitelnost názvů pozic */
+.lockRow span { 
+    text-shadow: none !important; 
+}
 
 .modal {
     position: fixed; inset: 0; background: rgba(0,0,0,0.8);
@@ -156,50 +196,7 @@ button {
 /* PosCol a Table Borders */
 th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px; }
 .posCol { text-align: left; font-weight: 800; }
-.blacklist, #lockBoxVY {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 10px;
-    padding: 15px 0;
-}
 
-/* Základní vzhled tlačítka - vychází z tvého .menuBtn stylu */
-.pos-btn {
-    width: 100% !important;
-    padding: 10px !important;
-    border-radius: 12px !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    font-weight: 800 !important;
-    font-size: 12px !important;
-    text-transform: uppercase;
-    cursor: pointer;
-    margin: 0 !important;
-    transition: all 0.2s ease;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-}
-
-/* ZELENÁ (Aktivní - pozice je v generování) */
-.pos-btn.active {
-    background: rgba(34, 197, 94, 0.4) !important; /* Průhlednější zelená */
-    border: 1px solid #22c55e !important;
-    color: #ffffff !important;
-}
-
-/* ČERVENÁ (Vyřazená - pozice se negeneruje) */
-.pos-btn.excluded {
-    background: rgba(239, 68, 68, 0.6) !important; /* Výraznější červená */
-    border: 1px solid #ef4444 !important;
-    color: #ffffff !important;
-}
-
-/* Efekt při najetí a kliknutí */
-.pos-btn:hover {
-    filter: brightness(1.2);
-}
-
-.pos-btn:active {
-    transform: scale(0.95);
-}
 </style>
 </head>
 
@@ -234,9 +231,7 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 
 <details>
 <summary>🔒 Vyřadit pozice z generování</summary>
-<div class="blacklist" id="lockBoxVY">
-                    <!-- Tady nechej prázdno, tlačítka vygenerujeme skriptem -->
-                 </div>
+<div class="lockList" id="lockBox"></div>
 </details>
 
 <button class="genBtn" id="genBtn">⚙️ Generovat</button>
@@ -359,15 +354,15 @@ const DEFAULT_LOCKED = new Set([
  "JINE","JINE2"
 ]);
 
-POSITIONS.forEach(p=>{
-
- const checked = DEFAULT_LOCKED.has(p) ? "checked" : "";
-
- lockBox.innerHTML += `
- <label class="lockRow">
-  <input type="checkbox" value="${p}" ${checked}>
-  <span>${p}</span>
- </label>`;
+POSITIONS.forEach(p => {
+    const checked = DEFAULT_LOCKED.has(p) ? "checked" : "";
+    
+    lockBox.innerHTML += `
+    <label class="LockRow">
+        <input type="checkbox" value="${p}" ${checked} style="display:none;">
+        <span>${p}</span>
+    </label>
+    `;
 });
 
 
@@ -774,31 +769,7 @@ saveBtn.onclick = async ()=>{
 
  alert("✅ Uloženo (včetně status snapshotu)");
 };
-function vykresliTlacitkaPozic() {
-    const box = document.getElementById('lockBoxVY');
-    if (!box) return;
 
-    box.innerHTML = ''; // Vyčistíme starý obsah (checkboxy)
-
-    // Tady použijeme tvůj seznam pozic (v kódu ho máš pravděpodobně jako Object.keys(poziceData))
-    // Pokud máš jiný název proměnné pro těch ~30 pozic, změň 'poziceData' níže
-    Object.keys(poziceData).forEach(nazev => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.innerText = nazev;
-        btn.className = 'pos-btn active'; // Výchozí zelená
-        
-        btn.onclick = function() {
-            this.classList.toggle('active');
-            this.classList.toggle('excluded');
-        };
-        
-        box.appendChild(btn);
-    });
-}
-
-// Zavoláme funkci, aby se tlačítka vykreslila po načtení
-vykresliTlacitkaPozic();
 
 </script>
 </body>
