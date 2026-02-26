@@ -358,7 +358,7 @@ POSITIONS.forEach(p => {
     const checked = DEFAULT_LOCKED.has(p) ? "checked" : "";
     
     lockBox.innerHTML += `
-    <label class="LockRow">
+    <label class="lockRow">
         <input type="checkbox" value="${p}" ${checked} style="display:none;">
         <span>${p}</span>
     </label>
