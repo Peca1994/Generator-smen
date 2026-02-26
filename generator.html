@@ -261,9 +261,6 @@ const db = getFirestore(app);
 /* DOM */
 
 const loadingEl = document.getElementById("loading");
-const dateEl = document.getElementById("date");
-const shiftEl = document.getElementById("shift");
-const gridEl = document.getElementById("grid");
 const reservesBoxEl = document.getElementById("reservesBox");
 
 const genBtn = document.getElementById("genBtn");
@@ -285,7 +282,14 @@ const faEnd   = document.getElementById("faEnd");
 const zaStart = document.getElementById("zaStart");
 const zaEnd   = document.getElementById("zaEnd");
 
-dateEl.value = new Date().toISOString().slice(0,10);
+const dateEl = document.getElementById("date");
+const shiftEl = document.getElementById("shift");
+const gridEl = document.getElementById("grid");
+
+/* Nastavení dnešního data */
+if (dateEl) {
+  dateEl.value = new Date().toISOString().slice(0, 10);
+}
 
 /* POSITIONS */
 
