@@ -462,7 +462,7 @@ function buildPhase(act) {
       const lastPos = lastPosByWorker[wId];
       if (lastPos) {
         if (lastPos === pos) currentScore += 50000; // Extrémní trest
-        else if (getBasePos(lastPos) === currentBase) currentScore += 50000;
+        else if (getBasePos(lastPos) === currentBase) currentScore += 40000;
       }
 
       // 2. ZÁKAZ SKÁKÁNÍ OB JEDNU FÁZI (1-3, 2-4)
@@ -472,9 +472,9 @@ function buildPhase(act) {
         
         if (posBack2) {
            if (posBack2 === pos) {
-             currentScore += 50000; // Obrovský trest za návrat na stejnou židli
+             currentScore += 30000; // Obrovský trest za návrat na stejnou židli
            } else if (getBasePos(posBack2) === currentBase) {
-             currentScore += 50000; // Velký trest za stejný typ operace
+             currentScore += 15000; // Velký trest za stejný typ operace
            }
         }
       }
