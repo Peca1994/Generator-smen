@@ -417,21 +417,39 @@ function buildPhase(act) {
   let bestResult = null;
   let minScore = Infinity;
 
-  for (let i = 0; i < 20; i++) {
+  // Pomocná funkce pro získání typu operace bez strany (např. "DP-L" -> "DP")
+  const getBasePos = (p) => p.split('-')[0];
+
+  for (let i = 0; i < 30; i++) { // Zvýšil jsem počet pokusů na 30 pro lepší rotaci
     const attempt = runSmartAttempt(orderedPos, map);
     
     if (attempt) {
       let currentScore = 0;
+      
       for (const pos in attempt) {
         const wId = attempt[pos].id;
-        currentScore += (historyStats[wId + "_" + pos] || 0);
+        const lastPos = lastPosByWorker[wId]; // Co dělal v minulé fázi
+        
+        if (lastPos) {
+          // 1. VELKÁ PENALIZACE: Stejná pozice (např. DP-L -> DP-L)
+          if (lastPos === pos) {
+            currentScore += 50; 
+          } 
+          // 2. STŘEDNÍ PENALIZACE: Stejná operace, jiná strana (např. DP-L -> DP-P)
+          else if (getBasePos(lastPos) === getBasePos(pos)) {
+            currentScore += 20;
+          }
+        }
+
+        // 3. MALÁ PENALIZACE: Celková historie (aby se lidi střídali spravedlivě za celý den)
+        currentScore += (historyStats[wId + "_" + pos] || 0) * 5;
       }
 
       if (currentScore < minScore) {
         minScore = currentScore;
         bestResult = attempt;
       }
-      if (minScore === 0) break;
+      if (minScore === 0) break; // Našli jsme ideální stav bez opakování
     }
   }
 
@@ -441,11 +459,10 @@ function buildPhase(act) {
       historyStats[wId + "_" + p] = (historyStats[wId + "_" + p] || 0) + 1;
       lastPosByWorker[wId] = p; 
     }
-    const usedIds = new Set(Object.values(bestResult).map(w=>w.id));
-const reserves = workers.filter(w=>!usedIds.has(w.id));
+    const usedIds = new Set(Object.values(bestResult).map(w => w.id));
+    const reserves = workers.filter(w => !usedIds.has(w.id));
 
-return { assign: bestResult, reserves };
-
+    return { assign: bestResult, reserves };
   }
 
   return null;
