@@ -422,7 +422,7 @@ function buildPhase(act) {
   const currentPhaseIdx = phases.length; 
 
   // Zvýšeno na 1000 pokusů pro maximální šanci najít ideální rotaci
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < 500; i++) {
     const attempt = runSmartAttempt(orderedPos, map);
     if (!attempt) continue;
 
