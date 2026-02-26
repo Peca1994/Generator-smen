@@ -417,10 +417,13 @@ function buildPhase(act) {
   let bestResult = null;
   let minScore = Infinity;
 
-  // OPRAVENÁ FUNKCE: vrací text, ne pole!
-  const getBasePos = (p) => p ? p.split('-')[0] : ""; 
+  // ✅ OPRAVENÁ FUNKCE: vrací vždy TEXT (např. "DP"), ne pole!
+  const getBasePos = (p) => {
+    if (!p) return "";
+    return p.split('-')[0]; 
+  };
 
-  // ZVÝŠENO NA 500 POKUSŮ pro důkladnější hledání
+  // 500 pokusů pro nalezení nejlepší rotace
   for (let i = 0; i < 500; i++) {
     const attempt = runSmartAttempt(orderedPos, map);
     
@@ -432,21 +435,22 @@ function buildPhase(act) {
         const lastPos = lastPosByWorker[wId];
         const currentBase = getBasePos(pos);
 
+        // 1. Penalizace za stejnou židli po sobě (1. -> 2. fáze)
         if (lastPos) {
           const lastBase = getBasePos(lastPos);
-
-          // Penalizace za stejnou židli po sobě
           if (lastPos === pos) currentScore += 5000; 
-          // Penalizace za stejný typ operace (i jiná strana) po sobě
           else if (lastBase === currentBase) currentScore += 2000;
         }
 
-        // AGRESIVNÍ HISTORIE CELÉHO DNE
+        // 2. AGRESIVNÍ HISTORIE CELÉHO DNE (řeší 1. -> 3. fázi)
         for (const recordKey in historyStats) {
           if (recordKey.startsWith(wId + "_")) {
-            const pastPosFromKey = recordKey.split('_')[1]; // získáme název pozice
-            if (getBasePos(pastPosFromKey) === currentBase) {
-              // Pokud už dnes tuto operaci dělal, obrovská penalizace
+            // recordKey vypadá takto: "IDZAMESTNANCE_DP-L"
+            const pastPosFull = recordKey.split('_')[1]; 
+            const pastBase = getBasePos(pastPosFull);
+            
+            if (pastBase === currentBase) {
+              // Pokud už dnes tento TYP operace dělal, obrovská penalizace
               currentScore += 3000; 
             }
           }
@@ -472,6 +476,27 @@ function buildPhase(act) {
     return { assign: bestResult, reserves };
   }
   return null;
+}
+
+function runSmartAttempt(orderedPos, map) {
+  let assign = {}; let used = new Set(); let steps = 0;
+  function solve(index) {
+    steps++; 
+    if (steps > 10000) return false; 
+    if (index === orderedPos.length) return true;
+
+    const pos = orderedPos[index];
+    let candidates = map[pos].filter(w => !used.has(w.id));
+    candidates.sort(() => Math.random() - 0.5);
+
+    for (const worker of candidates) {
+      assign[pos] = worker; used.add(worker.id);
+      if (solve(index + 1)) return true;
+      used.delete(worker.id); delete assign[pos];
+    }
+    return false;
+  }
+  return solve(0) ? assign : null;
 }
 
 function runSmartAttempt(orderedPos, map) {
