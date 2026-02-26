@@ -156,7 +156,50 @@ button {
 /* PosCol a Table Borders */
 th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px; }
 .posCol { text-align: left; font-weight: 800; }
+.blacklist, #lockBoxVY {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    padding: 15px 0;
+}
 
+/* Základní vzhled tlačítka - vychází z tvého .menuBtn stylu */
+.pos-btn {
+    width: 100% !important;
+    padding: 10px !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    font-weight: 800 !important;
+    font-size: 12px !important;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin: 0 !important;
+    transition: all 0.2s ease;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+/* ZELENÁ (Aktivní - pozice je v generování) */
+.pos-btn.active {
+    background: rgba(34, 197, 94, 0.4) !important; /* Průhlednější zelená */
+    border: 1px solid #22c55e !important;
+    color: #ffffff !important;
+}
+
+/* ČERVENÁ (Vyřazená - pozice se negeneruje) */
+.pos-btn.excluded {
+    background: rgba(239, 68, 68, 0.6) !important; /* Výraznější červená */
+    border: 1px solid #ef4444 !important;
+    color: #ffffff !important;
+}
+
+/* Efekt při najetí a kliknutí */
+.pos-btn:hover {
+    filter: brightness(1.2);
+}
+
+.pos-btn:active {
+    transform: scale(0.95);
+}
 </style>
 </head>
 
@@ -191,7 +234,9 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 
 <details>
 <summary>🔒 Vyřadit pozice z generování</summary>
-<div class="lockList" id="lockBox"></div>
+<div class="blacklist" id="lockBoxVY">
+                    <!-- Tady nechej prázdno, tlačítka vygenerujeme skriptem -->
+                 </div>
 </details>
 
 <button class="genBtn" id="genBtn">⚙️ Generovat</button>
@@ -729,7 +774,31 @@ saveBtn.onclick = async ()=>{
 
  alert("✅ Uloženo (včetně status snapshotu)");
 };
+function vykresliTlacitkaPozic() {
+    const box = document.getElementById('lockBoxVY');
+    if (!box) return;
 
+    box.innerHTML = ''; // Vyčistíme starý obsah (checkboxy)
+
+    // Tady použijeme tvůj seznam pozic (v kódu ho máš pravděpodobně jako Object.keys(poziceData))
+    // Pokud máš jiný název proměnné pro těch ~30 pozic, změň 'poziceData' níže
+    Object.keys(poziceData).forEach(nazev => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.innerText = nazev;
+        btn.className = 'pos-btn active'; // Výchozí zelená
+        
+        btn.onclick = function() {
+            this.classList.toggle('active');
+            this.classList.toggle('excluded');
+        };
+        
+        box.appendChild(btn);
+    });
+}
+
+// Zavoláme funkci, aby se tlačítka vykreslila po načtení
+vykresliTlacitkaPozic();
 
 </script>
 </body>
