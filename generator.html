@@ -449,7 +449,7 @@ function buildPhase(act) {
   const currentPhaseIdx = phases.length; 
 
   // Zvýšeno na 1000 pokusů pro maximální šanci najít ideální rotaci
-  for (let i = 0; i < 300; i++) {
+  for (let i = 0; i < 600; i++) {
     const attempt = runSmartAttempt(orderedPos, map);
     if (!attempt) continue;
 
@@ -462,7 +462,7 @@ function buildPhase(act) {
       const lastPos = lastPosByWorker[wId];
       if (lastPos) {
         if (lastPos === pos) currentScore += 50000; // Extrémní trest
-        else if (getBasePos(lastPos) === currentBase) currentScore += 40000;
+        else if (getBasePos(lastPos) === currentBase) currentScore += 20000;
       }
 
       // 2. ZÁKAZ SKÁKÁNÍ OB JEDNU FÁZI (1-3, 2-4)
