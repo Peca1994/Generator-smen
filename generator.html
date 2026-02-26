@@ -412,15 +412,18 @@ function buildPhase(act) {
   act.forEach(pos => {
     map[pos] = workers.filter(w => w.skills && w.skills.includes(pos));
   });
+  
+  // Seřadíme pozice od těch nejtěžších na obsazení (nejméně lidí se skillem)
   const orderedPos = [...act].sort((a, b) => map[a].length - map[b].length);
 
   let bestResult = null;
   let minScore = Infinity;
 
-  // Pomocná funkce pro získání typu operace bez strany (např. "DP-L" -> "DP")
+  // Funkce, která z "DP-L" udělá "DP"
   const getBasePos = (p) => p.split('-')[0];
 
-  for (let i = 0; i < 30; i++) { // Zvýšil jsem počet pokusů na 30 pro lepší rotaci
+  // Zvýšíme počet pokusů na 100, aby algoritmus opravdu hledal nejlepší rotaci
+  for (let i = 0; i < 100; i++) {
     const attempt = runSmartAttempt(orderedPos, map);
     
     if (attempt) {
@@ -428,28 +431,34 @@ function buildPhase(act) {
       
       for (const pos in attempt) {
         const wId = attempt[pos].id;
-        const lastPos = lastPosByWorker[wId]; // Co dělal v minulé fázi
+        const lastPos = lastPosByWorker[wId]; 
         
         if (lastPos) {
-          // 1. VELKÁ PENALIZACE: Stejná pozice (např. DP-L -> DP-L)
+          const lastBase = getBasePos(lastPos);
+          const currentBase = getBasePos(pos);
+
+          // 1. KRITICKÁ PENALIZACE: Úplně stejná pozice (DP-L -> DP-L)
           if (lastPos === pos) {
-            currentScore += 50; 
+            currentScore += 1000; 
           } 
-          // 2. STŘEDNÍ PENALIZACE: Stejná operace, jiná strana (např. DP-L -> DP-P)
-          else if (getBasePos(lastPos) === getBasePos(pos)) {
-            currentScore += 20;
+          // 2. VYSOKÁ PENALIZACE: Stejná operace, jiná strana (DP-L -> DP-P)
+          // Pokud je to stejný základ (např. DP), dáme velký trest, aby to algoritmus nechtěl udělat
+          else if (lastBase === currentBase) {
+            currentScore += 500;
           }
         }
 
-        // 3. MALÁ PENALIZACE: Celková historie (aby se lidi střídali spravedlivě za celý den)
-        currentScore += (historyStats[wId + "_" + pos] || 0) * 5;
+        // 3. DROBNÁ PENALIZACE: Historie za celý den (aby se lidi střídali fér)
+        currentScore += (historyStats[wId + "_" + pos] || 0) * 10;
       }
 
       if (currentScore < minScore) {
         minScore = currentScore;
         bestResult = attempt;
       }
-      if (minScore === 0) break; // Našli jsme ideální stav bez opakování
+      
+      // Pokud najdeme řešení, kde nikdo neopakuje ani stranu, ani operaci (score 0), bereme hned
+      if (minScore === 0) break;
     }
   }
 
