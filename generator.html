@@ -435,13 +435,12 @@ if (typeof lastPosByWorker === 'undefined') { var lastPosByWorker = {}; }
 function buildPhase(act) {
   if (!act || !workers || workers.length < act.length) return null;
 
-  // 1. Mapa skillů - kdo co může dělat
   const map = {};
   act.forEach(pos => {
     map[pos] = workers.filter(w => w.skills && w.skills.includes(pos));
   });
 
-  // 2. Řadíme pozice od nejtěžších (které může dělat nejmíň lidí)
+  // Řadíme od nejtěžších pozic (kritické)
   const orderedPos = [...act].sort((a, b) => map[a].length - map[b].length);
 
   let assign = {};
@@ -449,47 +448,46 @@ function buildPhase(act) {
   const currentPhaseIdx = phases.length;
 
   for (const pos of orderedPos) {
-    // Vezmeme volné lidi se skillem a zamícháme je
     let candidates = map[pos].filter(w => !usedIds.has(w.id));
+    if (candidates.length === 0) return null; // Fakt nikdo nemá skill
+
+    // Zamícháme pro náhodnost
     candidates.sort(() => Math.random() - 0.5);
 
-  let selectedWorker = null;
+    let bestCandidate = null;
+    let fallbackCandidate = null;
 
-    // 1. POKUS: Najít ideálního (ne 1-2-1 a ne 1-3-1)
     for (const worker of candidates) {
       const wId = worker.id;
-      if (lastPosByWorker[wId] === pos) continue; // 1-2-1 stop
+      const lastPos = lastPosByWorker[wId];
 
+      // 1. KONTROLA: Úplný ideál (nebyl tam teď ani ob jednu fázi)
+      let wasHereNow = (lastPos === pos);
+      let wasHereBefore = false;
       if (currentPhaseIdx >= 2) {
         const phBack2 = phases[currentPhaseIdx - 2];
-        if (Object.keys(phBack2).find(p => phBack2[p]?.id === wId) === pos) continue; // 1-3-1 stop
-      }
-      selectedWorker = worker;
-      break;
-    }
-
-    // 2. POKUS (POJISTKA): Pokud jsme nenašli ideál, zkusíme najít aspoň někoho, kdo tam neseděl hned předtím
-    if (!selectedWorker) {
-      for (const worker of candidates) {
-        if (lastPosByWorker[worker.id] !== pos) {
-          selectedWorker = worker;
-          break;
+        if (Object.keys(phBack2).find(p => phBack2[p]?.id === wId) === pos) {
+          wasHereBefore = true;
         }
       }
+
+      if (!wasHereNow && !wasHereBefore) {
+        bestCandidate = worker;
+        break; 
+      }
+
+      // 2. KONTROLA: Aspoň tam neseděl teď (porušíme jen pravidlo 1-3-1)
+      if (!wasHereNow && !fallbackCandidate) {
+        fallbackCandidate = worker;
+      }
     }
 
-    // 3. POKUS (POSLEDNÍ ZÁCHRANA): Pokud fakt nikdo nezbývá, vezmi kohokoliv se skillem
-    if (!selectedWorker && candidates.length > 0) {
-      selectedWorker = candidates[0];
-    }
+    // VÝBĚR: Priorita 1: Ideál | Priorita 2: Fallback | Priorita 3: Kdokoliv zbyl
+    const finalWorker = bestCandidate || fallbackCandidate || candidates[0];
 
-    if (selectedWorker) {
-      assign[pos] = selectedWorker;
-      usedIds.add(selectedWorker.id);
-      lastPosByWorker[selectedWorker.id] = pos; // Uložíme pro příští fázi
-    } else {
-      return null; // Kritický nedostatek lidí se skillem
-    }
+    assign[pos] = finalWorker;
+    usedIds.add(finalWorker.id);
+    lastPosByWorker[finalWorker.id] = pos;
   }
 
   return { assign, reserves: workers.filter(w => !usedIds.has(w.id)) };
