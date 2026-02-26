@@ -439,86 +439,123 @@ function buildPhase(act) {
   act.forEach(pos => {
     map[pos] = workers.filter(w => w.skills && w.skills.includes(pos));
   });
-
-  // Řadíme od nejtěžších pozic (kritické)
   const orderedPos = [...act].sort((a, b) => map[a].length - map[b].length);
 
-  let assign = {};
-  let usedIds = new Set();
-  const currentPhaseIdx = phases.length;
+  let bestResult = null;
+  let minScore = Infinity;
 
-  for (const pos of orderedPos) {
-    let candidates = map[pos].filter(w => !usedIds.has(w.id));
-    if (candidates.length === 0) return null; // Fakt nikdo nemá skill
+  const getBasePos = (p) => (p && p.includes('-')) ? p.split('-')[0] : (p || "");
 
-    // Zamícháme pro náhodnost
-    candidates.sort(() => Math.random() - 0.5);
+  const currentPhaseIdx = phases.length; 
 
-    let bestCandidate = null;
-    let fallbackCandidate = null;
+  // Zvýšeno na 1000 pokusů pro maximální šanci najít ideální rotaci
+  for (let i = 0; i < 300; i++) {
+    const attempt = runSmartAttempt(orderedPos, map);
+    if (!attempt) continue;
 
-    for (const worker of candidates) {
-      const wId = worker.id;
+    let currentScore = 0;
+    for (const pos in attempt) {
+      const wId = attempt[pos].id;
+      const currentBase = getBasePos(pos);
+      
+      // 1. ZÁKAZ OPAKOVÁNÍ HNED PO SOBĚ (1-2, 2-3, 3-4)
       const lastPos = lastPosByWorker[wId];
+      if (lastPos) {
+        if (lastPos === pos) currentScore += 50000; // Extrémní trest
+        else if (getBasePos(lastPos) === currentBase) currentScore += 20000;
+      }
 
-      // 1. KONTROLA: Úplný ideál (nebyl tam teď ani ob jednu fázi)
-      let wasHereNow = (lastPos === pos);
-      let wasHereBefore = false;
+      // 2. ZÁKAZ SKÁKÁNÍ OB JEDNU FÁZI (1-3, 2-4)
       if (currentPhaseIdx >= 2) {
-        const phBack2 = phases[currentPhaseIdx - 2];
-        if (Object.keys(phBack2).find(p => phBack2[p]?.id === wId) === pos) {
-          wasHereBefore = true;
+        const phaseBack2 = phases[currentPhaseIdx - 2];
+        const posBack2 = Object.keys(phaseBack2).find(p => phaseBack2[p].id === wId);
+        
+        if (posBack2) {
+           if (posBack2 === pos) {
+             currentScore += 30000; // Obrovský trest za návrat na stejnou židli
+           } else if (getBasePos(posBack2) === currentBase) {
+             currentScore += 15000; // Velký trest za stejný typ operace
+           }
         }
       }
-
-      if (!wasHereNow && !wasHereBefore) {
-        bestCandidate = worker;
-        break; 
-      }
-
-      // 2. KONTROLA: Aspoň tam neseděl teď (porušíme jen pravidlo 1-3-1)
-      if (!wasHereNow && !fallbackCandidate) {
-        fallbackCandidate = worker;
-      }
+      
+      // 3. DROBNÁ PENALIZACE ZA CELÝ DEN (historie 1-4 atd.)
+      currentScore += (historyStats[wId + "_" + pos] || 0) * 100;
     }
 
-    // VÝBĚR: Priorita 1: Ideál | Priorita 2: Fallback | Priorita 3: Kdokoliv zbyl
-    const finalWorker = bestCandidate || fallbackCandidate || candidates[0];
-
-    assign[pos] = finalWorker;
-    usedIds.add(finalWorker.id);
-    lastPosByWorker[finalWorker.id] = pos;
+    if (currentScore < minScore) {
+      minScore = currentScore;
+      bestResult = attempt;
+    }
+    // Pokud najdeme řešení se skóre 0 (nikdo neopakuje nic), končíme hned
+    if (minScore === 0) break;
   }
 
-  return { assign, reserves: workers.filter(w => !usedIds.has(w.id)) };
+  if (bestResult) {
+    for (const p in bestResult) {
+      const wId = bestResult[p].id;
+      historyStats[wId + "_" + p] = (historyStats[wId + "_" + p] || 0) + 1;
+      lastPosByWorker[wId] = p;
+    }
+    const usedIds = new Set(Object.values(bestResult).map(w => w.id));
+    return { assign: bestResult, reserves: workers.filter(w => !usedIds.has(w.id)) };
+  }
+  return null;
 }
+
+function runSmartAttempt(orderedPos, map) {
+  let assign = {}; let used = new Set(); let steps = 0;
+  function solve(index) {
+    steps++; 
+    if (steps > 10000) return false; 
+    if (index === orderedPos.length) return true;
+
+    const pos = orderedPos[index];
+    let candidates = map[pos].filter(w => !used.has(w.id));
+    candidates.sort(() => Math.random() - 0.5);
+
+    for (const worker of candidates) {
+      assign[pos] = worker; used.add(worker.id);
+      if (solve(index + 1)) return true;
+      used.delete(worker.id); delete assign[pos];
+    }
+    return false;
+  }
+  return solve(0) ? assign : null;
+} 
 
 
 /* GENERATE */
 
-genBtn.onclick = async () => {
-  loadingEl.style.display = "flex";
-  await loadWorkers();
+genBtn.onclick = async ()=>{
 
-  const act = activePositions(); 
+ loadingEl.style.display="flex";
 
-  phases = [];
-  phaseReserves = [];
-  lastPosByWorker = {}; // DŮLEŽITÉ: Vyčistit historii před novým generováním
+ await loadWorkers();
 
-  for (let i = 0; i < 4; i++) {
-    const res = buildPhase(act);
-    if (!res) {
-      alert("❌ Nelze obsadit všechny pozice — málo lidí / skillů");
-      loadingEl.style.display = "none";
-      return;
-    }
-    phases.push(res.assign);
-    phaseReserves.push(res.reserves);
-  }
+ const act = activePositions();   // ← TOHLE CHYBÍ
 
-  render();
-  loadingEl.style.display = "none";
+ phases = [];
+ phaseReserves = [];
+ lastPosByWorker = {};
+
+ for(let i=0;i<4;i++){
+
+   const res = buildPhase(act);
+
+   if(!res){
+     alert("❌ Nelze obsadit všechny pozice — málo lidí / skillů");
+     loadingEl.style.display="none";
+     return;
+   }
+
+   phases.push(res.assign);
+   phaseReserves.push(res.reserves);
+ }
+
+ render();
+
+ loadingEl.style.display="none";
 };
 
 
