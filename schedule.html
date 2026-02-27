@@ -4,46 +4,146 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Směnový graf | ShiftMaster</title>
+
 <style>
-    body { background: radial-gradient(circle at center, #062111 0%, #000000 100%); margin: 0; font-family: 'Inter', sans-serif; color: white; min-height: 100vh; }
-    .background-logo { position: fixed; top: 25%; left: 50%; transform: translate(-50%, -50%); z-index: -1; opacity: 0.1; }
-    .background-logo img { width: 400px; filter: hue-rotate(85deg) saturate(2.5); }
-    .topbar { width: 100%; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-sizing: border-box; }
-    .menuBtn { padding: 8px 14px; border-radius: 10px; border: none; background: rgba(51, 65, 85, 0.8); color: white; cursor: pointer; font-weight: 800; }
-    .container { max-width: 450px; margin: 20px auto; padding: 15px; }
-    .card { background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; }
-    label { font-weight: 800; font-size: 13px; opacity: 0.8; display: block; margin-top: 10px; }
-    input, select { width: 100%; padding: 14px; border-radius: 12px; border: none; margin-top: 6px; background: white; color: black; font-weight: 700; box-sizing: border-box; }
-    .table-wrapper { overflow-x: auto; margin-top: 10px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    th { color: #22c55e; font-weight: 900; }
-    .posCol { text-align: left; font-weight: 900; color: #38bdf8; }
-    .highlight { color: #22c55e; font-weight: 900; background: rgba(34, 197, 94, 0.1); }
-    .empty { opacity: .3; }
+/* 1. GLOBÁLNÍ DESIGN S LOGEM ŠKODA */
+body {
+    /* Identické tmavě zelené pozadí */
+    background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    color: white;
+    min-height: 100vh;
+}
+
+/* Zapuštěné logo ŠKODA na pozadí */
+.background-logo {
+    position: fixed;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+    text-align: center;
+    pointer-events: none;
+}
+
+.background-logo img {
+    width: 650px !important;
+    max-width: 90vw !important;
+    opacity: 0.12 !important;
+    filter: brightness(0.6) sepia(1) hue-rotate(85deg) saturate(2.5) blur(1px) !important;
+    mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
+    -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
+}
+
+.background-logo h1 {
+    font-size: 16vw !important;
+    margin-top: -30px !important;
+    letter-spacing: 25px !important;
+    color: #1a3a2a !important;
+    opacity: 0.5 !important;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+/* 2. TOPBAR */
+
+.menuBtn { 
+    padding: 8px 14px; 
+    border-radius: 10px; 
+    border: none; 
+    font-weight: 800; 
+    background: rgba(51, 65, 85, 0.8); 
+    color: white; 
+    cursor: pointer; 
+}
+
+/* 3. KONTEJNER A SKLENĚNÉ KARTY */
+.container { max-width: 450px; margin: 20px auto; padding: 15px; }
+
+.card {
+    background: rgba(17, 24, 39, 0.6) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 20px; padding: 20px; margin-bottom: 15px;
+}
+
+/* 4. FORMULÁŘE A ČITELNOST */
+label { font-weight: 800; font-size: 13px; opacity: 0.8; letter-spacing: 1px; display: block; margin-top: 10px; text-shadow: 1px 1px 3px black; }
+input, select {
+    width: 100% !important; padding: 14px; border-radius: 12px; border: none;
+    margin-top: 6px; background: white !important; color: black !important;
+    font-weight: 700; box-sizing: border-box; font-size: 16px;
+}
+
+/* 5. TABULKA */
+.table-wrapper { overflow-x: auto; margin-top: 10px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+th { color: #22c55e; font-weight: 900; background: rgba(0,0,0,0.2); }
+.posCol { text-align: left; font-weight: 900; color: #38bdf8; }
+.highlight { color: #22c55e !important; font-weight: 900; background: rgba(34, 197, 94, 0.1); }
+.empty { opacity: .3; }
+.topbar {
+    width: 100% !important;
+    height: 60px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 20px !important;
+    box-sizing: border-box !important;
+    background: transparent !important;
+    border: none !important;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.topTitle {
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif !important;
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    letter-spacing: -0.5px !important;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    padding-left: 10px;
+}
+
+
 </style>
 </head>
-<body>
 
-<div class="background-logo"><img src="pozadi.jpg" alt="Logo"></div>
+<body>
+<div class="background-logo">
+    <img src="pozadi.jpg" alt="Logo">
+</div>
 <div class="topbar">
-    <span style="font-weight:800; font-size:20px;">📊 Směnový Graf</span>
+    <span class="topTitle">📊 Směnový Graf</span>
     <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
 </div>
-
 <div class="container">
     <div class="card">
         <label>DATUM</label>
         <input type="date" id="date">
+
         <label>SMĚNA</label>
         <select id="shift">
             <option value="ranni">Ranní</option>
             <option value="odpo">Odpolední</option>
             <option value="noc">Noční</option>
         </select>
+
         <label>VYHLEDAT JMÉNO</label>
         <input id="nameFilter" placeholder="např. Pepa">
     </div>
+
+    <div class="card" id="shiftInfoBox" style="display:none">
+      <h3 style="color:#22c55e; margin:0 0 10px 0;">ℹ️ Info o směně</h3>
+      <div id="infoDetails"></div>
+    </div>
+
     <div class="card">
         <div class="table-wrapper">
             <table id="grid"></table>
@@ -52,17 +152,19 @@
 </div>
 
 <script type="module">
-// 1. OPRAVENÉ IMPORTY S PŘESNOU VERZÍ
+// 1. KOMPLETNÍ A FUNKČNÍ CDN ODKAZY PRO PROHLÍŽEČ
 import { initializeApp } from "https://www.gstatic.com";
 import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com";
 
+// Tvůj přesný konfigurák ze screenshotu
 const firebaseConfig = {
     apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
     authDomain: "generator-smen-9fba1.firebaseapp.com",
     projectId: "generator-smen-9fba1",
     storageBucket: "generator-smen-9fba1.firebasestorage.app",
     messagingSenderId: "541779211883",
-    appId: "1:541779211883:web:1d8578ec61b0f428a4632e"
+    appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
+    measurementId: "G-1HF3R93092"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -73,17 +175,18 @@ const shiftEl = document.getElementById("shift");
 const nameFilterEl = document.getElementById("nameFilter");
 const gridEl = document.getElementById("grid");
 
-// 2. OPRAVA NASTAVENÍ DATA (Český čas)
-const d = new Date();
-const offset = d.getTimezoneOffset() * 60000;
-const localISOTime = (new Date(d.getTime() - offset)).toISOString().slice(0, 10);
-dateEl.value = localISOTime;
+// 2. OPRAVA DATA: Automatické nastavení dneška v lokálním čase
+const today = new Date();
+const offset = today.getTimezoneOffset() * 60000;
+const localDate = new Date(today.getTime() - offset).toISOString().split('T')[0];
+dateEl.value = localDate;
 
 const POSITIONS = ["DP-L","DP-P","ZRC-L","ZRC-P","T-L","T-P","AGR-LP","AGR-PP","AGR-PZ","AGR-LZ","MOT-L","MOT-P","LEP-LP","LEP-PP","LEP-Z","REPRO-L","REPRO-P","VYP1-L","VYP1-P","VYP2-L","VYP2-P","PR-L","PR-P","ZAM-L","ZAM-P","VET","VET2","INST","INST2","JINE","JINE2"];
 
 let workerMap = {}; 
 let phasesData = [];
 
+// Načtení jmen zaměstnanců
 async function loadWorkers(){
     try {
         const snap = await getDocs(collection(db, "employees"));
@@ -92,55 +195,64 @@ async function loadWorkers(){
             const e = d.data();
             workerMap[d.id] = (e.fName || e.name || "") + " " + (e.lName || "");
         });
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Chyba loadWorkers:", err); }
 }
 
+// Načtení rozpisu podle data a směny
 async function loadShift(){
+    if(!dateEl.value) return;
     const id = `${dateEl.value}_${shiftEl.value}`;
-    gridEl.innerHTML = "<tr><td>Načítám rozpis...</td></tr>";
+    console.log("Hledám ID:", id); // Uvidíš v F12 konzoli
+
     try {
         const snap = await getDoc(doc(db, "shifts", id));
         if(!snap.exists()){
-            gridEl.innerHTML = "<tr><td style='padding:20px; opacity:0.5;'>Rozpis pro tento den neexistuje.</td></tr>";
+            gridEl.innerHTML = `<tr><td colspan="5" style="padding:20px; opacity:0.5;">Rozpis pro ${dateEl.value} nenalezen.</td></tr>`;
             phasesData = [];
             return;
         }
         phasesData = snap.data().phases || [];
         render();
     } catch (err) { 
-        gridEl.innerHTML = "<tr><td>Chyba: " + err.message + "</td></tr>";
+        console.error("Chyba loadShift:", err);
+        gridEl.innerHTML = "<tr><td>Chyba spojení s Firebase.</td></tr>";
     }
 }
 
 function render(){
-    const filter = nameFilterEl.value.toLowerCase();
+    const filter = nameFilterEl.value.toLowerCase().trim();
     const s = shiftEl.value;
-    let labels = (s === "ranni") ? ["6:00","8:00","10:45","12:00"] : (s === "odpo") ? ["14:00","16:00","18:45","20:00"] : ["22:00","00:00","02:45","04:00"];
+    const labels = (s === "ranni") ? ["6:00","8:00","10:45","12:00"] : (s === "odpo") ? ["14:00","16:00","18:45","20:00"] : ["22:00","00:00","02:45","04:00"];
     
-    let html = "<thead><tr><th>Pozice</th>" + labels.map(l => `<th>${l}</th>`).join('') + "</tr></thead><tbody>";
-    
+    let html = "<thead><tr><th>Pozice</th>";
+    labels.forEach(l => html += `<th>${l}</th>`);
+    html += "</tr></thead><tbody>";
+
     POSITIONS.forEach(pos => {
-        let cells = [];
+        let rowNames = [];
         for(let i=0; i<4; i++) {
             const wid = phasesData[i] ? phasesData[i][pos] : null;
-            cells.push(wid ? (workerMap[wid] || "???") : "");
+            rowNames.push(wid ? workerMap[wid] || "???" : "");
         }
-        if(filter && !cells.some(c => c.toLowerCase().includes(filter))) return;
+        if(filter && !rowNames.some(n => n.toLowerCase().includes(filter))) return;
         
-        html += `<tr><td class="posCol">${pos}</td>` + cells.map(c => {
-            if(!c) return `<td class="empty">—</td>`;
-            return filter && c.toLowerCase().includes(filter) ? `<td class="highlight">${c}</td>` : `<td>${c}</td>`;
-        }).join('') + "</tr>";
+        html += `<tr><td class="posCol">${pos}</td>`;
+        rowNames.forEach(n => {
+            if(!n) html += `<td class="empty">—</td>`;
+            else if(filter && n.toLowerCase().includes(filter)) html += `<td class="highlight">${n}</td>`;
+            else html += `<td>${n}</td>`;
+        });
+        html += "</tr>";
     });
     gridEl.innerHTML = html + "</tbody>";
 }
 
-// POSLUCHAČE - REAKCE NA ZMĚNU
+// 3. AKTIVACE REAKCE NA ZMĚNU DATA A SMĚNY
 dateEl.addEventListener("change", loadShift);
 shiftEl.addEventListener("change", loadShift);
 nameFilterEl.addEventListener("input", render);
 
-// START
+// Spuštění po načtení stránky
 (async () => {
     await loadWorkers();
     await loadShift();
