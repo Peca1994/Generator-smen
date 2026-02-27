@@ -209,6 +209,57 @@ body {
         max-width: none;
     }
 }
+/* 1. HLAVNÍ KONTEJNER PRO CELOU SPODNÍ ČÁST */
+.bottom-area {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 500px;
+    padding-bottom: 10px; /* Mezera od úplného spodku */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1001;
+}
+
+/* 2. PSACÍ LIŠTA - Teď je nad disclaimerem */
+.chat-input-wrapper {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    padding: 8px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    width: 90%; 
+    margin-bottom: 10px; 
+}
+
+/* 3. DISCLAIMER - Úplně dole */
+.disclaimer {
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.25);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 100%;
+}
+
+/* 4. ÚPRAVA VÝŠKY CHATU */
+#chatBox {
+    height: calc(100vh - 220px); 
+    margin-top: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+    padding-bottom: 120px; /* Aby zprávy nezajely pod lištu */
+}
 </style>
 </head>
 
@@ -229,14 +280,16 @@ body {
 <!-- 3. Tady už máš (nebo vlož) spodní část s textem -->
 
 <div class="chat-input-container">
+    <!-- 1. Psací lišta -->
     <div class="chat-input-wrapper">
         <input type="text" id="msgInput" placeholder="Napiš vzkaz...">
         <button id="sendBtn">
             <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z" /></svg>
         </button>
     </div>
-</div>
-<div class="disclaimer">
+
+    <!-- 2. Text o právech (teď bude až pod lištou) -->
+    <div class="disclaimer">
         © 2024 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.
     </div>
 </div>
