@@ -271,15 +271,28 @@ function render(){
     const labels = (s === "ranni") ? ["6:00","8:00","10:45","12:00"] : (s === "odpo") ? ["14:00","16:00","18:45","20:00"] : ["22:00","00:00","02:45","04:00"];
     
     let html = "<thead><tr><th>Pozice</th>" + labels.map(l => `<th>${l}</th>`).join('') + "</tr></thead><tbody>";
+
     POSITIONS.forEach(pos => {
         let rowNames = [];
         for(let i=0; i<4; i++) {
             const wid = phasesData[i] ? phasesData[i][pos] : null;
-            rowNames.push(wid ? workerMap[wid] || "???" : "");
+            rowNames.push(wid ? (workerMap[wid] || "???" ) : "");
         }
+
+        // TADY JE TA MAGIE S BARVOU: Pokud je aspoň jedno jméno v řádku, bude zelená, jinak červená
+        const isOccupied = rowNames.some(n => n !== "");
+        const statusClass = isOccupied ? "active-pos" : "inactive-pos";
+
         if(filter && !rowNames.some(n => n.toLowerCase().includes(filter))) return;
         
-        html += `<tr><td class="posCol">${pos}</td>` + rowNames.map(n => n ? `<td>${n}</td>` : `<td class="empty">—</td>`).join('') + "</tr>";
+        // Přidáváme třídu statusClass do buňky s pozicí
+        html += `<tr><td class="posCol ${statusClass}">${pos}</td>`;
+        rowNames.forEach(n => {
+            if(!n) html += `<td class="empty">—</td>`;
+            else if(filter && n.toLowerCase().includes(filter)) html += `<td class="highlight">${n}</td>`;
+            else html += `<td>${n}</td>`;
+        });
+        html += "</tr>";
     });
     gridEl.innerHTML = html + "</tbody>";
 }
