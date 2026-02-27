@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zaměstnanci</title>
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com">
+
 <style>
 body {
     background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
@@ -263,19 +262,15 @@ if (statusSelect) {
 </script>
 
 <body>
-  <div class="topbar">
-    <button class="menu-btn-simple" onclick="window.location.href='index.html'">
-        <i class="fas fa-home"></i> Menu
-    </button>
-    <span class="page-title">Zaměstnanci</span>
-</div>
   <div class="background-logo">
     <img src="pozadi.jpg" alt="Logo">
 </div>
 
 <div class="topbar">
   <div class="topTitle">👥 Zaměstnanci</div>
-  
+  <button class="menuBtn" onclick="location.href='index.html'">
+    Menu
+  </button>
 </div>
 
 <div class="container">
@@ -608,9 +603,5 @@ window.saveBroadcast = async ()=>{
 };
 
 </script>
-<footer class="footer">
-    <p>&copy; 2024 Všechna práva vyhrazena | Škoda Auto a.s.</p>
-</footer>
-<script src="script.js"></script>
 </body>
 </html>
