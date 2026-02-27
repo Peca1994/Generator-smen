@@ -1,42 +1,77 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Týmový Chat | ShiftMaster</title>
-    <style>
-        /* 1. GLOBÁLNÍ DESIGN (PŘESNĚ PODLE TVÉHO STYLU) */
-        body {
-            background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
-            margin: 0; padding: 0; font-family: 'Inter', sans-serif; color: white; min-height: 100vh;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Týmový Chat</title>
 
-        /* Zapuštěné logo ŠKODA na pozadí */
-        .background-logo {
-            position: fixed; top: 25%; left: 50%; transform: translate(-50%, -50%);
-            z-index: -1; text-align: center; pointer-events: none;
-        }
-        .background-logo img {
-            width: 650px; max-width: 90vw; opacity: 0.12;
-            filter: brightness(0.6) sepia(1) hue-rotate(85deg) saturate(2.5) blur(1px);
-        }
+<style>
+/* 1. GLOBÁLNÍ RESET A OSTRÉ POZADÍ */
+body {
+    /* Identické tmavě zelené pozadí */
+    background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    color: white;
+    min-height: 100vh;
+}
 
-        /* TOPBAR */
-        .topbar {
-            width: 100%; height: 60px; display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px; box-sizing: border-box; position: sticky; top: 0; z-index: 1000;
-        }
-        .topTitle { font-size: 22px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-        .menuBtn { padding: 8px 14px; border-radius: 10px; border: none; font-weight: 800; background: rgba(51, 65, 85, 0.8); color: white; cursor: pointer; }
+/* Zapuštěné logo ŠKODA na pozadí */
+.background-logo {
+    position: fixed;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+    text-align: center;
+    pointer-events: none;
+}
 
-        /* KONTEJNER A CHAT KARTA */
-        .container { max-width: 500px; margin: 20px auto; padding: 15px; }
-        .card {
-            background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px;
-        }
+.background-logo img {
+    width: 650px !important;
+    max-width: 90vw !important;
+    opacity: 0.12 !important;
+    filter: brightness(0.6) sepia(1) hue-rotate(85deg) saturate(2.5) blur(1px) !important;
+    mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
+    -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
+}
 
-        /* CHAT OKNO */
+.background-logo h1 {
+    font-size: 16vw !important;
+    margin-top: -30px !important;
+    letter-spacing: 25px !important;
+    color: #1a3a2a !important;
+    opacity: 0.5 !important;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+/* 2. TOPBAR */
+.topbar {
+    width: 100% !important;
+    height: 60px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 20px !important;
+    box-sizing: border-box !important;
+    background: transparent !important;
+    border: none !important;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+.menuBtn { 
+    padding: 8px 14px; 
+    border-radius: 10px; 
+    border: none; 
+    font-weight: 800; 
+    background: rgba(51, 65, 85, 0.8); 
+    color: white; 
+    cursor: pointer; 
+}
+/* CHAT OKNO */
         #chatBox {
             height: 450px; overflow-y: auto; display: flex; flex-direction: column;
             gap: 12px; padding: 10px; margin-bottom: 15px;
@@ -54,14 +89,44 @@
             flex: 1; padding: 12px; border-radius: 12px; border: none;
             background: white; color: black; font-weight: 700;
         }
-
-        .disclaimer { text-align: center; margin-top: 30px; font-size: 10px; font-weight: 800; opacity: 0.4; text-transform: uppercase; letter-spacing: 1px; }
-    </style>
+.topTitle {
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif !important;
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    letter-spacing: -0.5px !important;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    padding-left: 10px;
+}
+.disclaimer {
+    position: relative; /* Změna z fixed na relative, aby netvořil prázdné místo pod sebou */
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.3); /* Decentní šedá */
+    text-align: left; /* Zarovnání doleva */
+    font-family: sans-serif;
+    line-height: 1.3;
+    width: 100%;
+    box-sizing: border-box;
+}
+@media (max-width: 480px) {
+    .disclaimer {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        text-align: center;
+        width: 90%;
+        max-width: none;
+    }
+}
+</style>
 </head>
+
 <body>
-
-<div class="background-logo"><img src="pozadi.jpg" alt="Logo"></div>
-
+<div class="background-logo">
+    <img src="pozadi.jpg" alt="Logo">
+</div>
 <div class="topbar">
     <span class="topTitle">💬 Týmový Chat</span>
     <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
@@ -76,17 +141,15 @@
             <input type="text" id="msgInput" placeholder="Napiš vzkaz...">
             <button class="menuBtn" id="sendBtn">Odeslat</button>
         </div>
-    </div>
-
-    <div class="disclaimer">
+<div class="disclaimer">
         © 2024 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.
     </div>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com";
-import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, getDocs, where } from "https://www.gstatic.com";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, setDoc, getDoc }
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
@@ -167,5 +230,6 @@ sendBtn.onclick = sendMessage;
 msgInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
 
 </script>
+
 </body>
 </html>
