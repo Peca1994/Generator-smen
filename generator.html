@@ -135,7 +135,10 @@ button {
     width: 100%; padding: 14px !important; border-radius: 12px !important;
     border: none !important; font-weight: 800; cursor: pointer; margin-top: 10px;
 }
-
+.topbar button {
+    width: auto !important;
+    margin-top: 0 !important; /* Odstraní horní mezeru, aby bylo tlačítko uprostřed lišty */
+}
 .genBtn, .btn-warning { background: #f59e0b !important; }
 .saveBtn, .btn-success { background: #22c55e !important; }
 .loadBtn, .pickBtn, .btn-primary { background: #2563eb !important; color: white !important; }
@@ -195,7 +198,7 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
      Načítám...
   </div>
 <div class="topbar">
-    <div class="topTitle">⚙️Generátor směny</div>
+    <span class="topTitle">⚙️Generátor směny</span>
      <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
 </div>
 
