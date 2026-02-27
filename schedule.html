@@ -157,7 +157,28 @@ th { color: #facc15 !important; font-weight: 900; background: rgba(0,0,0,0.2); }
         opacity: 0.2; 
     }
 }
-
+.disclaimer {
+    position: relative; /* Změna z fixed na relative, aby netvořil prázdné místo pod sebou */
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.3); /* Decentní šedá */
+    text-align: left; /* Zarovnání doleva */
+    font-family: sans-serif;
+    line-height: 1.3;
+    width: 100%;
+    box-sizing: border-box;
+}
+@media (max-width: 480px) {
+    .disclaimer {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        text-align: center;
+        width: 90%;
+        max-width: none;
+    }
+}
 </style>
 </head>
 
