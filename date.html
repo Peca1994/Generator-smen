@@ -208,52 +208,6 @@ body {
 #sendBtn svg {
     margin-left: 3px; /* Vycentrování ikonky šipky */
 }
-
-/* Aby zprávy nezajížděly pod lištu */
-#chatBox {
-    padding-bottom: 80px !important;
-}
-#chatBox {
-    position: fixed;
-    top: 80px; /* pod horní lištu */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 95%;
-    max-width: 500px;
-    height: calc(100vh - 200px); /* dynamická výška podle displeje */
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 15px;
-    z-index: 100;
-}
-
-/* Disclaimer - vynucení pozice úplně dole */
-.disclaimer {
-    position: fixed;
-    bottom: 85px; /* nad psací lištu */
-    left: 0;
-    width: 100%;
-    text-align: center;
-    font-size: 10px;
-    opacity: 0.4;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    z-index: 50;
-    pointer-events: none;
-}
-
-/* Psací lišta zůstává na spodu */
-.chat-input-container {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 500px;
-    z-index: 1001;
-}
 </style>
 </head>
 
