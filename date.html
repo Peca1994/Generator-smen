@@ -156,13 +156,14 @@ const firebaseConfig = {
     projectId: "generator-smen-9fba1",
     storageBucket: "generator-smen-9fba1.firebasestorage.app",
     messagingSenderId: "541779211883",
-    appId: "1:541779211883:web:1d8578ec61b0f428a4632e"
+    appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
+    measurementId: "G-1HF3R93092"
 };
 
-// 2. INICIALIZACE (včetně getAuth)
+// 2. INICIALIZACE - Teď už getAuth() bude fungovat
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app); // Tato řádka ti házela chybu
+const auth = getAuth(app); 
 
 const chatBox = document.getElementById("chatBox");
 const msgInput = document.getElementById("msgInput");
@@ -170,34 +171,35 @@ const sendBtn = document.getElementById("sendBtn");
 
 let currentUserNickname = "Host";
 
-// 3. ZJIŠTĚNÍ PŘEZDÍVKY PODLE EMAILU
+// 3. ZJIŠTĚNÍ PŘEZDÍVKY PŘIHLÁŠENÉHO UŽIVATELE
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
-            // Hledáme v employees email, který se shoduje s přihlášeným uživatelem
+            // Hledáme v employees dokument, kde email odpovídá přihlášenému uživateli
             const q = query(collection(db, "employees"), where("email", "==", user.email));
             const snap = await getDocs(q);
             
             if (!snap.empty) {
+                // Oprava: Získání dat z prvního nalezeného dokumentu
                 const empData = snap.docs[0].data();
-                // Priorita: Přezdívka -> Jméno -> Email
                 currentUserNickname = empData.nickname || empData.fName || user.email.split('@')[0];
             } else {
                 currentUserNickname = user.email.split('@')[0];
             }
         } catch (e) { 
-            console.error("Chyba při hledání uživatele:", e);
+            console.error("Chyba při hledání jména:", e);
             currentUserNickname = user.email.split('@')[0];
         }
     } else {
-        // Pokud není nikdo přihlášený, chat zakážeme nebo přesměrujeme
+        // Pokud nikdo není přihlášen, nepustíme ho do chatu
         window.location.href = "index.html"; 
     }
 });
 
-// 2. NAČÍTÁNÍ ZPRÁV V REÁLNÉM ČASE
+// 4. NAČÍTÁNÍ ZPRÁV V REÁLNÉM ČASE
 const qChat = query(collection(db, "chat"), orderBy("createdAt", "asc"));
 onSnapshot(qChat, (snapshot) => {
+    // Smažeme text "Načítám zprávy..." a vypíšeme chat
     chatBox.innerHTML = "";
     snapshot.forEach((doc) => {
         const m = doc.data();
@@ -205,17 +207,17 @@ onSnapshot(qChat, (snapshot) => {
         const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "";
         
         chatBox.innerHTML += `
-            <div class="msg ${isMe ? 'me' : ''}">
-                <span class="msg-sender">${m.sender}</span>
-                ${m.text}
-                <span class="msg-time">${time}</span>
+            <div class="msg ${isMe ? 'me' : ''}" style="margin: 5px; padding: 10px; border-radius: 10px; background: ${isMe ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255,255,255,0.1)'}; align-self: ${isMe ? 'flex-end' : 'flex-start'}; max-width: 80%;">
+                <span style="font-size: 10px; color: #38bdf8; font-weight: bold; display: block;">${m.sender}</span>
+                <span style="display: block; margin: 4px 0;">${m.text}</span>
+                <span style="font-size: 8px; opacity: 0.5; display: block; text-align: right;">${time}</span>
             </div>
         `;
     });
-    chatBox.scrollTop = chatBox.scrollHeight; // Automatický scroll dolů
+    chatBox.scrollTop = chatBox.scrollHeight;
 });
 
-// 3. ODESÍLÁNÍ ZPRÁVY
+// 5. ODESÍLÁNÍ ZPRÁVY
 async function sendMessage() {
     const text = msgInput.value.trim();
     if (!text) return;
@@ -224,15 +226,18 @@ async function sendMessage() {
         await addDoc(collection(db, "chat"), {
             text: text,
             sender: currentUserNickname,
-            createdAt: new Date()
+            createdAt: serverTimestamp() 
         });
         msgInput.value = "";
-    } catch (e) { alert("Zprávu se nepodařilo odeslat."); }
+    } catch (e) { 
+        console.error("Chyba odesílání:", e);
+        alert("Chyba: " + e.message); 
+    }
 }
 
+// Připojení funkcí na tlačítka (vložit za definici funkce)
 sendBtn.onclick = sendMessage;
 msgInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
-
 </script>
 
 </body>
