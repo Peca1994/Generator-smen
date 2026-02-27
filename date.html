@@ -72,23 +72,54 @@ body {
     cursor: pointer; 
 }
 /* CHAT OKNO */
-        #chatBox {
-            height: 450px; overflow-y: auto; display: flex; flex-direction: column;
-            gap: 12px; padding: 10px; margin-bottom: 15px;
-            scrollbar-width: thin; scrollbar-color: #22c55e rgba(0,0,0,0);
-        }
-        /* Styl zprávy */
-        .msg { padding: 10px 14px; border-radius: 15px; max-width: 80%; position: relative; background: rgba(255,255,255,0.1); align-self: flex-start; }
-        .msg.me { align-self: flex-end; background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; }
-        .msg-sender { font-size: 11px; font-weight: 900; color: #38bdf8; margin-bottom: 4px; display: block; }
-        .msg-time { font-size: 9px; opacity: 0.4; display: block; text-align: right; margin-top: 4px; }
+       #chatBox {
+    height: 400px; 
+    overflow-y: auto; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+    padding: 15px;
+    margin-bottom: 20px;
+    background: rgba(0, 0, 0, 0.2); /* Mírné ztmavení pozadí chatu */
+    border-radius: 15px;
+}
 
-        /* VSTUPNÍ POLE */
-        .input-area { display: flex; gap: 10px; }
-        input {
-            flex: 1; padding: 12px; border-radius: 12px; border: none;
-            background: white; color: black; font-weight: 700;
-        }
+/* Bublina zprávy */
+.msg {
+    padding: 10px 15px;
+    border-radius: 18px;
+    max-width: 75%;
+    position: relative;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    align-self: flex-start; /* Zprávy ostatních vlevo */
+    color: white;
+}
+
+/* Moje zprávy (vpravo a zelené) */
+.msg.me {
+    align-self: flex-end; 
+    background: rgba(34, 197, 94, 0.25);
+    border: 1px solid rgba(34, 197, 94, 0.5);
+}
+
+/* Jméno odesílatele */
+.msg-sender {
+    font-size: 11px;
+    font-weight: 800;
+    color: #38bdf8; /* Světle modrá pro jména */
+    margin-bottom: 4px;
+    display: block;
+}
+
+/* Čas zprávy */
+.msg-time {
+    font-size: 9px;
+    opacity: 0.5;
+    display: block;
+    text-align: right;
+    margin-top: 5px;
+}
 .topTitle {
     font-family: 'Inter', 'Segoe UI', system-ui, sans-serif !important;
     font-size: 22px !important;
@@ -211,21 +242,24 @@ onAuthStateChanged(auth, async (user) => {
 // 4. NAČÍTÁNÍ ZPRÁV V REÁLNÉM ČASE
 const qChat = query(collection(db, "chat"), orderBy("createdAt", "asc"));
 onSnapshot(qChat, (snapshot) => {
-    // Smažeme text "Načítám zprávy..." a vypíšeme chat
     chatBox.innerHTML = "";
     snapshot.forEach((doc) => {
         const m = doc.data();
+        // Kontrola, zda je zpráva ode mě (porovnáváme přezdívky)
         const isMe = m.sender === currentUserNickname;
+        
+        // Formátování času
         const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "";
         
         chatBox.innerHTML += `
-            <div class="msg ${isMe ? 'me' : ''}" style="margin: 5px; padding: 10px; border-radius: 10px; background: ${isMe ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255,255,255,0.1)'}; align-self: ${isMe ? 'flex-end' : 'flex-start'}; max-width: 80%;">
-                <span style="font-size: 10px; color: #38bdf8; font-weight: bold; display: block;">${m.sender}</span>
-                <span style="display: block; margin: 4px 0;">${m.text}</span>
-                <span style="font-size: 8px; opacity: 0.5; display: block; text-align: right;">${time}</span>
+            <div class="msg ${isMe ? 'me' : ''}">
+                <span class="msg-sender">${m.sender}</span>
+                <div class="msg-text">${m.text}</div>
+                <span class="msg-time">${time}</span>
             </div>
         `;
     });
+    // Automatický posun na poslední zprávu
     chatBox.scrollTop = chatBox.scrollHeight;
 });
 
