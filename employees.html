@@ -263,15 +263,23 @@ if (statusSelect) {
 </script>
 
 <body>
+  <div class="menu-container">
+    <button class="menu-btn" onclick="toggleMenu()">
+        <i class="fas fa-bars"></i>
+    </button>
+    <div id="menuContent" class="menu-content">
+        <a href="index.html">Domů</a>
+        <a href="employees.html">Zaměstnanci</a>
+        <a href="schedule.html">Plán směn</a>
+    </div>
+</div>
   <div class="background-logo">
     <img src="pozadi.jpg" alt="Logo">
 </div>
 
 <div class="topbar">
   <div class="topTitle">👥 Zaměstnanci</div>
-  <button class="menuBtn" onclick="location.href='index.html'">
-    Menu
-  </button>
+  
 </div>
 
 <div class="container">
