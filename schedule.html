@@ -172,18 +172,16 @@ const shiftEl = document.getElementById("shift");
 const nameFilterEl = document.getElementById("nameFilter");
 const gridEl = document.getElementById("grid");
 
-// --- OPRAVA DATA: MUSÍ BÝT NASTAVENO OKAMŽITĚ ---
+// 1. NASTAVENÍ DNEŠNÍHO DATA PŘI NAČTENÍ
 const today = new Date();
-const yyyy = today.getFullYear();
-const mm = String(today.getMonth() + 1).padStart(2, '0');
-const dd = String(today.getDate()).padStart(2, '0');
-dateEl.value = `${yyyy}-${mm}-${dd}`;
+dateEl.value = today.toISOString().split('T')[0];
 
 const POSITIONS = ["DP-L","DP-P","ZRC-L","ZRC-P","T-L","T-P","AGR-LP","AGR-PP","AGR-PZ","AGR-LZ","MOT-L","MOT-P","LEP-LP","LEP-PP","LEP-Z","REPRO-L","REPRO-P","VYP1-L","VYP1-P","VYP2-L","VYP2-P","PR-L","PR-P","ZAM-L","ZAM-P","VET","VET2","INST","INST2","JINE","JINE2"];
 
 let workerMap = {}; 
 let phasesData = [];
 
+// Načtení jmen zaměstnanců
 async function loadWorkers(){
     try {
         const snap = await getDocs(collection(db, "employees"));
@@ -195,6 +193,7 @@ async function loadWorkers(){
     } catch (e) { console.error("Chyba načítání zaměstnanců:", e); }
 }
 
+// Časové popisky podle směny
 function phaseLabels(){
     const s = shiftEl.value;
     if(s === "ranni") return ["6:00","8:00","10:45","12:00"];
@@ -202,33 +201,45 @@ function phaseLabels(){
     return ["22:00","00:00","02:45","04:00"];
 }
 
+// Hlavní funkce pro načtení rozpisu z Firebase
 async function loadShift(){
+    if(!dateEl.value) return;
     const id = dateEl.value + "_" + shiftEl.value;
+    gridEl.innerHTML = "<tr><td style='padding:20px;'>Načítám...</td></tr>";
+    
     try {
         const snap = await getDoc(doc(db, "shifts", id));
         if(!snap.exists()){
-            gridEl.innerHTML = "<tr><td style='padding:20px; opacity:0.5;'>Rozpis nenalezen.</td></tr>";
+            gridEl.innerHTML = "<tr><td style='padding:20px; opacity:0.5;'>Rozpis pro tento den nenalezen.</td></tr>";
+            phasesData = [];
             return;
         }
         const data = snap.data();
         phasesData = data.phases || [];
         render();
-    } catch (e) { console.error("Chyba načítání směny:", e); }
+    } catch (e) { 
+        console.error("Chyba načítání směny:", e); 
+        gridEl.innerHTML = "<tr><td>Chyba spojení s databází.</td></tr>";
+    }
 }
 
+// Vykreslení tabulky
 function render(){
     const filter = nameFilterEl.value.toLowerCase().trim();
     const labels = phaseLabels();
-    let html = "<tr><th>Pozice</th>";
+    let html = "<thead><tr><th>Pozice</th>";
     labels.forEach(l => html += `<th>${l}</th>`);
-    html += "</tr>";
+    html += "</tr></thead><tbody>";
+
     POSITIONS.forEach(pos => {
         let rowNames = [];
         for(let i=0; i<4; i++) {
             const wid = phasesData[i] ? phasesData[i][pos] : null;
             rowNames.push(wid ? workerMap[wid] || "???" : "");
         }
+        
         if(filter && !rowNames.some(n => n.toLowerCase().includes(filter))) return;
+
         html += `<tr><td class="posCol">${pos}</td>`;
         rowNames.forEach(n => {
             if(!n) html += `<td class="empty">—</td>`;
@@ -237,29 +248,20 @@ function render(){
         });
         html += "</tr>";
     });
+    html += "</tbody>";
     gridEl.innerHTML = html;
 }
 
-dateEl.onchange = loadShift;
-shiftEl.onchange = loadShift;
-nameFilterEl.oninput = render;
-
-// START
-(async () => {
-    await loadWorkers();
-    await loadShift();
-})();
-async function init() {
-    await loadWorkers(); // Nejdřív načteme jména ze seznamu zaměstnanců
-    await loadShift();   // Pak načteme samotný rozpis
-}
-
-// Reakce na změnu data nebo směny
+// EVENT LISTENERS (aby stránka reagovala na změny)
 dateEl.addEventListener("change", loadShift);
 shiftEl.addEventListener("change", loadShift);
 nameFilterEl.addEventListener("input", render);
 
-init();
+// INICIALIZACE PŘI STARTU
+(async () => {
+    await loadWorkers();
+    await loadShift();
+})();
 </script>
 </body>
 </html>
