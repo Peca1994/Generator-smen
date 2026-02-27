@@ -153,8 +153,9 @@ th { color: #22c55e; font-weight: 900; background: rgba(0,0,0,0.2); }
 
 <script type="module">
 // 1. IMPORTY S PŘESNOU VERZÍ 10.8.0 A KONCOVKOU .JS (PŘESNĚ PODLE TVÉHO OBRÁZKU)
-import { initializeApp } from "https://www.gstatic.com";
-import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged }
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // Tvůj konfigurák ze screenshotu
 const firebaseConfig = {
