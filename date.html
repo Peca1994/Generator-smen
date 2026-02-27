@@ -148,24 +148,8 @@ body {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  collection,
-  getDocs,
-  query,
-  where
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, setDoc, getDoc }
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
@@ -212,7 +196,44 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// ... zbytek tvého kódu pro odesílání a načítání zpráv ...
+// 2. NAČÍTÁNÍ ZPRÁV V REÁLNÉM ČASE
+const qChat = query(collection(db, "chat"), orderBy("createdAt", "asc"));
+onSnapshot(qChat, (snapshot) => {
+    chatBox.innerHTML = "";
+    snapshot.forEach((doc) => {
+        const m = doc.data();
+        const isMe = m.sender === currentUserNickname;
+        const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "";
+        
+        chatBox.innerHTML += `
+            <div class="msg ${isMe ? 'me' : ''}">
+                <span class="msg-sender">${m.sender}</span>
+                ${m.text}
+                <span class="msg-time">${time}</span>
+            </div>
+        `;
+    });
+    chatBox.scrollTop = chatBox.scrollHeight; // Automatický scroll dolů
+});
+
+// 3. ODESÍLÁNÍ ZPRÁVY
+async function sendMessage() {
+    const text = msgInput.value.trim();
+    if (!text) return;
+
+    try {
+        await addDoc(collection(db, "chat"), {
+            text: text,
+            sender: currentUserNickname,
+            createdAt: new Date()
+        });
+        msgInput.value = "";
+    } catch (e) { alert("Zprávu se nepodařilo odeslat."); }
+}
+
+sendBtn.onclick = sendMessage;
+msgInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
+
 </script>
 
 </body>
