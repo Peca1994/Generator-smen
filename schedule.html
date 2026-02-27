@@ -152,11 +152,10 @@ th { color: #22c55e; font-weight: 900; background: rgba(0,0,0,0.2); }
 </div>
 
 <script type="module">
-// 1. KOMPLETNÍ A FUNKČNÍ CDN ODKAZY PRO PROHLÍŽEČ
+// 1. IMPORTY PŘESNĚ PODLE TVÉHO SCREENSHOTU
 import { initializeApp } from "https://www.gstatic.com";
 import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com";
 
-// Tvůj přesný konfigurák ze screenshotu
 const firebaseConfig = {
     apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
     authDomain: "generator-smen-9fba1.firebaseapp.com",
@@ -175,7 +174,7 @@ const shiftEl = document.getElementById("shift");
 const nameFilterEl = document.getElementById("nameFilter");
 const gridEl = document.getElementById("grid");
 
-// 2. OPRAVA DATA: Automatické nastavení dneška v lokálním čase
+// NASTAVENÍ DATA PRO KALENDÁŘ
 const today = new Date();
 const offset = today.getTimezoneOffset() * 60000;
 const localDate = new Date(today.getTime() - offset).toISOString().split('T')[0];
@@ -186,7 +185,6 @@ const POSITIONS = ["DP-L","DP-P","ZRC-L","ZRC-P","T-L","T-P","AGR-LP","AGR-PP","
 let workerMap = {}; 
 let phasesData = [];
 
-// Načtení jmen zaměstnanců
 async function loadWorkers(){
     try {
         const snap = await getDocs(collection(db, "employees"));
@@ -195,15 +193,13 @@ async function loadWorkers(){
             const e = d.data();
             workerMap[d.id] = (e.fName || e.name || "") + " " + (e.lName || "");
         });
-    } catch (err) { console.error("Chyba loadWorkers:", err); }
+    } catch (e) { console.error("Chyba loadWorkers:", e); }
 }
 
-// Načtení rozpisu podle data a směny
 async function loadShift(){
     if(!dateEl.value) return;
     const id = `${dateEl.value}_${shiftEl.value}`;
-    console.log("Hledám ID:", id); // Uvidíš v F12 konzoli
-
+    
     try {
         const snap = await getDoc(doc(db, "shifts", id));
         if(!snap.exists()){
@@ -213,9 +209,8 @@ async function loadShift(){
         }
         phasesData = snap.data().phases || [];
         render();
-    } catch (err) { 
-        console.error("Chyba loadShift:", err);
-        gridEl.innerHTML = "<tr><td>Chyba spojení s Firebase.</td></tr>";
+    } catch (e) { 
+        gridEl.innerHTML = "<tr><td>Chyba databáze.</td></tr>";
     }
 }
 
@@ -224,35 +219,24 @@ function render(){
     const s = shiftEl.value;
     const labels = (s === "ranni") ? ["6:00","8:00","10:45","12:00"] : (s === "odpo") ? ["14:00","16:00","18:45","20:00"] : ["22:00","00:00","02:45","04:00"];
     
-    let html = "<thead><tr><th>Pozice</th>";
-    labels.forEach(l => html += `<th>${l}</th>`);
-    html += "</tr></thead><tbody>";
-
+    let html = "<thead><tr><th>Pozice</th>" + labels.map(l => `<th>${l}</th>`).join('') + "</tr></thead><tbody>";
     POSITIONS.forEach(pos => {
-        let rowNames = [];
+        let cells = [];
         for(let i=0; i<4; i++) {
             const wid = phasesData[i] ? phasesData[i][pos] : null;
-            rowNames.push(wid ? workerMap[wid] || "???" : "");
+            cells.push(wid ? (workerMap[wid] || "???") : "");
         }
-        if(filter && !rowNames.some(n => n.toLowerCase().includes(filter))) return;
-        
-        html += `<tr><td class="posCol">${pos}</td>`;
-        rowNames.forEach(n => {
-            if(!n) html += `<td class="empty">—</td>`;
-            else if(filter && n.toLowerCase().includes(filter)) html += `<td class="highlight">${n}</td>`;
-            else html += `<td>${n}</td>`;
-        });
-        html += "</tr>";
+        if(filter && !cells.some(c => c.toLowerCase().includes(filter))) return;
+        html += `<tr><td class="posCol">${pos}</td>` + cells.map(c => c ? `<td>${c}</td>` : `<td class="empty">—</td>`).join('') + "</tr>";
     });
     gridEl.innerHTML = html + "</tbody>";
 }
 
-// 3. AKTIVACE REAKCE NA ZMĚNU DATA A SMĚNY
+// POSLUCHAČE PRO KALENDÁŘ A SMĚNU
 dateEl.addEventListener("change", loadShift);
 shiftEl.addEventListener("change", loadShift);
 nameFilterEl.addEventListener("input", render);
 
-// Spuštění po načtení stránky
 (async () => {
     await loadWorkers();
     await loadShift();
