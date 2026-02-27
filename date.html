@@ -160,9 +160,10 @@ const firebaseConfig = {
     appId: "1:541779211883:web:1d8578ec61b0f428a4632e"
 };
 
+// 2. INICIALIZACE (včetně getAuth)
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app);
+const auth = getAuth(app); // Tato řádka ti házela chybu
 
 const chatBox = document.getElementById("chatBox");
 const msgInput = document.getElementById("msgInput");
@@ -170,65 +171,32 @@ const sendBtn = document.getElementById("sendBtn");
 
 let currentUserNickname = "Host";
 
-// 1. ZJIŠTĚNÍ PŘIHLÁŠENÉHO UŽIVATELE A JEHO PŘEZDÍVKY
+// 3. ZJIŠTĚNÍ PŘEZDÍVKY PODLE EMAILU
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // Hledáme v kolekci 'employees' dokument s jeho emailem
         try {
+            // Hledáme v employees email, který se shoduje s přihlášeným uživatelem
             const q = query(collection(db, "employees"), where("email", "==", user.email));
             const snap = await getDocs(q);
+            
             if (!snap.empty) {
                 const empData = snap.docs[0].data();
-                // Tady se podíváme, jestli má přezdívku, jinak složíme jméno
+                // Priorita: Přezdívka -> Jméno -> Email
                 currentUserNickname = empData.nickname || empData.fName || user.email.split('@')[0];
             } else {
                 currentUserNickname = user.email.split('@')[0];
             }
-        } catch (e) { console.error("Chyba při hledání přezdívky:", e); }
+        } catch (e) { 
+            console.error("Chyba při hledání uživatele:", e);
+            currentUserNickname = user.email.split('@')[0];
+        }
     } else {
-        // Pokud není přihlášen, pošli ho na index (nebo mu zakaž psát)
-        window.location.href = "index.html";
+        // Pokud není nikdo přihlášený, chat zakážeme nebo přesměrujeme
+        window.location.href = "index.html"; 
     }
 });
 
-// 2. NAČÍTÁNÍ ZPRÁV V REÁLNÉM ČASE
-const qChat = query(collection(db, "chat"), orderBy("createdAt", "asc"));
-onSnapshot(qChat, (snapshot) => {
-    chatBox.innerHTML = "";
-    snapshot.forEach((doc) => {
-        const m = doc.data();
-        const isMe = m.sender === currentUserNickname;
-        const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "";
-        
-        chatBox.innerHTML += `
-            <div class="msg ${isMe ? 'me' : ''}">
-                <span class="msg-sender">${m.sender}</span>
-                ${m.text}
-                <span class="msg-time">${time}</span>
-            </div>
-        `;
-    });
-    chatBox.scrollTop = chatBox.scrollHeight; // Automatický scroll dolů
-});
-
-// 3. ODESÍLÁNÍ ZPRÁVY
-async function sendMessage() {
-    const text = msgInput.value.trim();
-    if (!text) return;
-
-    try {
-        await addDoc(collection(db, "chat"), {
-            text: text,
-            sender: currentUserNickname,
-            createdAt: new Date()
-        });
-        msgInput.value = "";
-    } catch (e) { alert("Zprávu se nepodařilo odeslat."); }
-}
-
-sendBtn.onclick = sendMessage;
-msgInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
-
+// ... zbytek tvého kódu pro odesílání a načítání zpráv ...
 </script>
 
 </body>
