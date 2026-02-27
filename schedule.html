@@ -172,16 +172,15 @@ const shiftEl = document.getElementById("shift");
 const nameFilterEl = document.getElementById("nameFilter");
 const gridEl = document.getElementById("grid");
 
-// 1. NASTAVENÍ DNEŠNÍHO DATA PŘI NAČTENÍ
-const today = new Date();
-dateEl.value = today.toISOString().split('T')[0];
+// Nastavení dnešního data do inputu při načtení
+const today = new Date().toISOString().split('T')[0];
+dateEl.value = today;
 
 const POSITIONS = ["DP-L","DP-P","ZRC-L","ZRC-P","T-L","T-P","AGR-LP","AGR-PP","AGR-PZ","AGR-LZ","MOT-L","MOT-P","LEP-LP","LEP-PP","LEP-Z","REPRO-L","REPRO-P","VYP1-L","VYP1-P","VYP2-L","VYP2-P","PR-L","PR-P","ZAM-L","ZAM-P","VET","VET2","INST","INST2","JINE","JINE2"];
 
 let workerMap = {}; 
 let phasesData = [];
 
-// Načtení jmen zaměstnanců
 async function loadWorkers(){
     try {
         const snap = await getDocs(collection(db, "employees"));
@@ -193,7 +192,6 @@ async function loadWorkers(){
     } catch (e) { console.error("Chyba načítání zaměstnanců:", e); }
 }
 
-// Časové popisky podle směny
 function phaseLabels(){
     const s = shiftEl.value;
     if(s === "ranni") return ["6:00","8:00","10:45","12:00"];
@@ -201,29 +199,28 @@ function phaseLabels(){
     return ["22:00","00:00","02:45","04:00"];
 }
 
-// Hlavní funkce pro načtení rozpisu z Firebase
 async function loadShift(){
     if(!dateEl.value) return;
-    const id = dateEl.value + "_" + shiftEl.value;
-    gridEl.innerHTML = "<tr><td style='padding:20px;'>Načítám...</td></tr>";
     
+    // Generování ID dokumentu (musí sedět s tím, jak ukládáš v index.html)
+    const docId = `${dateEl.value}_${shiftEl.value}`;
+    console.log("Hledám dokument:", docId); // Pro ladění v konzoli (F12)
+
     try {
-        const snap = await getDoc(doc(db, "shifts", id));
+        const snap = await getDoc(doc(db, "shifts", docId));
         if(!snap.exists()){
-            gridEl.innerHTML = "<tr><td style='padding:20px; opacity:0.5;'>Rozpis pro tento den nenalezen.</td></tr>";
+            gridEl.innerHTML = `<tr><td colspan="5" style="padding:20px; opacity:0.5;">Rozpis pro ${dateEl.value} (${shiftEl.value}) nenalezen.</td></tr>`;
             phasesData = [];
             return;
         }
-        const data = snap.data();
-        phasesData = data.phases || [];
+        phasesData = snap.data().phases || [];
         render();
     } catch (e) { 
-        console.error("Chyba načítání směny:", e); 
-        gridEl.innerHTML = "<tr><td>Chyba spojení s databází.</td></tr>";
+        console.error("Chyba Firebase:", e);
+        gridEl.innerHTML = `<tr><td colspan="5">Chyba: ${e.message}</td></tr>`;
     }
 }
 
-// Vykreslení tabulky
 function render(){
     const filter = nameFilterEl.value.toLowerCase().trim();
     const labels = phaseLabels();
@@ -237,7 +234,6 @@ function render(){
             const wid = phasesData[i] ? phasesData[i][pos] : null;
             rowNames.push(wid ? workerMap[wid] || "???" : "");
         }
-        
         if(filter && !rowNames.some(n => n.toLowerCase().includes(filter))) return;
 
         html += `<tr><td class="posCol">${pos}</td>`;
@@ -252,12 +248,12 @@ function render(){
     gridEl.innerHTML = html;
 }
 
-// EVENT LISTENERS (aby stránka reagovala na změny)
-dateEl.addEventListener("change", loadShift);
-shiftEl.addEventListener("change", loadShift);
+// KLÍČOVÉ OPRAVY: Navázání událostí
+dateEl.addEventListener("change", () => { console.log("Datum změněno"); loadShift(); });
+shiftEl.addEventListener("change", () => { console.log("Směna změněna"); loadShift(); });
 nameFilterEl.addEventListener("input", render);
 
-// INICIALIZACE PŘI STARTU
+// Spuštění při načtení
 (async () => {
     await loadWorkers();
     await loadShift();
