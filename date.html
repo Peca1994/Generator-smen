@@ -72,15 +72,15 @@ body {
     cursor: pointer; 
 }
 /* CHAT OKNO */
-       #chatBox {
-    height: 400px; 
-    overflow-y: auto; 
-    display: flex; 
-    flex-direction: column; 
-    gap: 12px; 
+   #chatBox {
+    height: calc(100vh - 280px); /* Zvětšili jsme odečet z 220px na 280px */
+    margin-top: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     padding: 15px;
-    margin-bottom: 20px;
-    background: rgba(0, 0, 0, 0.2); /* Mírné ztmavení pozadí chatu */
+    background: rgba(0, 0, 0, 0.15);
     border-radius: 15px;
 }
 
