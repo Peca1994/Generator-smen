@@ -312,10 +312,11 @@ onSnapshot(qChat, (snapshot) => {
     chatBox.innerHTML = "";
     snapshot.forEach((doc) => {
         const m = doc.data();
-        // Kontrola, zda je zpráva ode mě (porovnáváme přezdívky)
-        const isMe = m.sender === currentUserNickname;
         
-        // Formátování času
+        // OPRAVA: Pokud je text prázdný, zprávu vůbec nevykresluj
+        if (!m.text || m.text.trim() === "") return;
+
+        const isMe = m.sender === currentUserNickname;
         const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "";
         
         chatBox.innerHTML += `
@@ -326,7 +327,6 @@ onSnapshot(qChat, (snapshot) => {
             </div>
         `;
     });
-    // Automatický posun na poslední zprávu
     chatBox.scrollTop = chatBox.scrollHeight;
 });
 
