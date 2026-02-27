@@ -110,7 +110,43 @@ th { color: #22c55e; font-weight: 900; background: rgba(0,0,0,0.2); }
     text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     padding-left: 10px;
 }
+/* ÚPRAVY PRO MOBILNÍ TELEFONY */
+@media screen and (max-width: 500px) {
+    /* 1. Využijeme celou šířku displeje a zmenšíme vnější okraje */
+    .container { 
+        max-width: 100% !important; 
+        padding: 5px !important; 
+        margin: 0 auto !important; 
+    }
+    
+    .card { 
+        padding: 10px !important; 
+        border-radius: 12px !important; 
+    }
 
+    /* 2. Zmenšíme písmo v tabulce, aby se tam vešlo víc textu */
+    table { 
+        font-size: 11px !important; 
+    }
+
+    th, td { 
+        padding: 6px 2px !important; /* Minimum místa kolem textu */
+        word-break: break-word; /* Dlouhá jména se zalomí, pokud bude potřeba */
+    }
+
+    /* 3. Sloupec s pozicí (např. AGR-LP) uděláme co nejužší */
+    .posCol { 
+        min-width: 50px !important; 
+        font-size: 10px !important;
+        padding-left: 5px !important;
+    }
+
+    /* 4. Skryjeme nepotřebné mezery, aby tabulka nebyla "nafouklá" */
+    .empty { 
+        font-size: 10px; 
+        opacity: 0.2; 
+    }
+}
 
 </style>
 </head>
