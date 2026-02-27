@@ -186,7 +186,28 @@ button {
 /* PosCol a Table Borders */
 th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px; }
 .posCol { text-align: left; font-weight: 800; }
-
+.disclaimer {
+    position: relative; /* Změna z fixed na relative, aby netvořil prázdné místo pod sebou */
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.3); /* Decentní šedá */
+    text-align: left; /* Zarovnání doleva */
+    font-family: sans-serif;
+    line-height: 1.3;
+    width: 100%;
+    box-sizing: border-box;
+}
+@media (max-width: 480px) {
+    .disclaimer {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        text-align: center;
+        width: 90%;
+        max-width: none;
+    }
+}
 </style>
 </head>
 
@@ -270,6 +291,9 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 <button onclick="closeInfo()">Zavřít</button>
 
 </div>
+<div class="disclaimer">
+        © 2024 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.
+    </div>
 </div>
 
 <script type="module">

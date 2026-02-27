@@ -236,6 +236,28 @@ select { font-weight: 900 !important; }
 .bg-shitmaking { background-color: #3b82f6 !important; } /* Modrá */
 .bg-borrowed { background-color: #475569 !important; }   /* Šedá */
 .bg-loaned { background-color: #064e3b !important; }
+.disclaimer {
+    position: relative; /* Změna z fixed na relative, aby netvořil prázdné místo pod sebou */
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.3); /* Decentní šedá */
+    text-align: left; /* Zarovnání doleva */
+    font-family: sans-serif;
+    line-height: 1.3;
+    width: 100%;
+    box-sizing: border-box;
+}
+@media (max-width: 480px) {
+    .disclaimer {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        text-align: center;
+        width: 90%;
+        max-width: none;
+    }
+}
 </style>
 </head>
 <script>
@@ -317,6 +339,9 @@ if (statusSelect) {
 
   </div>
 </div>
+<div class="disclaimer">
+        © 2024 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.
+    </div>
 </div>
 <div id="broadcastModal" class="modal">
   <div class="modalBox">
