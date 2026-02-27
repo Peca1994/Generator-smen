@@ -3,368 +3,171 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kalendář směn</title>
-
+<title>Týmový Chat | ShiftMaster</title>
 <style>
-/* 1. GLOBÁLNÍ RESET A OSTRÉ POZADÍ */
-body {
-    /* Identické tmavě zelené pozadí */
-    background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
-    margin: 0;
-    padding: 0;
-    font-family: 'Inter', 'Segoe UI', sans-serif;
-    color: white;
-    min-height: 100vh;
-}
-
-/* Zapuštěné logo ŠKODA na pozadí */
-.background-logo {
-    position: fixed;
-    top: 25%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: -1;
-    text-align: center;
-    pointer-events: none;
-}
-
-.background-logo img {
-    width: 650px !important;
-    max-width: 90vw !important;
-    opacity: 0.12 !important;
-    filter: brightness(0.6) sepia(1) hue-rotate(85deg) saturate(2.5) blur(1px) !important;
-    mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
-    -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
-}
-
-.background-logo h1 {
-    font-size: 16vw !important;
-    margin-top: -30px !important;
-    letter-spacing: 25px !important;
-    color: #1a3a2a !important;
-    opacity: 0.5 !important;
-    font-weight: 900;
-    text-transform: uppercase;
-}
-
-/* 2. TOPBAR */
-.topbar {
-    width: 100% !important;
-    height: 60px;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 0 20px !important;
-    box-sizing: border-box !important;
-    background: transparent !important;
-    border: none !important;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-.menuBtn { 
-    padding: 8px 14px; 
-    border-radius: 10px; 
-    border: none; 
-    font-weight: 800; 
-    background: rgba(51, 65, 85, 0.8); 
-    color: white; 
-    cursor: pointer; 
-}
-
-/* 3. HLAVNÍ KONTEJNER - BEZ RÁMEČKŮ A BLURU */
-.container, .app, main {
-    max-width: 480px; margin: 20px auto !important; padding: 16px;
-    background: rgba(0, 0, 0, 0.3) !important; border: none !important;
-    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
-}
-
-/* 4. KALENDÁŘ - MŘÍŽKA A DNY (VŠE PRŮHLEDNÉ) */
-.card, .grid, .day, .monthBtn, fieldset, section {
-    background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-
-.grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-
-.day {
-    height: 72px; padding: 6px; display: flex; flex-direction: column;
-    justify-content: space-between; font-weight: 800;
-    border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 12px;
-}
-
-/* 5. ČITELNOST TEXTU (STÍN PRO OSTRÉ LOGO) */
-label, p, span, .dayName, .monthBar, h1, h2, h3, .shift {
-    color: white !important; font-weight: 900 !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,1) !important;
-}
-
-.dayName { text-align: center; font-size: 12px; opacity: .8; }
-
-/* 6. SMĚNY A BADGE (BAREVNÉ BODY) */
-.shift { align-self: flex-start; padding: 3px 9px; border-radius: 999px; font-size: 12px; }
-.R { background: #16a34a !important; } /* Ranní */
-.N { background: #7c3aed !important; } /* Noční */
-.O { background: #f59e0b !important; color: black !important; } /* Odpolední */
-
-.today { outline: 2px solid #38bdf8 !important; }
-.holiday { outline: 2px solid #ef4444 !important; background: rgba(239, 68, 68, 0.1) !important; }
-.hBadge { background: #ef4444; color: white; font-size: 10px; padding: 2px 6px; border-radius: 999px; }
-
-/* 7. OVLÁDÁNÍ MĚSÍCE */
-.monthBar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.monthBtn { 
-    background: rgba(255,255,255,0.1) !important; padding: 8px 12px; 
-    border-radius: 10px; cursor: pointer; color: white !important;
-}
-
-/* 8. FORMULÁŘE (POKUD JSOU PŘÍTOMNY) */
-input, select {
-    background: white !important; color: black !important;
-    border-radius: 10px !important; padding: 10px !important;
-}
-.topTitle {
-    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif !important;
-    font-size: 22px !important;
-    font-weight: 800 !important;
-    color: #ffffff !important;
-    letter-spacing: -0.5px !important;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    padding-left: 10px;
-}
-.disclaimer {
-    position: relative; /* Změna z fixed na relative, aby netvořil prázdné místo pod sebou */
-    margin-top: 20px;
-    padding: 10px 20px;
-    font-size: 9px;
-    color: rgba(255, 255, 255, 0.3); /* Decentní šedá */
-    text-align: left; /* Zarovnání doleva */
-    font-family: sans-serif;
-    line-height: 1.3;
-    width: 100%;
-    box-sizing: border-box;
-}
-@media (max-width: 480px) {
-    .disclaimer {
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
-        text-align: center;
-        width: 90%;
-        max-width: none;
+    /* 1. ZACHOVÁNÍ TVÉHO DESIGNU */
+    body {
+        background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
+        margin: 0; padding: 0; font-family: 'Inter', sans-serif; color: white; min-height: 100vh;
     }
-}
+    .background-logo { position: fixed; top: 25%; left: 50%; transform: translate(-50%, -50%); z-index: -1; opacity: 0.1; pointer-events: none; }
+    .background-logo img { width: 650px; max-width: 90vw; filter: hue-rotate(85deg) saturate(2.5); }
+    
+    .topbar { width: 100%; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-sizing: border-box; position: sticky; top: 0; z-index: 1000; }
+    .topTitle { font-size: 22px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+    .menuBtn { padding: 8px 14px; border-radius: 10px; border: none; font-weight: 800; background: rgba(51, 65, 85, 0.8); color: white; cursor: pointer; }
+
+    .container { max-width: 500px; margin: 20px auto; padding: 15px; padding-bottom: 80px; }
+    .card { background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; }
+
+    /* 2. STYLY PRO CHAT */
+    #chatBox { height: 450px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 10px; scroll-behavior: smooth; }
+    .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; position: relative; font-size: 14px; line-height: 1.4; }
+    .msg-other { align-self: flex-start; background: rgba(255,255,255,0.1); border-bottom-left-radius: 4px; }
+    .msg-me { align-self: flex-end; background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-bottom-right-radius: 4px; }
+    .msg-nick { display: block; font-size: 10px; font-weight: 900; color: #22c55e; margin-bottom: 3px; text-transform: uppercase; }
+    .msg-time { display: block; font-size: 9px; opacity: 0.5; margin-top: 5px; text-align: right; }
+
+    .input-area { display: flex; gap: 10px; margin-top: 10px; }
+    input { width: 100%; padding: 12px; border-radius: 12px; border: none; background: white; color: black; font-weight: 600; }
+    .sendBtn { background: #22c55e; color: white; border: none; padding: 0 20px; border-radius: 12px; font-weight: 800; cursor: pointer; }
+
+    .auth-card { text-align: center; }
+    .disclaimer { text-align: center; margin-top: 25px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: rgba(255, 255, 255, 0.4); }
 </style>
 </head>
-
 <body>
-<div class="background-logo">
-    <img src="pozadi.jpg" alt="Logo">
-</div>
+
+<div class="background-logo"><img src="pozadi.jpg" alt="Logo"></div>
+
 <div class="topbar">
-    <!-- Přidali jsme třídu topTitle, která nese styl písma -->
-    <span class="topTitle">📅 Kalendář</span> 
+    <span class="topTitle">💬 Týmový Chat</span>
     <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
 </div>
 
 <div class="container">
-<div class="card">
+    <!-- SEKCE PRO NEPŘIHLÁŠENÉ -->
+    <div id="authArea" class="card auth-card">
+        <h3 style="color:#22c55e">Vítejte v ShiftChatu</h3>
+        <p style="opacity:0.7; font-size:13px">Pro čtení a psaní zpráv se prosím přihlaste.</p>
+        <input type="email" id="email" placeholder="E-mail" style="margin-bottom:10px">
+        <input type="password" id="password" placeholder="Heslo" style="margin-bottom:10px">
+        <div style="display:flex; gap:10px">
+            <button class="sendBtn" style="flex:1; padding:12px" id="btnLogin">Přihlásit</button>
+            <button class="menuBtn" style="flex:1" id="btnReg">Registrovat</button>
+        </div>
+        <p id="authError" style="color:#ef4444; font-size:11px; margin-top:10px"></p>
+    </div>
 
-<div class="monthBar">
- <button class="monthBtn" onclick="changeMonth(-1)">◀</button>
- <div id="title"></div>
- <button class="monthBtn" onclick="changeMonth(1)">▶</button>
-</div>
+    <!-- SEKCE CHATU (SKRYTÁ DO PŘIHLÁŠENÍ) -->
+    <div id="chatArea" class="card" style="display:none">
+        <div id="chatBox"></div>
+        <div class="input-area">
+            <input type="text" id="msgInput" placeholder="Napište zprávu...">
+            <button class="sendBtn" id="btnSend">Odeslat</button>
+        </div>
+        <button id="btnLogout" style="background:none; border:none; color:#ef4444; font-size:11px; margin-top:15px; cursor:pointer; font-weight:800">Odhlásit se</button>
+    </div>
 
-<div class="grid" id="grid"></div>
-
-</div>
-<div class="disclaimer">
+    <div class="disclaimer">
         © 2024 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.
     </div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com";
 
-/* ===== názvy ===== */
+const firebaseConfig = {
+    apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+    authDomain: "generator-smen-9fba1.firebaseapp.com",
+    projectId: "generator-smen-9fba1",
+    storageBucket: "generator-smen-9fba1.firebasestorage.app",
+    messagingSenderId: "541779211883",
+    appId: "1:541779211883:web:1d8578ec61b0f428a4632e"
+};
 
-const dayNames=["Po","Út","St","Čt","Pá","So","Ne"];
-const monthNames=["Leden","Únor","Březen","Duben","Květen","Červen",
-"Červenec","Srpen","Září","Říjen","Listopad","Prosinec"];
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-/* ===== pevné svátky CZ ===== */
+// ELEMENTY
+const authArea = document.getElementById("authArea");
+const chatArea = document.getElementById("chatArea");
+const chatBox = document.getElementById("chatBox");
+const msgInput = document.getElementById("msgInput");
+const authError = document.getElementById("authError");
 
-const fixedHolidays = [
- "01-01",
- "05-01","05-08",
- "07-05","07-06",
- "09-28",
- "10-28",
- "11-17",
- "12-24","12-25","12-26"
-];
+// 1. AUTENTIZACE (PŘIHLÁŠENÍ / REGISTRACE)
+document.getElementById("btnReg").onclick = async () => {
+    const email = document.getElementById("email").value;
+    const pass = document.getElementById("password").value;
+    try { await createUserWithEmailAndPassword(auth, email, pass); } 
+    catch (e) { authError.innerText = "Chyba registrace: " + e.message; }
+};
 
-/* ===== výpočet Velikonoc ===== */
+document.getElementById("btnLogin").onclick = async () => {
+    const email = document.getElementById("email").value;
+    const pass = document.getElementById("password").value;
+    try { await signInWithEmailAndPassword(auth, email, pass); } 
+    catch (e) { authError.innerText = "Špatné jméno nebo heslo."; }
+};
 
-function easterSunday(year){
- const a = year % 19;
- const b = Math.floor(year/100);
- const c = year % 100;
- const d = Math.floor(b/4);
- const e = b % 4;
- const f = Math.floor((b+8)/25);
- const g = Math.floor((b-f+1)/3);
- const h = (19*a+b-d-g+15)%30;
- const i = Math.floor(c/4);
- const k = c % 4;
- const l = (32+2*e+2*i-h-k)%7;
- const m = Math.floor((a+11*h+22*l)/451);
- const month = Math.floor((h+l-7*m+114)/31);
- const day = ((h+l-7*m+114)%31)+1;
- return new Date(year, month-1, day);
+document.getElementById("btnLogout").onclick = () => signOut(auth);
+
+// SLEDOVÁNÍ STAVU PŘIHLÁŠENÍ
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        authArea.style.display = "none";
+        chatArea.style.display = "block";
+        loadMessages();
+    } else {
+        authArea.style.display = "block";
+        chatArea.style.display = "none";
+        chatBox.innerHTML = "";
+    }
+});
+
+// 2. CHAT LOGIKA
+async function loadMessages() {
+    const q = query(collection(db, "chat"), orderBy("createdAt", "asc"));
+    onSnapshot(q, (snapshot) => {
+        chatBox.innerHTML = "";
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const isMe = data.uid === auth.currentUser.uid;
+            const time = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "...";
+            
+            const div = document.createElement("div");
+            div.className = `msg ${isMe ? 'msg-me' : 'msg-other'}`;
+            div.innerHTML = `
+                <span class="msg-nick">${data.author}</span>
+                ${data.text}
+                <span class="msg-time">${time}</span>
+            `;
+            chatBox.appendChild(div);
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
 }
 
-function getEasterHolidays(year){
- const easter = easterSunday(year);
+document.getElementById("btnSend").onclick = sendMessage;
+msgInput.onkeypress = (e) => { if(e.key === "Enter") sendMessage(); };
 
- const goodFriday = new Date(easter);
- goodFriday.setDate(easter.getDate()-2);
-
- const easterMonday = new Date(easter);
- easterMonday.setDate(easter.getDate()+1);
-
- return [goodFriday, easterMonday];
+async function sendMessage() {
+    const text = msgInput.value.trim();
+    if(!text) return;
+    
+    const user = auth.currentUser;
+    await addDoc(collection(db, "chat"), {
+        text: text,
+        author: user.email.split('@')[0], // Použije část emailu jako přezdívku
+        uid: user.uid,
+        createdAt: serverTimestamp()
+    });
+    msgInput.value = "";
 }
-
-function isHoliday(date){
-
- const key =
-  String(date.getMonth()+1).padStart(2,"0")+"-"+
-  String(date.getDate()).padStart(2,"0");
-
- if(fixedHolidays.includes(key)) return true;
-
- const easterDays = getEasterHolidays(date.getFullYear());
-
- return easterDays.some(d =>
-  d.getFullYear()===date.getFullYear() &&
-  d.getMonth()===date.getMonth() &&
-  d.getDate()===date.getDate()
- );
-}
-
-/* ===== SMĚNOVÝ CYKLUS ===== */
-
-const cycleStartMonday = new Date(Date.UTC(2026,1,2));
-const weekCycle = ["R","N","O"];
-
-function getMondayUTC(d){
- const day=(d.getUTCDay()+6)%7;
- return new Date(Date.UTC(
-  d.getUTCFullYear(),
-  d.getUTCMonth(),
-  d.getUTCDate()-day
- ));
-}
-
-function weekType(i){
- return weekCycle[(i%3+3)%3];
-}
-
-function getShiftForDate(date){
-
- const day=(date.getDay()+6)%7;
- if(day>4) return null;
-
- const dUTC=new Date(Date.UTC(
-  date.getFullYear(),
-  date.getMonth(),
-  date.getDate()
- ));
-
- const monday=getMondayUTC(dUTC);
- const diffDays=Math.round((monday-cycleStartMonday)/86400000);
- const w=Math.floor(diffDays/7);
-
- return weekType(w);
-}
-
-/* ===== RENDER ===== */
-
-let current=new Date();
-
-function render(){
- const grid=document.getElementById("grid");
- grid.innerHTML="";
-
- const y=current.getFullYear();
- const m=current.getMonth();
- document.getElementById("title").innerText=monthNames[m]+" "+y;
-
- dayNames.forEach(n=>{
-  const e=document.createElement("div");
-  e.className="dayName";
-  e.innerText=n;
-  grid.appendChild(e);
- });
-
- const first=new Date(y,m,1);
- const start=(first.getDay()+6)%7;
-
- for(let i=0;i<start;i++){
-  const e=document.createElement("div");
-  e.className="day empty";
-  grid.appendChild(e);
- }
-
- const days=new Date(y,m+1,0).getDate();
- const today=new Date();
-
- for(let d=1; d<=days; d++){
-  const cell=document.createElement("div");
-  cell.className="day";
-
-  const dt=new Date(y,m,d);
-
-  if(dt.toDateString()===today.toDateString())
-    cell.classList.add("today");
-
-  if(isHoliday(dt))
-    cell.classList.add("holiday");
-
-  const num=document.createElement("div");
-  num.innerText=d;
-
-  const s=getShiftForDate(dt);
-  if(s){
-    const b=document.createElement("div");
-    b.className="shift "+s;
-    b.innerText=s;
-    cell.appendChild(b);
-  }
-
-  if(isHoliday(dt)){
-    const h=document.createElement("div");
-    h.className="hBadge";
-    h.innerText="SV";
-    cell.appendChild(h);
-  }
-
-  cell.appendChild(num);
-  grid.appendChild(cell);
- }
-}
-
-function changeMonth(x){
- current.setMonth(current.getMonth()+x);
- render();
-}
-
-render();
-
 </script>
-
 </body>
 </html>
