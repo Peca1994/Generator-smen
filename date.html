@@ -1,40 +1,62 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Týmový Chat | ShiftMaster</title>
-<style>
-    /* 1. ZACHOVÁNÍ TVÉHO DESIGNU */
-    body {
-        background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
-        margin: 0; padding: 0; font-family: 'Inter', sans-serif; color: white; min-height: 100vh;
-    }
-    .background-logo { position: fixed; top: 25%; left: 50%; transform: translate(-50%, -50%); z-index: -1; opacity: 0.1; pointer-events: none; }
-    .background-logo img { width: 650px; max-width: 90vw; filter: hue-rotate(85deg) saturate(2.5); }
-    
-    .topbar { width: 100%; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-sizing: border-box; position: sticky; top: 0; z-index: 1000; }
-    .topTitle { font-size: 22px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-    .menuBtn { padding: 8px 14px; border-radius: 10px; border: none; font-weight: 800; background: rgba(51, 65, 85, 0.8); color: white; cursor: pointer; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Týmový Chat | ShiftMaster</title>
+    <style>
+        /* 1. GLOBÁLNÍ DESIGN (PŘESNĚ PODLE TVÉHO STYLU) */
+        body {
+            background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
+            margin: 0; padding: 0; font-family: 'Inter', sans-serif; color: white; min-height: 100vh;
+        }
 
-    .container { max-width: 500px; margin: 20px auto; padding: 15px; padding-bottom: 80px; }
-    .card { background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; margin-bottom: 15px; }
+        /* Zapuštěné logo ŠKODA na pozadí */
+        .background-logo {
+            position: fixed; top: 25%; left: 50%; transform: translate(-50%, -50%);
+            z-index: -1; text-align: center; pointer-events: none;
+        }
+        .background-logo img {
+            width: 650px; max-width: 90vw; opacity: 0.12;
+            filter: brightness(0.6) sepia(1) hue-rotate(85deg) saturate(2.5) blur(1px);
+        }
 
-    /* 2. STYLY PRO CHAT */
-    #chatBox { height: 450px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 10px; scroll-behavior: smooth; }
-    .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; position: relative; font-size: 14px; line-height: 1.4; }
-    .msg-other { align-self: flex-start; background: rgba(255,255,255,0.1); border-bottom-left-radius: 4px; }
-    .msg-me { align-self: flex-end; background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-bottom-right-radius: 4px; }
-    .msg-nick { display: block; font-size: 10px; font-weight: 900; color: #22c55e; margin-bottom: 3px; text-transform: uppercase; }
-    .msg-time { display: block; font-size: 9px; opacity: 0.5; margin-top: 5px; text-align: right; }
+        /* TOPBAR */
+        .topbar {
+            width: 100%; height: 60px; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; box-sizing: border-box; position: sticky; top: 0; z-index: 1000;
+        }
+        .topTitle { font-size: 22px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .menuBtn { padding: 8px 14px; border-radius: 10px; border: none; font-weight: 800; background: rgba(51, 65, 85, 0.8); color: white; cursor: pointer; }
 
-    .input-area { display: flex; gap: 10px; margin-top: 10px; }
-    input { width: 100%; padding: 12px; border-radius: 12px; border: none; background: white; color: black; font-weight: 600; }
-    .sendBtn { background: #22c55e; color: white; border: none; padding: 0 20px; border-radius: 12px; font-weight: 800; cursor: pointer; }
+        /* KONTEJNER A CHAT KARTA */
+        .container { max-width: 500px; margin: 20px auto; padding: 15px; }
+        .card {
+            background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px;
+        }
 
-    .auth-card { text-align: center; }
-    .disclaimer { text-align: center; margin-top: 25px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: rgba(255, 255, 255, 0.4); }
-</style>
+        /* CHAT OKNO */
+        #chatBox {
+            height: 450px; overflow-y: auto; display: flex; flex-direction: column;
+            gap: 12px; padding: 10px; margin-bottom: 15px;
+            scrollbar-width: thin; scrollbar-color: #22c55e rgba(0,0,0,0);
+        }
+        /* Styl zprávy */
+        .msg { padding: 10px 14px; border-radius: 15px; max-width: 80%; position: relative; background: rgba(255,255,255,0.1); align-self: flex-start; }
+        .msg.me { align-self: flex-end; background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; }
+        .msg-sender { font-size: 11px; font-weight: 900; color: #38bdf8; margin-bottom: 4px; display: block; }
+        .msg-time { font-size: 9px; opacity: 0.4; display: block; text-align: right; margin-top: 4px; }
+
+        /* VSTUPNÍ POLE */
+        .input-area { display: flex; gap: 10px; }
+        input {
+            flex: 1; padding: 12px; border-radius: 12px; border: none;
+            background: white; color: black; font-weight: 700;
+        }
+
+        .disclaimer { text-align: center; margin-top: 30px; font-size: 10px; font-weight: 800; opacity: 0.4; text-transform: uppercase; letter-spacing: 1px; }
+    </style>
 </head>
 <body>
 
@@ -46,27 +68,14 @@
 </div>
 
 <div class="container">
-    <!-- SEKCE PRO NEPŘIHLÁŠENÉ -->
-    <div id="authArea" class="card auth-card">
-        <h3 style="color:#22c55e">Vítejte v ShiftChatu</h3>
-        <p style="opacity:0.7; font-size:13px">Pro čtení a psaní zpráv se prosím přihlaste.</p>
-        <input type="email" id="email" placeholder="E-mail" style="margin-bottom:10px">
-        <input type="password" id="password" placeholder="Heslo" style="margin-bottom:10px">
-        <div style="display:flex; gap:10px">
-            <button class="sendBtn" style="flex:1; padding:12px" id="btnLogin">Přihlásit</button>
-            <button class="menuBtn" style="flex:1" id="btnReg">Registrovat</button>
+    <div class="card">
+        <div id="chatBox">
+            <div style="text-align:center; opacity:0.5; font-size:12px;">Načítám zprávy...</div>
         </div>
-        <p id="authError" style="color:#ef4444; font-size:11px; margin-top:10px"></p>
-    </div>
-
-    <!-- SEKCE CHATU (SKRYTÁ DO PŘIHLÁŠENÍ) -->
-    <div id="chatArea" class="card" style="display:none">
-        <div id="chatBox"></div>
         <div class="input-area">
-            <input type="text" id="msgInput" placeholder="Napište zprávu...">
-            <button class="sendBtn" id="btnSend">Odeslat</button>
+            <input type="text" id="msgInput" placeholder="Napiš vzkaz...">
+            <button class="menuBtn" id="sendBtn">Odeslat</button>
         </div>
-        <button id="btnLogout" style="background:none; border:none; color:#ef4444; font-size:11px; margin-top:15px; cursor:pointer; font-weight:800">Odhlásit se</button>
     </div>
 
     <div class="disclaimer">
@@ -76,8 +85,8 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com";
-import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, getDocs, where } from "https://www.gstatic.com";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
@@ -92,82 +101,71 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// ELEMENTY
-const authArea = document.getElementById("authArea");
-const chatArea = document.getElementById("chatArea");
 const chatBox = document.getElementById("chatBox");
 const msgInput = document.getElementById("msgInput");
-const authError = document.getElementById("authError");
+const sendBtn = document.getElementById("sendBtn");
 
-// 1. AUTENTIZACE (PŘIHLÁŠENÍ / REGISTRACE)
-document.getElementById("btnReg").onclick = async () => {
-    const email = document.getElementById("email").value;
-    const pass = document.getElementById("password").value;
-    try { await createUserWithEmailAndPassword(auth, email, pass); } 
-    catch (e) { authError.innerText = "Chyba registrace: " + e.message; }
-};
+let currentUserNickname = "Host";
 
-document.getElementById("btnLogin").onclick = async () => {
-    const email = document.getElementById("email").value;
-    const pass = document.getElementById("password").value;
-    try { await signInWithEmailAndPassword(auth, email, pass); } 
-    catch (e) { authError.innerText = "Špatné jméno nebo heslo."; }
-};
-
-document.getElementById("btnLogout").onclick = () => signOut(auth);
-
-// SLEDOVÁNÍ STAVU PŘIHLÁŠENÍ
-onAuthStateChanged(auth, (user) => {
+// 1. ZJIŠTĚNÍ PŘIHLÁŠENÉHO UŽIVATELE A JEHO PŘEZDÍVKY
+onAuthStateChanged(auth, async (user) => {
     if (user) {
-        authArea.style.display = "none";
-        chatArea.style.display = "block";
-        loadMessages();
+        // Hledáme v kolekci 'employees' dokument s jeho emailem
+        try {
+            const q = query(collection(db, "employees"), where("email", "==", user.email));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+                const empData = snap.docs[0].data();
+                // Tady se podíváme, jestli má přezdívku, jinak složíme jméno
+                currentUserNickname = empData.nickname || empData.fName || user.email.split('@')[0];
+            } else {
+                currentUserNickname = user.email.split('@')[0];
+            }
+        } catch (e) { console.error("Chyba při hledání přezdívky:", e); }
     } else {
-        authArea.style.display = "block";
-        chatArea.style.display = "none";
-        chatBox.innerHTML = "";
+        // Pokud není přihlášen, pošli ho na index (nebo mu zakaž psát)
+        window.location.href = "index.html";
     }
 });
 
-// 2. CHAT LOGIKA
-async function loadMessages() {
-    const q = query(collection(db, "chat"), orderBy("createdAt", "asc"));
-    onSnapshot(q, (snapshot) => {
-        chatBox.innerHTML = "";
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            const isMe = data.uid === auth.currentUser.uid;
-            const time = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "...";
-            
-            const div = document.createElement("div");
-            div.className = `msg ${isMe ? 'msg-me' : 'msg-other'}`;
-            div.innerHTML = `
-                <span class="msg-nick">${data.author}</span>
-                ${data.text}
+// 2. NAČÍTÁNÍ ZPRÁV V REÁLNÉM ČASE
+const qChat = query(collection(db, "chat"), orderBy("createdAt", "asc"));
+onSnapshot(qChat, (snapshot) => {
+    chatBox.innerHTML = "";
+    snapshot.forEach((doc) => {
+        const m = doc.data();
+        const isMe = m.sender === currentUserNickname;
+        const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "";
+        
+        chatBox.innerHTML += `
+            <div class="msg ${isMe ? 'me' : ''}">
+                <span class="msg-sender">${m.sender}</span>
+                ${m.text}
                 <span class="msg-time">${time}</span>
-            `;
-            chatBox.appendChild(div);
-        });
-        chatBox.scrollTop = chatBox.scrollHeight;
+            </div>
+        `;
     });
-}
+    chatBox.scrollTop = chatBox.scrollHeight; // Automatický scroll dolů
+});
 
-document.getElementById("btnSend").onclick = sendMessage;
-msgInput.onkeypress = (e) => { if(e.key === "Enter") sendMessage(); };
-
+// 3. ODESÍLÁNÍ ZPRÁVY
 async function sendMessage() {
     const text = msgInput.value.trim();
-    if(!text) return;
-    
-    const user = auth.currentUser;
-    await addDoc(collection(db, "chat"), {
-        text: text,
-        author: user.email.split('@')[0], // Použije část emailu jako přezdívku
-        uid: user.uid,
-        createdAt: serverTimestamp()
-    });
-    msgInput.value = "";
+    if (!text) return;
+
+    try {
+        await addDoc(collection(db, "chat"), {
+            text: text,
+            sender: currentUserNickname,
+            createdAt: new Date()
+        });
+        msgInput.value = "";
+    } catch (e) { alert("Zprávu se nepodařilo odeslat."); }
 }
+
+sendBtn.onclick = sendMessage;
+msgInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
+
 </script>
 </body>
 </html>
