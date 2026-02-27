@@ -151,14 +151,16 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getAuth, onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  doc,
-  setDoc,
-  deleteDoc,
-  getDoc
+import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    query,       // TATO FUNKCE TI CHYBĚLA
+    orderBy, 
+    onSnapshot, 
+    getDocs, 
+    where,       // TATO TAKÉ
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 const firebaseConfig = {
     apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
