@@ -173,6 +173,21 @@ input, select {
         max-width: none;
     }
 }
+.stats-card, .container, .employee-stats-box { 
+    background: rgba(0, 0, 0, 0.2) !important; /* Pouze 20% černá, zbytek je průhledný */
+    backdrop-filter: none !important; /* Odstraní rozmazání, aby bylo pozadí ostré */
+    border: none !important; /* Odstraní tvrdé okraje */
+    box-shadow: none !important; /* Odstraní stíny, které dělají kartu "těžkou" */
+}
+
+/* Pokud tam máš bílé vyhledávání, uděláme ho taky skleněné */
+#statsSearch {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    border-radius: 25px;
+    padding: 12px;
+}
 </style>
 </head>
 
