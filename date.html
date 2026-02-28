@@ -337,19 +337,24 @@ let currentUserNickname = "Host";
 let allNicknames = {}; 
 
 async function loadNicknames() {
+    console.log("--- DEBUG START: Kontrola zaměstnanců ---");
     try {
         const snap = await getDocs(collection(db, "employees"));
-        allNicknames = {}; // Reset mapy
+        allNicknames = {};
+        
         snap.forEach(doc => {
             const d = doc.data();
+            // Tento výpis nám ukáže, co je v databázi za pole (fName, email, atd.)
+            console.log("Nalezen zaměstnanec:", d);
+            
             if (d.email) {
-                // Uložíme email malými písmeny pro snadné porovnání
                 const emailKey = d.email.toLowerCase().trim();
-                // Použijeme fName (z tvé karty zaměstnance)
-                allNicknames[emailKey] = d.fName || d.Name || d.email;
+                // Tady zkusíme vypsat i jiná pole, pokud fName neexistuje
+                allNicknames[emailKey] = d.fName || d.Name || d.nickname || d.email;
             }
         });
-        console.log("Načtené přezdívky:", allNicknames);
+        console.log("Aktuálně přihlášený email (pro srovnání):", auth.currentUser.email.toLowerCase().trim());
+        console.log("Mapa všech načtených emailů:", Object.keys(allNicknames));
     } catch (err) {
         console.error("Chyba loadNicknames:", err);
     }
