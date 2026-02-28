@@ -377,22 +377,31 @@ function startChatListener() {
     onSnapshot(qChat, (snapshot) => {
         chatBox.innerHTML = "";
         snapshot.forEach((docSnap) => {
-            const m = docSnap.data();
-            if (!m.text) return;
+   const m = docSnap.data();
+if (!m.text) return;
 
-            // Porovnání odesílatele přes email (vždy malými písmeny)
-            const senderEmailKey = m.senderEmail ? m.senderEmail.toLowerCase().trim() : "";
-            const displayName = allNicknames[senderEmailKey] || m.sender || "Host";
-            
-            const isMe = senderEmailKey === auth.currentUser.email.toLowerCase().trim();
-            const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "...";
+// 1. Očištění emailu odesílatele (z databáze zprávy)
+const senderEmailKey = m.senderEmail ? m.senderEmail.toLowerCase().trim().replace(/"/g, '') : "";
 
-            chatBox.innerHTML += `
-                <div class="msg ${isMe ? 'me' : ''}">
-                    <span class="msg-sender">${displayName}</span>
-                    <div class="msg-text">${m.text}</div>
-                    <span class="msg-time">${time}</span>
-                </div>`;
+// 2. Jméno z mapy (pokud není, použijeme email nebo "Host")
+const displayName = allNicknames[senderEmailKey] || m.sender || "Host";
+
+// 3. SPRÁVNÉ POROVNÁNÍ PRO STRANU (isMe)
+// Musíme se ujistit, že auth.currentUser existuje
+const myEmail = auth.currentUser ? auth.currentUser.email.toLowerCase().trim() : "";
+const isMe = senderEmailKey === myEmail;
+
+// 4. Formát času
+const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "...";
+
+// 5. Vykreslení do HTML
+chatBox.innerHTML += `
+    <div class="msg ${isMe ? 'me' : ''}">
+        <span class="msg-sender">${displayName}</span>
+        <div class="msg-text">${m.text}</div>
+        <span class="msg-time">${time}</span>
+    </div>
+`;
         });
         chatBox.scrollTop = chatBox.scrollHeight;
     });
