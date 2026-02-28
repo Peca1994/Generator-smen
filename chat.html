@@ -98,14 +98,25 @@ body {
 
 /* Bublina zprávy */
 .msg {
-    padding: 10px 15px;
-    border-radius: 18px;
+    padding: 8px 12px !important; /* Zmenšili jsme horní a spodní odsazení */
+    border-radius: 15px;
     max-width: 75%;
-    position: relative;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    align-self: flex-start; /* Zprávy ostatních vlevo */
-    color: white;
+    min-height: auto !important; /* Zrušíme případnou vynucenou výšku */
+    line-height: 1.3; /* Menší rozestup řádků textu */
+    gap: 2px !important; /* Mezera mezi jménem a textem */
+}
+
+/* Jméno odesílatele v bublině */
+.msg-sender {
+    margin-bottom: 2px !important;
+    font-size: 10px !important;
+    color: #38bdf8; /* Světle modrá pro jména */
+}
+
+/* Čas zprávy */
+.msg-time {
+    margin-top: 2px !important;
+    font-size: 9px !important;
 }
 
 /* Moje zprávy (vpravo a zelené) */
@@ -115,23 +126,6 @@ body {
     border: 1px solid rgba(34, 197, 94, 0.5);
 }
 
-/* Jméno odesílatele */
-.msg-sender {
-    font-size: 11px;
-    font-weight: 800;
-    color: #38bdf8; /* Světle modrá pro jména */
-    margin-bottom: 4px;
-    display: block;
-}
-
-/* Čas zprávy */
-.msg-time {
-    font-size: 9px;
-    opacity: 0.5;
-    display: block;
-    text-align: right;
-    margin-top: 5px;
-}
 .topTitle {
     font-family: 'Inter', 'Segoe UI', system-ui, sans-serif !important;
     font-size: 22px !important;
@@ -152,28 +146,13 @@ body {
     z-index: 1001;
 }
 
-/* Skleněný efekt lišty */
 .chat-input-wrapper {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 30px;
-    padding: 8px 15px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    padding: 5px 10px 5px 20px !important; /* Větší mezera u textu, menší u tlačítka */
+    height: 55px; /* Fixní rozumná výška */
 }
 
-/* Samotné pole pro text */
 #msgInput {
-    flex: 1;
-    background: transparent !important;
-    border: none !important;
-    color: white !important;
-    font-size: 16px;
-    padding: 10px 0;
-    outline: none !important;
+    font-size: 15px !important; /* Lepší čitelnost na mobilu */
 }
 
 /* Stylové tlačítko s ikonou šipky */
@@ -181,14 +160,20 @@ body {
     background: #22c55e;
     color: white;
     border: none;
-    width: 40px;
-    height: 40px;
+    width: 45px; /* Trochu jsme zvětšili */
+    height: 45px;
     border-radius: 50%;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: center; /* Tohle ji hodí na střed */
     cursor: pointer;
-    transition: transform 0.2s, background 0.2s;
+    padding: 0; /* Vynulujeme padding, aby šipka neutíkala */
+}
+
+#sendBtn svg {
+    width: 24px;
+    height: 24px;
+    margin-left: 3px; /* Jemný posun doprava, aby to opticky sedělo v kruhu */
 }
 
 #sendBtn:hover {
@@ -196,9 +181,6 @@ body {
     transform: scale(1.1);
 }
 
-#sendBtn svg {
-    margin-left: 3px; /* Vycentrování ikonky šipky */
-}
 .disclaimer {
     position: relative; /* Změna z fixed na relative, aby netvořil prázdné místo pod sebou */
     margin-top: 20px;
