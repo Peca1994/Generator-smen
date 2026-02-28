@@ -2,70 +2,62 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dovednosti týmu</title>
-    <link rel="stylesheet" href="style.css"> <!-- Předpokládám, že máš externí styl, pokud ne, styl je níže -->
+    <!-- Použijeme tvůj hlavní styl, aby to vypadalo stejně -->
+    <link rel="stylesheet" href="style.css"> 
     <style>
+        /* Oprava pozadí a rozvržení přímo pro tento soubor */
         body {
-            background: #000 url('skoda-bg.jpg') no-repeat center center fixed; /* Uprav cestu k pozadí */
-            background-size: cover;
-            color: white;
-            font-family: Arial, sans-serif;
+            background-color: #000 !important;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
 
-        .header {
+        .header-bar {
+            width: 100%;
+            background: #111;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.8);
-            border-bottom: 1px solid #444;
+            border-bottom: 1px solid #333;
+            box-sizing: border-box;
         }
 
-        .logo-text {
+        .logo-area {
+            color: #fff;
             font-weight: bold;
-            font-size: 1.2em;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .btn-back {
-            background: #444;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 0.9em;
-        }
-
-        .container {
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: rgba(0, 0, 0, 0.85);
+        /* Styl karty, aby vypadala jako ty ostatní */
+        .content-card {
+            background: #111;
+            border: 1px solid #333;
             border-radius: 15px;
             padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            margin-top: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            border: 1px solid #333;
         }
 
         #skillSearch {
             width: 100%;
             padding: 12px;
-            margin-bottom: 20px;
             background: #222;
-            border: 1px solid #555;
+            border: 1px solid #444;
             color: white;
             border-radius: 8px;
+            margin-bottom: 20px;
             box-sizing: border-box;
-            font-size: 16px;
         }
 
         .skills-table {
@@ -73,86 +65,60 @@
             border-collapse: collapse;
         }
 
-        .skills-table th {
-            text-align: left;
-            border-bottom: 2px solid #444;
-            padding: 10px;
-            color: #ccc;
-        }
-
         .skills-table td {
-            padding: 12px 10px;
-            border-bottom: 1px solid #333;
+            padding: 12px 5px;
+            border-bottom: 1px solid #222;
+            color: #eee;
         }
 
-        .skill-tag {
+        .skill-badge {
             display: inline-block;
-            background: #28a745;
+            background: #00c0a8; /* Ta tyrkysová barva, co jsme vybrali */
             color: white;
             padding: 3px 10px;
             border-radius: 12px;
             font-size: 0.8em;
             margin: 2px;
-            white-space: nowrap;
         }
 
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #888;
-        }
-
-        @media (max-width: 600px) {
-            .skills-table th:last-child, .skills-table td:last-child {
-                display: block;
-                width: 100%;
-            }
-            .skills-table tr {
-                display: block;
-                margin-bottom: 15px;
-                border-bottom: 2px solid #444;
-            }
-            .skills-table td {
-                display: block;
-                padding: 5px 10px;
-                border: none;
-            }
+        .btn-back {
+            background: #333;
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9em;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="logo-text">
-             <span>🍏</span> Dovednosti týmu
+    <!-- Horní lišta -->
+    <div class="header-bar">
+        <div class="logo-area">
+            <span style="font-size: 1.5em;">🍏</span> Dovednosti týmu
         </div>
         <a href="index.html" class="btn-back">⬅ Zpět</a>
     </div>
 
-    <div class="container">
-        <div class="card">
-            <input type="text" id="skillSearch" placeholder="Hledat jméno nebo operaci..." onkeyup="filterSkills()">
-            
-            <div id="loading" class="loading">Načítám data z databáze...</div>
-
-            <table class="skills-table" id="skillsTable" style="display: none;">
-                <thead>
-                    <tr>
-                        <th>Zaměstnanec</th>
-                        <th>Operace</th>
-                    </tr>
-                </thead>
-                <tbody id="skillsTableBody">
-                    <!-- Data se doplní přes JS -->
-                </tbody>
-            </table>
+    <!-- Hlavní karta -->
+    <div class="content-card">
+        <input type="text" id="skillSearch" placeholder="Hledat jméno nebo operaci..." onkeyup="filterSkills()">
+        
+        <div id="loading" style="text-align: center; color: #666; padding: 20px;">
+            Načítám data z databáze...
         </div>
+
+        <table class="skills-table" id="skillsTable" style="display: none;">
+            <tbody id="skillsTableBody">
+                <!-- Data doplní JS -->
+            </tbody>
+        </table>
     </div>
 
-    <!-- FIREBASE INTEGRACE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com";
-        import { getFirestore, collection, getDocs, onSnapshot } from "https://www.gstatic.com";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com";
 
         const firebaseConfig = {
@@ -168,22 +134,20 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Zabezpečení: Pokud není přihlášen, vyhodíme ho na login
         onAuthStateChanged(auth, (user) => {
             if (!user) window.location.href = "index.html";
             else loadData();
         });
 
-        async function loadData() {
+        function loadData() {
             const tableBody = document.getElementById("skillsTableBody");
             const loading = document.getElementById("loading");
             const table = document.getElementById("skillsTable");
 
-            // Použijeme onSnapshot pro real-time aktualizaci (když admin změní skilly, hned se to projeví)
             onSnapshot(collection(db, "employees"), (snapshot) => {
                 let html = "";
                 
-                // Seřazení podle příjmení
+                // Seřazení podle příjmení (s ochranou proti undefined)
                 const sortedDocs = [...snapshot.docs].sort((a, b) => {
                     const sA = (a.data().surname || "").toLowerCase();
                     const sB = (b.data().surname || "").toLowerCase();
@@ -194,13 +158,12 @@
                     const emp = docSnap.data();
                     const skills = emp.skills || [];
                     const fullName = `${emp.name || ""} ${emp.surname || ""}`.trim() || "Neznámý";
-
-                    const skillsHtml = skills.map(s => `<span class="skill-tag">${s}</span>`).join("");
+                    const skillsHtml = skills.map(s => `<span class="skill-badge">${s}</span>`).join("");
 
                     html += `
                         <tr class="skill-row">
-                            <td><b>${fullName}</b></td>
-                            <td>${skillsHtml || '<i style="color:#666; font-size:0.8em;">Žádné operace</i>'}</td>
+                            <td style="width: 40%;"><b>${fullName}</b></td>
+                            <td>${skillsHtml || '<i style="color:#444;">Žádné operace</i>'}</td>
                         </tr>
                     `;
                 });
@@ -211,15 +174,10 @@
             });
         }
 
-        // Vyhledávání
         window.filterSkills = () => {
-            const input = document.getElementById("skillSearch");
-            const filter = input.value.toLowerCase();
-            const rows = document.querySelectorAll(".skill-row");
-
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                row.style.display = text.includes(filter) ? "" : "none";
+            const filter = document.getElementById("skillSearch").value.toLowerCase();
+            document.querySelectorAll(".skill-row").forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
             });
         };
     </script>
