@@ -397,12 +397,16 @@ onSnapshot(qChat, (snapshot) => {
 // 5. ODESÍLÁNÍ ZPRÁVY
 async function sendMessage() {
     const text = msgInput.value.trim();
-    if (!text) return;
+    if (!text || !auth.currentUser) return;
+
+    // Pojistka: Pokud nickname stále není načten, zkusíme ho vzít z profilu nebo e-mailu
+    const senderName = currentUserNickname !== "Host" ? currentUserNickname : (auth.currentUser.displayName || auth.currentUser.email);
 
     try {
         await addDoc(collection(db, "chat"), {
             text: text,
-            sender: currentUserNickname,
+            sender: senderName, // Použijeme zjištěné jméno
+            senderEmail: auth.currentUser.email, // Uložíme i email pro jistotu do budoucna
             createdAt: serverTimestamp() 
         });
         msgInput.value = "";
