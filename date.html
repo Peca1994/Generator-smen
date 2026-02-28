@@ -336,32 +336,32 @@ const sendBtn = document.getElementById("sendBtn");
 let currentUserNickname = "Host";
 let allNicknames = {}; 
 
-// DIAGNOSTIKA: Načtení zaměstnanců
 async function loadNicknames() {
-    console.log("--- Start načítání zaměstnanců ---");
     try {
         const snap = await getDocs(collection(db, "employees"));
-        console.log(`Nalezeno dokumentů v 'employees': ${snap.size}`);
-        
+        allNicknames = {}; // Reset mapy
         snap.forEach(doc => {
             const d = doc.data();
-            console.log("Data zaměstnance:", d); // Tady uvidíme, jestli tam je fName a email
             if (d.email) {
-                allNicknames[d.email.toLowerCase()] = d.fName || d.Name || d.email;
+                // Uložíme email malými písmeny pro snadné porovnání
+                const emailKey = d.email.toLowerCase().trim();
+                // Použijeme fName (z tvé karty zaměstnance)
+                allNicknames[emailKey] = d.fName || d.Name || d.email;
             }
         });
-        console.log("Mapa přezdívek hotova:", allNicknames);
+        console.log("Načtené přezdívky:", allNicknames);
     } catch (err) {
-        console.error("CHYBA při loadNicknames:", err);
+        console.error("Chyba loadNicknames:", err);
     }
 }
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        console.log("Přihlášen uživatel:", user.email);
         await loadNicknames();
-        currentUserNickname = allNicknames[user.email.toLowerCase()] || user.email.split('@')[0];
-        console.log("Tvoje přezdívka nastavena na:", currentUserNickname);
+        const userEmail = user.email.toLowerCase().trim();
+        // Zkusíme najít přezdívku v naší mapě
+        currentUserNickname = allNicknames[userEmail] || user.email.split('@')[0];
+        console.log("Tvoje finální přezdívka:", currentUserNickname);
         startChatListener();
     } else {
         window.location.href = "index.html"; 
@@ -374,10 +374,13 @@ function startChatListener() {
         chatBox.innerHTML = "";
         snapshot.forEach((docSnap) => {
             const m = docSnap.data();
-            const emailKey = m.senderEmail ? m.senderEmail.toLowerCase() : "";
-            const displayName = allNicknames[emailKey] || m.sender || "Host";
+            if (!m.text) return;
+
+            // Porovnání odesílatele přes email (vždy malými písmeny)
+            const senderEmailKey = m.senderEmail ? m.senderEmail.toLowerCase().trim() : "";
+            const displayName = allNicknames[senderEmailKey] || m.sender || "Host";
             
-            const isMe = m.senderEmail === auth.currentUser.email;
+            const isMe = senderEmailKey === auth.currentUser.email.toLowerCase().trim();
             const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "...";
 
             chatBox.innerHTML += `
