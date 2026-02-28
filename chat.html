@@ -115,10 +115,14 @@ body {
 
     /* 4. PSACÍ LIŠTA - NÍŽ U ZEMĚ */
     .chat-input-container {
-        position: fixed; bottom: 12px; /* Posunuto níž k okraji */
-        left: 50%; transform: translateX(-50%);
-        width: 92%; max-width: 500px; z-index: 1001;
-    }
+    position: fixed; 
+    bottom: 5px !important; /* Nalepíme lištu skoro k okraji displeje */
+    left: 50%; 
+    transform: translateX(-50%);
+    width: 95%; 
+    max-width: 500px; 
+    z-index: 1001;
+}
 
     .chat-input-wrapper {
         background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px);
@@ -147,7 +151,11 @@ body {
         margin-left: 3px; /* Jemné optické vycentrování šipky */
     }
 
-    .disclaimer { font-size: 8px; color: rgba(255, 255, 255, 0.2); text-align: center; margin-top: 8px; }
+    .disclaimer { 
+    margin-top: 3px !important; 
+    font-size: 8px; 
+    opacity: 0.2; 
+}
 </style>
 </head>
 
