@@ -6,6 +6,18 @@
 <title>Zaměstnanci</title>
 
 <style>
+        /* 1. GLOBÁLNÍ OPRAVA (Vložte hned sem) */
+        * {
+            box-sizing: border-box;
+            max-width: 100%;
+        }
+
+        html, body {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
 body {
     background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
     margin: 0;
@@ -236,30 +248,80 @@ select { font-weight: 900 !important; }
 .bg-shitmaking { background-color: #3b82f6 !important; } /* Modrá */
 .bg-borrowed { background-color: #475569 !important; }   /* Šedá */
 .bg-loaned { background-color: #064e3b !important; }
+.disclaimer {
+    position: relative; /* Změna z fixed na relative, aby netvořil prázdné místo pod sebou */
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.3); /* Decentní šedá */
+    text-align: left; /* Zarovnání doleva */
+    font-family: sans-serif;
+    line-height: 1.3;
+    width: 100%;
+    box-sizing: border-box;
+}
+@media (max-width: 480px) {
+    .disclaimer {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        text-align: center;
+        width: 90%;
+        max-width: none;
+    }
+}
+select {
+    -webkit-appearance: none;  /* Odstraní Apple vzhled */
+    -moz-appearance: none;     /* Odstraní Firefox vzhled */
+    appearance: none;          /* Standardní odstranění vzhledu */
+    
+    background-color: #f0f0f0; /* Výchozí barva pozadí */
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 16px;           /* Důležité: brání automatickému přiblížení na iPhone */
+    cursor: pointer;
+    width: 100%;
+}
+
+/* Aby se barvy v seznamu (option) zobrazovaly i při rozbalení */
+select option {
+    background-color: white;
+    color: black;
+}
 
 </style>
 </head>
 <script>
-// Funkce pro automatické barvení políčka podle vybraného stavu
-const statusSelect = document.querySelector('select'); // vybere tvůj seznam
-
-if (statusSelect) {
-    function updateColor() {
-        // Seznam všech možných barevných tříd
-        const colors = ['bg-v-praci', 'bg-dovolena', 'bg-paragraf', 'bg-nemoc', 'bg-partak', 'bg-pujceny', 'bg-propujceny'];
+function updateSingleColor(el) {
+    if (!el) return;
+    
+    // Seznam všech možných barevných tříd k odstranění
+    const colors = ['bg-v-praci', 'bg-dovolena', 'bg-paragraf', 'bg-nemoc', 'bg-parfak', 'bg-pujceny', 'bg-propujceny', 'bg-volno'];
+    
+    // Odstraníme staré barvy
+    el.classList.remove(...colors);
+    
+    // Vytvoříme název nové třídy (např. "V práci" -> "bg-v-praci")
+    const val = el.value.toLowerCase()
+        .replace(/\s+/g, '-') // mezery na pomlčky
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // odstraní diakritiku (á -> a)
         
-        // Odstraní předchozí barvu
-        statusSelect.classList.remove(...colors);
-        
-        // Získá hodnotu a převede ji na název třídy (např. "V práci" -> "v-praci")
-        // POZOR: value v HTML musí odpovídat názvům (v-praci, dovolena, atd.)
-        const val = statusSelect.value.toLowerCase().replace(/\s+/g, '-');
-        statusSelect.classList.add('bg-' + val);
-    }
+    el.classList.add('bg-' + val);
+}
 
-    // Spustí se při změně a i hned po načtení
-    statusSelect.addEventListener('change', updateColor);
-    updateColor();
+// Tuto funkci zavolej VŽDY po vykreslení tabulky v onSnapshot
+function initAllSelects() {
+    document.querySelectorAll('.status-select').forEach(select => {
+        updateSingleColor(select); // Obarvíme při načtení
+        
+        // Přidáme hlídače změny
+        select.onchange = function() {
+            updateSingleColor(this);
+            // Zde by mělo být i tvé volání do Firebase pro uložení:
+            // updateDoc(doc(db, "employees", id), { status: this.value });
+        };
+    });
 }
 </script>
 
@@ -358,6 +420,42 @@ apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+const statusColors = {
+    "V práci": "#ffffff",      // Bílá
+    "Dovolená": "#ffc107",     // Žlutá/Oranžová
+    "Paragraf": "#28a745",     // Zelená
+    "Nemoc": "#dc3545",        // Červená
+    "Parfák": "#6f42c1",       // Fialová
+    "Půjčený": "#000000",      // Černá (tady musíme změnit i barvu písma)
+    "Propůjčený": "#fd7e14",   // Oranžová
+    "Volno": "#007bff"         // Modrá
+};
+
+function updateSelectStyle(selectElement) {
+    const val = selectElement.value;
+    const bgColor = statusColors[val] || "#ffffff";
+    
+    // Nastavení barvy pozadí
+    selectElement.style.backgroundColor = bgColor;
+    
+    // Nastavení barvy písma (pro černou barvu 'Půjčený' dáme bílé písmo, jinak černé)
+    if (val === "Půjčený") {
+        selectElement.style.color = "white";
+    } else {
+        selectElement.style.color = "black";
+    }
+
+    // Odstranění "kolečka" na mobilu po výběru
+    selectElement.blur(); 
+}
+
+// Funkce, kterou zavolej po vykreslení tabulky
+function initStatusColors() {
+    document.querySelectorAll('select').forEach(select => {
+        updateSelectStyle(select);
+        select.addEventListener('change', (e) => updateSelectStyle(e.target));
+    });
+}
 /* 🔒 musí být přihlášen */
 
 onAuthStateChanged(auth, u=>{
