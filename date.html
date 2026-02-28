@@ -337,32 +337,25 @@ let currentUserNickname = "Host";
 let allNicknames = {}; 
 
 async function loadNicknames() {
-    console.log("--- DEBUG START: Kontrola zaměstnanců ---");
     try {
         const snap = await getDocs(collection(db, "employees"));
         allNicknames = {};
         
         snap.forEach(doc => {
             const d = doc.data();
-            // Zkusíme najít email a jméno bez ohledu na to, zda je to velkým nebo malým
-            const empEmail = d.email || d.Email || d.EMAIL;
-            const empName = d.fName || d.fname || d.Fname || d.Name || d.nickname;
-            
-            if (empEmail) {
-                const emailKey = empEmail.toLowerCase().trim();
-                allNicknames[emailKey] = empName || empEmail;
-                console.log(`Přiřazeno: ${emailKey} => ${allNicknames[emailKey]}`);
-            } else {
-                console.warn("Zaměstnanec bez emailu v DB:", d);
+            // 1. OPRAVA EMAILU: Odstraníme uvozovky a mezery, které tam máš v DB
+            if (d.email) {
+                const cleanEmail = d.email.replace(/"/g, '').trim().toLowerCase();
+                
+                // 2. OPRAVA POLE: Podle fotky máš v DB pole 'name', ne 'fName'
+                // Použijeme 'name' (Péca) nebo 'surname' (Lukáš Pecka)
+                allNicknames[cleanEmail] = d.name || d.surname || cleanEmail;
+                
+                console.log(`Spárováno: ${cleanEmail} => ${allNicknames[cleanEmail]}`);
             }
         });
-
-        const myEmail = auth.currentUser.email.toLowerCase().trim();
-        console.log("Tvůj email v Auth:", myEmail);
-        console.log("Obsahuje mapa tvůj email?", allNicknames.hasOwnProperty(myEmail));
-        
     } catch (err) {
-        console.error("Chyba loadNicknames:", err);
+        console.error("Chyba:", err);
     }
 }
 
