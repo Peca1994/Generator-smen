@@ -2,11 +2,12 @@
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dovednosti týmu</title>
 
 <style>
-      * {
+     /* 1. GLOBÁLNÍ OPRAVA (Vložte hned sem) */
+        * {
             box-sizing: border-box;
             max-width: 100%;
         }
@@ -17,41 +18,71 @@
             padding: 0;
             overflow-x: hidden;
         }
+/* 1. GLOBÁLNÍ RESET A OSTRÉ POZADÍ */
+body {
+    /* Identické tmavě zelené pozadí */
+    background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    color: white;
+    min-height: 100vh;
+}
 
-        body {
-        width: 100%; margin: 0; padding: 0; overflow-x: hidden;
-        background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
-        font-family: 'Inter', 'Segoe UI', sans-serif;
-        color: white; min-height: 100vh;
-    }
+/* Zapuštěné logo ŠKODA na pozadí */
+.background-logo {
+    position: fixed;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+    text-align: center;
+    pointer-events: none;
+}
 
-    /* Zapuštěné logo na pozadí */
-    .background-logo {
-        position: fixed; top: 25%; left: 50%; transform: translate(-50%, -50%);
-        z-index: -1; text-align: center; pointer-events: none;
-    }
-    .background-logo img {
-        width: 650px !important; max-width: 90vw !important;
-        opacity: 0.12 !important;
-        filter: brightness(0.6) sepia(1) hue-rotate(85deg) saturate(2.5) blur(1px) !important;
-    }
+.background-logo img {
+    width: 650px !important;
+    max-width: 90vw !important;
+    opacity: 0.12 !important;
+    filter: brightness(0.6) sepia(1) hue-rotate(85deg) saturate(2.5) blur(1px) !important;
+    mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
+    -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
+}
 
-    /* 2. TOPBAR */
-    .topbar {
-        width: 100%; height: 60px; display: flex; align-items: center;
-        justify-content: space-between; padding: 0 20px;
-        position: sticky; top: 0; z-index: 1000;
-        background: transparent;
-    }
-    .topTitle {
-        font-size: 22px; font-weight: 800;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    }
-    .menuBtn { 
-        padding: 8px 14px; border-radius: 10px; border: none; 
-        font-weight: 800; background: rgba(51, 65, 85, 0.8); 
-        color: white; cursor: pointer; 
-    }
+.background-logo h1 {
+    font-size: 16vw !important;
+    margin-top: -30px !important;
+    letter-spacing: 25px !important;
+    color: #1a3a2a !important;
+    opacity: 0.5 !important;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+/* 2. TOPBAR */
+.topbar {
+    width: 100% !important;
+    height: 60px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 20px !important;
+    box-sizing: border-box !important;
+    background: transparent !important;
+    border: none !important;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+.menuBtn { 
+    padding: 8px 14px; 
+    border-radius: 10px; 
+    border: none; 
+    font-weight: 800; 
+    background: rgba(51, 65, 85, 0.8); 
+    color: white; 
+    cursor: pointer; 
+}
 
     /* 3. OBSAH - SKLENĚNÁ KARTA */
     .container {
