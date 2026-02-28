@@ -778,6 +778,10 @@ body {
       📊 Směnový graf
     </button>
 
+<button id="btnDovednosti" class="btnSkills bg-cyan hidden" onclick="go('Dovednosti.html')">
+    🎓 Dovednosti týmu
+</button>
+
     <button class="btnCalendar bg-slate" onclick="go('date.html')">
       💬 Týmový Chat
     </button>
@@ -896,6 +900,7 @@ onAuthStateChanged(auth, async (user) => {
   const authCard = document.getElementById("authCard");
   const menuCard = document.getElementById("menuCard");
   const myNoteCard = document.getElementById("myNoteCard");
+  const btnDovednosti = document.getElementById("btnDovednosti"); // NOVÉ
 
   if (user) {
     console.log("Uživatel přihlášen:", user.email);
@@ -904,10 +909,15 @@ onAuthStateChanged(auth, async (user) => {
     if (loadingCard) loadingCard.style.setProperty("display", "none", "important");
     if (authCard) authCard.style.setProperty("display", "none", "important");
 
-    // 2. UKÁZAT MENU
+    // 2. UKÁZAT MENU A TLAČÍTKO DOVEDNOSTÍ
     if (menuCard) {
       menuCard.style.setProperty("display", "block", "important");
       menuCard.classList.remove("hidden");
+    }
+    
+    if (btnDovednosti) { // NOVÉ
+      btnDovednosti.style.setProperty("display", "block", "important");
+      btnDovednosti.classList.remove("hidden");
     }
 
     // 3. NAČTENÍ ROLE A DALŠÍCH DAT
@@ -929,10 +939,15 @@ onAuthStateChanged(auth, async (user) => {
   } else {
     console.log("Uživatel odhlášen.");
 
-    // 1. SCHOVAT VŠECHNY KARTY APLIKACE
+    // 1. SCHOVAT VŠECHNY KARTY APLIKACE I TLAČÍTKO DOVEDNOSTÍ
     if (menuCard) menuCard.style.setProperty("display", "none", "important");
     if (myNoteCard) myNoteCard.style.setProperty("display", "none", "important");
     if (loadingCard) loadingCard.style.setProperty("display", "none", "important");
+    
+    if (btnDovednosti) { // NOVÉ
+      btnDovednosti.style.setProperty("display", "none", "important");
+      btnDovednosti.classList.add("hidden");
+    }
 
     // 2. UKÁZAT PŘIHLAŠOVACÍ OKNO
     if (authCard) {

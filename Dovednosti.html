@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dovednosti týmu</title>
+    <link rel="stylesheet" href="style.css"> <!-- Předpokládám, že máš externí styl, pokud ne, styl je níže -->
+    <style>
+        body {
+            background: #000 url('skoda-bg.jpg') no-repeat center center fixed; /* Uprav cestu k pozadí */
+            background-size: cover;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid #444;
+        }
+
+        .logo-text {
+            font-weight: bold;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-back {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+
+        #skillSearch {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            background: #222;
+            border: 1px solid #555;
+            color: white;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .skills-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .skills-table th {
+            text-align: left;
+            border-bottom: 2px solid #444;
+            padding: 10px;
+            color: #ccc;
+        }
+
+        .skills-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .skill-tag {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin: 2px;
+            white-space: nowrap;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+
+        @media (max-width: 600px) {
+            .skills-table th:last-child, .skills-table td:last-child {
+                display: block;
+                width: 100%;
+            }
+            .skills-table tr {
+                display: block;
+                margin-bottom: 15px;
+                border-bottom: 2px solid #444;
+            }
+            .skills-table td {
+                display: block;
+                padding: 5px 10px;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo-text">
+             <span>🍏</span> Dovednosti týmu
+        </div>
+        <a href="index.html" class="btn-back">⬅ Zpět</a>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <input type="text" id="skillSearch" placeholder="Hledat jméno nebo operaci..." onkeyup="filterSkills()">
+            
+            <div id="loading" class="loading">Načítám data z databáze...</div>
+
+            <table class="skills-table" id="skillsTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Zaměstnanec</th>
+                        <th>Operace</th>
+                    </tr>
+                </thead>
+                <tbody id="skillsTableBody">
+                    <!-- Data se doplní přes JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- FIREBASE INTEGRACE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com";
+        import { getFirestore, collection, getDocs, onSnapshot } from "https://www.gstatic.com";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+            authDomain: "generator-smen-9fba1.firebaseapp.com",
+            projectId: "generator-smen-9fba1",
+            storageBucket: "generator-smen-9fba1.firebasestorage.app",
+            messagingSenderId: "541779211883",
+            appId: "1:541779211883:web:1d8578ec61b0f428a4632e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Zabezpečení: Pokud není přihlášen, vyhodíme ho na login
+        onAuthStateChanged(auth, (user) => {
+            if (!user) window.location.href = "index.html";
+            else loadData();
+        });
+
+        async function loadData() {
+            const tableBody = document.getElementById("skillsTableBody");
+            const loading = document.getElementById("loading");
+            const table = document.getElementById("skillsTable");
+
+            // Použijeme onSnapshot pro real-time aktualizaci (když admin změní skilly, hned se to projeví)
+            onSnapshot(collection(db, "employees"), (snapshot) => {
+                let html = "";
+                
+                // Seřazení podle příjmení
+                const sortedDocs = [...snapshot.docs].sort((a, b) => {
+                    const sA = (a.data().surname || "").toLowerCase();
+                    const sB = (b.data().surname || "").toLowerCase();
+                    return sA.localeCompare(sB);
+                });
+
+                sortedDocs.forEach(docSnap => {
+                    const emp = docSnap.data();
+                    const skills = emp.skills || [];
+                    const fullName = `${emp.name || ""} ${emp.surname || ""}`.trim() || "Neznámý";
+
+                    const skillsHtml = skills.map(s => `<span class="skill-tag">${s}</span>`).join("");
+
+                    html += `
+                        <tr class="skill-row">
+                            <td><b>${fullName}</b></td>
+                            <td>${skillsHtml || '<i style="color:#666; font-size:0.8em;">Žádné operace</i>'}</td>
+                        </tr>
+                    `;
+                });
+
+                tableBody.innerHTML = html;
+                loading.style.display = "none";
+                table.style.display = "table";
+            });
+        }
+
+        // Vyhledávání
+        window.filterSkills = () => {
+            const input = document.getElementById("skillSearch");
+            const filter = input.value.toLowerCase();
+            const rows = document.querySelectorAll(".skill-row");
+
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(filter) ? "" : "none";
+            });
+        };
+    </script>
+</body>
+</html>
