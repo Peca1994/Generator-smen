@@ -891,23 +891,31 @@ window.logout = ()=> signOut(auth);
 window.go = (p)=> location.href=p;
 
 onAuthStateChanged(auth, (user) => {
-    const loginBox = document.getElementById("loginBox"); // ID tvého přihlašovacího okna
-    const mainContent = document.getElementById("mainContent"); // ID obsahu pro přihlášené
+    // Najdeme elementy na stránce (ujisti se, že tato ID v HTML máš)
+    const loginSection = document.getElementById("loginSection"); // Celý ten box s logem a loginem
+    const appContent = document.getElementById("appContent");     // Hlavní obsah aplikace (menu, rozpis)
+    const loadingScreen = document.getElementById("loadingScreen"); // To, co vidíme na screenu (SKODA OVERUJI...)
 
     if (user) {
-        // --- UŽIVATEL JE PŘIHLÁŠEN ---
-        console.log("Přihlášen:", user.email);
+        // --- UŽIVATEL PŘIHLÁŠEN ---
+        console.log("Přihlášen jako:", user.email);
         
-        if (loginBox) loginBox.style.display = "none";    // Schová tabulku
-        if (mainContent) mainContent.style.display = "block"; // Ukáže zbytek webu
+        // Schováme loading a login, ukážeme aplikaci
+        if (loadingScreen) loadingScreen.style.display = "none";
+        if (loginSection) loginSection.style.display = "none";
+        if (appContent) appContent.style.display = "block";
         
-        // Zde můžeš zavolat své funkce pro načtení dat (např. loadData())
+        // Zde můžeš zavolat načítání dat pro rozpis
+        // loadSchedule(); 
+        
     } else {
-        // --- UŽIVATEL JE ODHLÁŠEN ---
-        console.log("Nikdo není přihlášen");
+        // --- UŽIVATEL ODHLÁŠEN NEBO NENÍ PŘIHLÁŠEN ---
+        console.log("Uživatel není přihlášen.");
         
-        if (loginBox) loginBox.style.display = "block";   // Ukáže tabulku
-        if (mainContent) mainContent.style.display = "none";  // Schová zbytek webu
+        // Schováme loading a aplikaci, ukážeme login
+        if (loadingScreen) loadingScreen.style.display = "none";
+        if (appContent) appContent.style.display = "none";
+        if (loginSection) loginSection.style.display = "block";
     }
 });
 async function loadMyNote(user){
