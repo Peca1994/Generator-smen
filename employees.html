@@ -270,6 +270,47 @@ select { font-weight: 900 !important; }
         max-width: none;
     }
 }
+select {
+    -webkit-appearance: none;  /* Odstraní Apple vzhled */
+    -moz-appearance: none;     /* Odstraní Firefox vzhled */
+    appearance: none;          /* Standardní odstranění vzhledu */
+    
+    background-color: #f0f0f0; /* Výchozí barva pozadí */
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 16px;           /* Důležité: brání automatickému přiblížení na iPhone */
+    cursor: pointer;
+    width: 100%;
+}
+
+/* Aby se barvy v seznamu (option) zobrazovaly i při rozbalení */
+select option {
+    background-color: white;
+    color: black;
+}
+select {
+    -webkit-appearance: none; /* Klíčové pro odstranění iOS vzhledu a kolečka */
+    -moz-appearance: none;
+    appearance: none;
+    
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #444;
+    font-size: 16px; /* Brání automatickému přiblížení na iPhone */
+    width: 100%;
+    cursor: pointer;
+}
+
+/* Pokud chceš barvy vidět i v tom rozbaleném seznamu na PC */
+select option[value="V práci"] { background-color: #ffffff; color: black; }
+select option[value="Dovolená"] { background-color: #ffc107; color: black; }
+select option[value="Paragraf"] { background-color: #28a745; color: black; }
+select option[value="Nemoc"] { background-color: #dc3545; color: white; }
+select option[value="Parfák"] { background-color: #6f42c1; color: white; }
+select option[value="Půjčený"] { background-color: #000000; color: white; }
+select option[value="Propůjčený"] { background-color: #fd7e14; color: black; }
+select option[value="Volno"] { background-color: #007bff; color: white; }
 </style>
 </head>
 <script>
@@ -391,6 +432,42 @@ apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+const statusColors = {
+    "V práci": "#ffffff",      // Bílá
+    "Dovolená": "#ffc107",     // Žlutá/Oranžová
+    "Paragraf": "#28a745",     // Zelená
+    "Nemoc": "#dc3545",        // Červená
+    "Parfák": "#6f42c1",       // Fialová
+    "Půjčený": "#000000",      // Černá (tady musíme změnit i barvu písma)
+    "Propůjčený": "#fd7e14",   // Oranžová
+    "Volno": "#007bff"         // Modrá
+};
+
+function updateSelectStyle(selectElement) {
+    const val = selectElement.value;
+    const bgColor = statusColors[val] || "#ffffff";
+    
+    // Nastavení barvy pozadí
+    selectElement.style.backgroundColor = bgColor;
+    
+    // Nastavení barvy písma (pro černou barvu 'Půjčený' dáme bílé písmo, jinak černé)
+    if (val === "Půjčený") {
+        selectElement.style.color = "white";
+    } else {
+        selectElement.style.color = "black";
+    }
+
+    // Odstranění "kolečka" na mobilu po výběru
+    selectElement.blur(); 
+}
+
+// Funkce, kterou zavolej po vykreslení tabulky
+function initStatusColors() {
+    document.querySelectorAll('select').forEach(select => {
+        updateSelectStyle(select);
+        select.addEventListener('change', (e) => updateSelectStyle(e.target));
+    });
+}
 /* 🔒 musí být přihlášen */
 
 onAuthStateChanged(auth, u=>{
