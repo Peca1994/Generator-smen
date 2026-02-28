@@ -77,18 +77,20 @@ body {
     .menuBtn { padding: 8px 14px; border-radius: 10px; border: none; font-weight: 800; background: rgba(51, 65, 85, 0.8); color: white; cursor: pointer; }
 
     /* 3. CHAT BOX - OPRAVA VÝŠKY A MEZER */
-    #chatBox {
-    /* Zvětšíme výšku - odečteme jen 100px místo 160px */
-    height: calc(100vh - 100px) !important; 
+  #chatBox {
+    /* 1. KLÍČOVÁ ZMĚNA: Zvětšíme mezeru pod poslední zprávou na 120px */
+    padding: 10px 15px 120px 15px !important; 
+    
+    /* 2. KLÍČOVÁ ZMĚNA: Aby chatBox mohl sjet až úplně dolů, musí mít 
+       trochu větší prostor pro výpočet výšky */
+    height: calc(100vh - 80px) !important; 
+    
     margin-top: 5px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 4px;
-    /* Zmenšíme rezervu dole, aby zprávy končily těsně nad lištou */
-    padding: 10px 15px 75px 15px !important; 
 }
-
     /* Bublina zprávy - KOMPAKTNÍ DESIGN */
     .msg {
         padding: 6px 12px !important; /* Mnohem nižší bubliny */
