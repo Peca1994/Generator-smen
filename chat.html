@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Statistiky</title>
+<title>Týmový Chat</title>
 
 <style>
         /* 1. GLOBÁLNÍ OPRAVA (Vložte hned sem) */
@@ -18,7 +18,7 @@
             padding: 0;
             overflow-x: hidden;
         }
-/* 1. GLOBÁLNÍ NASTAVENÍ A POZADÍ (LOGO ŠKODA) */
+/* 1. GLOBÁLNÍ RESET A OSTRÉ POZADÍ */
 body {
     /* Identické tmavě zelené pozadí */
     background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
@@ -59,7 +59,7 @@ body {
     text-transform: uppercase;
 }
 
-/* 2. TOPBAR A MENU */
+/* 2. TOPBAR */
 .topbar {
     width: 100% !important;
     height: 60px;
@@ -74,7 +74,6 @@ body {
     top: 0;
     z-index: 1000;
 }
-
 .menuBtn { 
     padding: 8px 14px; 
     border-radius: 10px; 
@@ -84,64 +83,55 @@ body {
     color: white; 
     cursor: pointer; 
 }
-
-/* 3. HLAVNÍ KONTEJNER - BEZ OHRANIČENÍ A ROZMAZÁNÍ */
-.container, .app, main {
-    max-width: 420px;
-    margin: 20px auto !important;
-    padding: 16px;
-    background: rgba(0, 0, 0, 0.3) !important; /* Jemný závoj přes logo */
-    border: none !important;      /* SMAZÁNÍ HLAVNÍHO OHRANIČENÍ */
-    box-shadow: none !important;
-    backdrop-filter: none !important; /* LOGO BUDE OSTRÉ */
-    -webkit-backdrop-filter: none !important;
+/* CHAT OKNO */
+   #chatBox {
+    height: calc(100vh - 280px); /* Zvětšili jsme odečet z 220px na 280px */
+    margin-top: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 15px;
 }
 
-/* 4. ÚPLNÉ ZPRŮHLEDNĚNÍ VNITŘNÍCH PRVKŮ (Krabice v krabici) */
-.card, .card-header, .btn-info, fieldset, section, details, summary, .container > div {
-    background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 10px 0 !important;
+/* Bublina zprávy */
+.msg {
+    padding: 10px 15px;
+    border-radius: 18px;
+    max-width: 75%;
+    position: relative;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    align-self: flex-start; /* Zprávy ostatních vlevo */
+    color: white;
 }
 
-/* 5. ČITELNOST TEXTU (BÍLÝ SE STÍNEM) */
-label, p, span, summary, .worker, .row, h1, h2, h3, .btn-info {
-    color: white !important;
-    font-weight: 900 !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,1) !important; /* Černý obrys písma */
+/* Moje zprávy (vpravo a zelené) */
+.msg.me {
+    align-self: flex-end; 
+    background: rgba(34, 197, 94, 0.25);
+    border: 1px solid rgba(34, 197, 94, 0.5);
 }
 
-/* 6. FORMULÁŘE A TLAČÍTKA */
-input, select {
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    border: none !important;
-    margin-bottom: 14px;
-    background: white !important;
-    color: black !important;
-    font-weight: 700;
-}
-
-.btn-warning, .btn-primary, .btn-success, #saveBtn, .mainBtn {
-    width: 100%;
-    padding: 14px !important;
-    border-radius: 12px !important;
-    border: none !important;
+/* Jméno odesílatele */
+.msg-sender {
+    font-size: 11px;
     font-weight: 800;
-    cursor: pointer;
-    margin-top: 10px;
+    color: #38bdf8; /* Světle modrá pro jména */
+    margin-bottom: 4px;
+    display: block;
 }
 
-/* 7. POMOCNÉ PRVKY (Badge a Bary) */
-.badge { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 900; }
-.active { background: #16a34a !important; }
-.reserve { background: #2563eb !important; }
-.absence { background: #dc2626 !important; }
-.barWrap { background: #020617; border-radius: 10px; height: 14px; margin-top: 6px; overflow: hidden; }
-.bar { height: 100%; background: linear-gradient(90deg,#22c55e,#4ade80); }
+/* Čas zprávy */
+.msg-time {
+    font-size: 9px;
+    opacity: 0.5;
+    display: block;
+    text-align: right;
+    margin-top: 5px;
+}
 .topTitle {
     font-family: 'Inter', 'Segoe UI', system-ui, sans-serif !important;
     font-size: 22px !important;
@@ -150,6 +140,64 @@ input, select {
     letter-spacing: -0.5px !important;
     text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     padding-left: 10px;
+}
+
+.chat-input-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 500px;
+    z-index: 1001;
+}
+
+/* Skleněný efekt lišty */
+.chat-input-wrapper {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    padding: 8px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* Samotné pole pro text */
+#msgInput {
+    flex: 1;
+    background: transparent !important;
+    border: none !important;
+    color: white !important;
+    font-size: 16px;
+    padding: 10px 0;
+    outline: none !important;
+}
+
+/* Stylové tlačítko s ikonou šipky */
+#sendBtn {
+    background: #22c55e;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+}
+
+#sendBtn:hover {
+    background: #16a34a;
+    transform: scale(1.1);
+}
+
+#sendBtn svg {
+    margin-left: 3px; /* Vycentrování ikonky šipky */
 }
 .disclaimer {
     position: relative; /* Změna z fixed na relative, aby netvořil prázdné místo pod sebou */
@@ -173,20 +221,48 @@ input, select {
         max-width: none;
     }
 }
-.stats-card, .container, .employee-stats-box { 
-    background: rgba(0, 0, 0, 0.2) !important; /* Pouze 20% černá, zbytek je průhledný */
-    backdrop-filter: none !important; /* Odstraní rozmazání, aby bylo pozadí ostré */
-    border: none !important; /* Odstraní tvrdé okraje */
-    box-shadow: none !important; /* Odstraní stíny, které dělají kartu "těžkou" */
+/* 1. HLAVNÍ KONTEJNER PRO CELOU SPODNÍ ČÁST */
+.bottom-area {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 500px;
+    padding-bottom: 10px; /* Mezera od úplného spodku */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1001;
 }
 
-/* Pokud tam máš bílé vyhledávání, uděláme ho taky skleněné */
-#statsSearch {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    color: white !important;
-    border-radius: 25px;
-    padding: 12px;
+/* 2. PSACÍ LIŠTA - Teď je nad disclaimerem */
+.chat-input-wrapper {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    padding: 8px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    width: 90%; 
+    margin-bottom: 10px; 
+}
+
+/* 3. DISCLAIMER - Úplně dole */
+
+/* 4. ÚPRAVA VÝŠKY CHATU */
+#chatBox {
+    height: calc(100vh - 220px); 
+    margin-top: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+    padding-bottom: 120px; /* Aby zprávy nezajely pod lištu */
 }
 </style>
 </head>
@@ -194,227 +270,159 @@ input, select {
 <body>
 <div class="background-logo">
     <img src="pozadi.jpg" alt="Logo">
-
 </div>
 <div class="topbar">
- <span class="topTitle"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg> Statistiky</span>
-  <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
+    <span class="topTitle"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Týmový Chat</span>
+    <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
 </div>
 
-<div class="container">
+<!-- 2. SEM VLOŽ TENTO BLOK (Uprostřed mezi lištami) -->
+<div id="chatBox">
+    <!-- Sem skript automaticky vloží zprávy -->
+</div>
 
-<input id="filter" placeholder="🔎 Filtr podle jména…">
+<!-- 3. Tady už máš (nebo vlož) spodní část s textem -->
 
-<div class="card"><h3>🚨 Největší absence</h3><div id="rankAbs"></div></div>
+<div class="chat-input-container">
+    <!-- 1. Psací lišta -->
+    <div class="chat-input-wrapper">
+        <input type="text" id="msgInput" placeholder="Napiš vzkaz...">
+        <button id="sendBtn">
+            <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z" /></svg>
+        </button>
+    </div>
 
-
-
-<div id="cards"><div class="loading">Počítám data…</div></div>
-<div class="disclaimer">
+    <!-- 2. Text o právech (teď bude až pod lištou) -->
+    <div class="disclaimer">
         © 2024 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.
     </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs }
-from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged }
+from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-const app = initializeApp({
-apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
-  authDomain: "generator-smen-9fba1.firebaseapp.com",
-  projectId: "generator-smen-9fba1",
-  storageBucket: "generator-smen-9fba1.firebasestorage.app",
-  messagingSenderId: "541779211883",
-  appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
-  measurementId: "G-1HF3R93D92"
-});
+import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    query,       // TATO FUNKCE TI CHYBĚLA
+    orderBy, 
+    onSnapshot, 
+    getDocs, 
+    where,       // TATO TAKÉ
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+const firebaseConfig = {
+    apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+    authDomain: "generator-smen-9fba1.firebaseapp.com",
+    projectId: "generator-smen-9fba1",
+    storageBucket: "generator-smen-9fba1.firebasestorage.app",
+    messagingSenderId: "541779211883",
+    appId: "1:541779211883:web:1d8578ec61b0f428a4632e",
+    measurementId: "G-1HF3R93092"
+};
 
+// 2. INICIALIZACE - Teď už getAuth() bude fungovat
+const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app); 
 
-const cardsEl = document.getElementById("cards");
-const filterEl = document.getElementById("filter");
-const rankAbsEl = document.getElementById("rankAbs");
+const chatBox = document.getElementById("chatBox");
+const msgInput = document.getElementById("msgInput");
+const sendBtn = document.getElementById("sendBtn");
 
+let currentUserNickname = "Host";
+let allNicknames = {}; 
 
-/* =======================
-   LOAD
-======================= */
+async function loadNicknames() {
+    try {
+        const snap = await getDocs(collection(db, "employees"));
+        allNicknames = {};
+        
+        snap.forEach(doc => {
+            const d = doc.data();
+            // 1. OPRAVA EMAILU: Odstraníme uvozovky a mezery, které tam máš v DB
+            if (d.email) {
+                const cleanEmail = d.email.replace(/"/g, '').trim().toLowerCase();
+                
+                // 2. OPRAVA POLE: Podle fotky máš v DB pole 'name', ne 'fName'
+                // Použijeme 'name' (Péca) nebo 'surname' (Lukáš Pecka)
+                allNicknames[cleanEmail] = d.name || d.surname || cleanEmail;
+                
+                console.log(`Spárováno: ${cleanEmail} => ${allNicknames[cleanEmail]}`);
+            }
+        });
+    } catch (err) {
+        console.error("Chyba:", err);
+    }
+}
 
-const empSnap = await getDocs(collection(db,"employees"));
-const shiftSnap = await getDocs(collection(db,"shifts"));
-
-const empCurrentStatus = {};
-const empNames = {};
-const stats = {};
-const posCount = {};
-
-empSnap.forEach(d=>{
- const e=d.data();
-
- empCurrentStatus[d.id] = e.statusToday || "work";
- empNames[d.id] = e.name+" "+e.surname;
-
- stats[d.id] = {
-  active:0,
-  reserve:0,
-  absence:0,
-  pos:{}
- };
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        await loadNicknames();
+        const userEmail = user.email.toLowerCase().trim();
+        // Zkusíme najít přezdívku v naší mapě
+        currentUserNickname = allNicknames[userEmail] || user.email.split('@')[0];
+        console.log("Tvoje finální přezdívka:", currentUserNickname);
+        startChatListener();
+    } else {
+        window.location.href = "index.html"; 
+    }
 });
 
-/* =======================
-   HLAVNÍ VÝPOČET
-======================= */
+function startChatListener() {
+    const qChat = query(collection(db, "chat"), orderBy("createdAt", "asc"));
+    onSnapshot(qChat, (snapshot) => {
+        chatBox.innerHTML = "";
+        snapshot.forEach((docSnap) => {
+   const m = docSnap.data();
+if (!m.text) return;
 
-shiftSnap.forEach(docSnap=>{
+// 1. Očištění emailu odesílatele (z databáze zprávy)
+const senderEmailKey = m.senderEmail ? m.senderEmail.toLowerCase().trim().replace(/"/g, '') : "";
 
- const shift = docSnap.data();
- const phases = shift.phases || [];
- const snapStatus = shift.statusSnapshot || {}; // ✅ snapshot dne
+// 2. Jméno z mapy (pokud není, použijeme email nebo "Host")
+const displayName = allNicknames[senderEmailKey] || m.sender || "Host";
 
- // 🔷 LOANED = celá směna = všechny fáze
- Object.entries(snapStatus).forEach(([id,st])=>{
-   if(st === "loaned" && stats[id]){
-     stats[id].active += phases.length || 4;
-   }
- });
+// 3. SPRÁVNÉ POROVNÁNÍ PRO STRANU (isMe)
+// Musíme se ujistit, že auth.currentUser existuje
+const myEmail = auth.currentUser ? auth.currentUser.email.toLowerCase().trim() : "";
+const isMe = senderEmailKey === myEmail;
 
- phases.forEach(phase=>{
+// 4. Formát času
+const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "...";
 
-   const used = new Set(Object.values(phase));
-
-   /* ===== AKTIVNÍ ===== */
-
-   Object.entries(phase).forEach(([pos,id])=>{
-
-     if(!stats[id]) return;
-
-     const st = snapStatus[id] || empCurrentStatus[id] || "work";
-
-     if(st === "loaned") return; // už započteno za směnu
-
-     // borrowed se počítá jen když JE na pozici → a to právě je
-     stats[id].active++;
-
-     stats[id].pos[pos] = (stats[id].pos[pos]||0)+1;
-     posCount[pos] = (posCount[pos]||0)+1;
-   });
-
-   /* ===== MIMO POZICE ===== */
-
-   Object.keys(stats).forEach(id=>{
-
-     if(used.has(id)) return;
-
-     const st = snapStatus[id] || empCurrentStatus[id] || "work";
-
-     if(st === "loaned") return;
-     if(st === "borrowed") return;
-
-     // ❌ nemoc + paragraf = absence
-if(st==="sick" || st==="paragraf"){
-  stats[id].absence++;
+// 5. Vykreslení do HTML
+chatBox.innerHTML += `
+    <div class="msg ${isMe ? 'me' : ''}">
+        <span class="msg-sender">${displayName}</span>
+        <div class="msg-text">${m.text}</div>
+        <span class="msg-time">${time}</span>
+    </div>
+`;
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
 }
 
-// 🟡 dovolená = nepočítat vůbec nic
-else if(st==="vacation"){
-  // nic
+async function sendMessage() {
+    const text = msgInput.value.trim();
+    if (!text || !auth.currentUser) return;
+
+    await addDoc(collection(db, "chat"), {
+        text: text,
+        sender: currentUserNickname,
+        senderEmail: auth.currentUser.email,
+        createdAt: serverTimestamp() 
+    });
+    msgInput.value = "";
 }
 
-// ✅ normální pracovní stavy = náhradník
-else if(st==="work" || st==="shitmaking"){
-  stats[id].reserve++;
-}
-
-
-   });
-
- });
-
-});
-
-/* =======================
-   RANKINGS
-======================= */
-
-function top3(arr){
- return arr.sort((a,b)=>b.val-a.val).slice(0,3);
-}
-
-rankAbsEl.innerHTML="";
-
-
-/* ABSENCE */
-
-top3(
- Object.entries(stats)
-  .filter(([id,s])=>s.absence>0)
-  .map(([id,s])=>({
-    name:empNames[id],
-    val:s.absence
-  }))
-).forEach(x=>{
- rankAbsEl.innerHTML +=
-   `<div class="rankRow">${x.name}<span>${x.val}</span></div>`;
-});
-
-
-
-/* =======================
-   KARTY
-======================= */
-
-function render(){
-
- const f = filterEl.value.toLowerCase();
- cardsEl.innerHTML="";
-
- Object.entries(stats).forEach(([id,s])=>{
-
-  const name = empNames[id];
-  if(!name.toLowerCase().includes(f)) return;
-
-  const total = s.active+s.reserve+s.absence;
-  if(!total) return;
-
-  const pct = Math.round((s.active/total)*100);
-
-  const div=document.createElement("div");
-  div.className="card";
-
-  div.innerHTML=`
-   <div class="worker">${name}</div>
-
-   <div class="row">Aktivní<span class="badge active">${s.active}</span></div>
-   <div class="row">Náhradník<span class="badge reserve">${s.reserve}</span></div>
-   <div class="row">Absence<span class="badge absence">${s.absence}</span></div>
-
-   <div class="barWrap">
-     <div class="bar" style="width:${pct}%"></div>
-   </div>
-
-   <div style="margin-top:10px;font-weight:800;">
-     Pozice — součet:
-   </div>
-
-   ${
-     Object.entries(s.pos)
-       .sort((a,b)=>b[1]-a[1])
-       .map(([p,c])=>`<div class="posItem">${p} — ${c}×</div>`)
-       .join("")
-   }
-  `;
-
-  cardsEl.appendChild(div);
-
- });
-
-}
-
-filterEl.oninput = render;
-render();
-
+sendBtn.onclick = sendMessage;
+msgInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
 </script>
+
 </body>
 </html>
