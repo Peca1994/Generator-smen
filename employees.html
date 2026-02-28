@@ -603,40 +603,61 @@ function paintStatusSelect(sel) {
 /* LIST */
 
 async function load() {
+  const list = document.getElementById("employeeList") || document.getElementById("list"); // Ujisti se, že ID sedí
+  if (!list) return;
+  
   list.innerHTML = "";
   const snap = await getDocs(collection(db, "employees"));
   
-  // 1. Převedeme snapshot na pole, abychom ho mohli seřadit
   let emps = [];
   snap.forEach(d => {
-    emps.push({ id: d.id, ...d.data() });
+    const data = d.data();
+    // POJISTKA: Pokud jméno v DB chybí (i kdyby u jednoho tajného dokumentu), nahradíme ho prázdným textem
+    // Tím zabráníme pádu localeCompare
+    emps.push({ 
+      id: d.id, 
+      ...data,
+      name: data.name || "", 
+      surname: data.surname || "",
+      statusToday: data.statusToday || "work" 
+    });
   });
 
-  // 2. Definujeme pořadí priorit pro statusy (čím nižší číslo, tím výše bude)
   const priority = {
-    "work": 1,        // Práce první
-    "shitmaking": 2,  // Parťák druhý
-    "borrowed": 3,    // Půjčený
-    "loaned": 4,      // Propůjčený
-    "vacation": 5,    // Dovolená
-    "sick": 6,        // Nemoc
-    "paragraf": 7     // Paragraf poslední
+    "work": 1,
+    "shitmaking": 2,
+    "borrowed": 3,
+    "loaned": 4,
+    "vacation": 5,
+    "sick": 6,
+    "paragraf": 7
   };
 
- snapshot.docs.sort((a, b) => {
-    // Zajistíme, že i když jméno chybí, kód nespadne (použije prázdný text)
-    const nameA = (a.data().surname || "").toLowerCase();
-    const nameB = (b.data().surname || "").toLowerCase();
+  // 3. BEZPEČNÉ ŘAZENÍ: Tady to dřív padalo a mazalo tabulku
+  emps.sort((a, b) => {
+    const prioA = priority[a.statusToday] || 99;
+    const prioB = priority[b.statusToday] || 99;
     
+    if (prioA !== prioB) {
+      return prioA - prioB;
+    }
+    
+    // Tady už name nikdy nebude 'undefined', protože jsme ho nahoře ošetřili
+    const nameA = a.name.toString();
+    const nameB = b.name.toString();
     return nameA.localeCompare(nameB);
-});
+  });
 
-  // 4. Vykreslení seřazeného seznamu
+  // 4. Vykreslení
   emps.forEach(e => {
     const row = document.createElement("div");
     row.className = "empRow";
+    
+    // Ochrana pro zobrazení "undefined undefined"
+    const fullName = (e.name + " " + e.surname).trim() || "Neznámé jméno";
+
     row.innerHTML = `
-      <div class="empName">${e.name} ${e.surname}</div>
+      <div class="empName">${fullName}</div>
       <select>
         <option value="work">Práce</option>
         <option value="vacation">Dovolená</option>
@@ -649,13 +670,22 @@ async function load() {
 
     row.querySelector(".empName").onclick = () => edit(e.id);
     const sel = row.querySelector("select");
-    sel.value = e.statusToday || "work";
-    paintStatusSelect(sel);
+    sel.value = e.statusToday;
     
-    sel.onchange = ev => {
-      paintStatusSelect(ev.target);
-      setDoc(doc(db, "employees", e.id), { statusToday: ev.target.value }, { merge: true });
-      load(); // Znovu načteme a seřadíme po změně statusu
+    if (typeof paintStatusSelect === "function") paintStatusSelect(sel);
+    
+    sel.onchange = async ev => {
+      const newVal = ev.target.value;
+      if (typeof paintStatusSelect === "function") paintStatusSelect(ev.target);
+      
+      try {
+        // Uložíme změnu do Firebase
+        await setDoc(doc(db, "employees", e.id), { statusToday: newVal }, { merge: true });
+        // DŮLEŽITÉ: Zavoláme load(), aby se tabulka přerovnala (Nemoc spadne dolů, Práce vyskočí nahoru)
+        load(); 
+      } catch (err) {
+        console.error("Chyba při ukládání:", err);
+      }
     };
 
     list.appendChild(row);
