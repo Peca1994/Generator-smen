@@ -344,17 +344,23 @@ async function loadNicknames() {
         
         snap.forEach(doc => {
             const d = doc.data();
-            // Tento výpis nám ukáže, co je v databázi za pole (fName, email, atd.)
-            console.log("Nalezen zaměstnanec:", d);
+            // Zkusíme najít email a jméno bez ohledu na to, zda je to velkým nebo malým
+            const empEmail = d.email || d.Email || d.EMAIL;
+            const empName = d.fName || d.fname || d.Fname || d.Name || d.nickname;
             
-            if (d.email) {
-                const emailKey = d.email.toLowerCase().trim();
-                // Tady zkusíme vypsat i jiná pole, pokud fName neexistuje
-                allNicknames[emailKey] = d.fName || d.Name || d.nickname || d.email;
+            if (empEmail) {
+                const emailKey = empEmail.toLowerCase().trim();
+                allNicknames[emailKey] = empName || empEmail;
+                console.log(`Přiřazeno: ${emailKey} => ${allNicknames[emailKey]}`);
+            } else {
+                console.warn("Zaměstnanec bez emailu v DB:", d);
             }
         });
-        console.log("Aktuálně přihlášený email (pro srovnání):", auth.currentUser.email.toLowerCase().trim());
-        console.log("Mapa všech načtených emailů:", Object.keys(allNicknames));
+
+        const myEmail = auth.currentUser.email.toLowerCase().trim();
+        console.log("Tvůj email v Auth:", myEmail);
+        console.log("Obsahuje mapa tvůj email?", allNicknames.hasOwnProperty(myEmail));
+        
     } catch (err) {
         console.error("Chyba loadNicknames:", err);
     }
