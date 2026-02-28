@@ -890,45 +890,25 @@ window.submitAuth = async ()=>{
 window.logout = ()=> signOut(auth);
 window.go = (p)=> location.href=p;
 
-onAuthStateChanged(auth, async user => {
-  
-  // SEM vložíš ten nový kód (místo původních řádků 444-465):
-  if (user) {
-     const loadingCard = document.getElementById("loading");
-    const menuCard = document.getElementById("menuCard");
+onAuthStateChanged(auth, (user) => {
+    const loginBox = document.getElementById("loginBox"); // ID tvého přihlašovacího okna
+    const mainContent = document.getElementById("mainContent"); // ID obsahu pro přihlášené
 
-    if (loadingCard) {
-        loadingCard.style.setProperty("display", "none", "important");
+    if (user) {
+        // --- UŽIVATEL JE PŘIHLÁŠEN ---
+        console.log("Přihlášen:", user.email);
+        
+        if (loginBox) loginBox.style.display = "none";    // Schová tabulku
+        if (mainContent) mainContent.style.display = "block"; // Ukáže zbytek webu
+        
+        // Zde můžeš zavolat své funkce pro načtení dat (např. loadData())
+    } else {
+        // --- UŽIVATEL JE ODHLÁŠEN ---
+        console.log("Nikdo není přihlášen");
+        
+        if (loginBox) loginBox.style.display = "block";   // Ukáže tabulku
+        if (mainContent) mainContent.style.display = "none";  // Schová zbytek webu
     }
-
-    if (menuCard) {
-        menuCard.style.setProperty("display", "block", "important");
-        menuCard.classList.remove("hidden");
-    }
-
-    if (menuCard) {
-        menuCard.style.setProperty("display", "block", "important");
-        menuCard.classList.remove("hidden");
-    }
-
-    const snap = await getDoc(doc(db, "users", user.uid));
-    const role = snap.data()?.role || "user";
-
-    if (role !== "admin") {
-      document.querySelectorAll(".adminOnly").forEach(b => {
-        b.style.display = "none";
-      });
-    }
-
-    loadMyNote(user);
-    loadBroadcast();
-  } else {
-    // Pokud není přihlášen, pouze schovej menu a ukaž přihlášení (neobnovuj stránku!)
-    if (loadingCard) loadingCard.classList.add("hidden");
-    if (menuCard) menuCard.classList.add("hidden");
-    if (authCard) authCard.classList.remove("hidden");
-    console.log("Uživatel odhlášen, čekám na přihlášení.");
-}
 });
 async function loadMyNote(user){
 
