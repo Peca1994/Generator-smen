@@ -47,29 +47,32 @@
     .container {
         padding: 15px; display: flex; flex-direction: column; align-items: center;
     }
-    .skills-card {
-    width: 100%;
-    max-width: 600px;
-    background: rgba(0, 0, 0, 0.4); /* Průhledná černá (40%) */
-    backdrop-filter: none !important; /* ÚPLNĚ ODSTRANÍ ROZMAZÁNÍ */
-    -webkit-backdrop-filter: none !important;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); /* Jemnější stín */
-    margin-top: 10px;
+   .skills-card {
+    width: 90% !important;
+    max-width: 500px !important; /* Užší karta vypadá víc jako tvůj vzor */
+    background: rgba(255, 255, 255, 0.05) !important; /* Velmi jemné prosvítání */
+    border-radius: 25px !important;
+    padding: 30px 20px !important; /* Více místa nahoře a dole */
+    margin: 20px auto !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: none !important; /* Ostré pozadí podle tvého přání */
 }
 
-   #skillSearch {
-    width: 100%;
-    padding: 12px 15px;
-    background: rgba(0, 0, 0, 0.5) !important; /* Tmavší průhledná pro kontrast */
+/* 2. TEXTY - posuneme je dál od vyhledávání */
+#loading {
+    margin-top: 25px !important;
+    font-size: 14px !important;
+    opacity: 0.6 !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* 3. VYHLEDÁVÁNÍ - víc "skleněný" vzhled */
+#skillSearch {
+    background: rgba(0, 0, 0, 0.2) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    color: white !important;
-    border-radius: 25px;
-    font-size: 16px;
-    margin-bottom: 20px;
-    outline: none;
+    padding: 15px 20px !important;
+    border-radius: 30px !important;
+    text-align: center; /* Text uprostřed jako na tvém vzoru */
 }
 
     .skills-table { width: 100%; border-collapse: collapse; }
