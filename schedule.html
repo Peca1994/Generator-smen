@@ -85,14 +85,26 @@ body {
 
 /* 4. FORMULÁŘE A ČITELNOST */
 input, select {
-    background: rgba(0, 0, 0, 0.3) !important; /* Tmavé sklo */
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 20px !important;
-    color: white !important; /* Bílý text je nutnost */
+    width: 100% !important;
+    max-width: 300px !important; /* Nastav si šířku, která ti vyhovuje */
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: none !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2) !important; /* Decentní spodní linka */
+    border-radius: 12px !important;
     padding: 12px 15px !important;
+    color: white !important;
+    font-size: 16px !important;
+    text-align: center !important;
     outline: none !important;
-    font-family: 'Inter', sans-serif !important;
-    text-align: center;
+    margin: 0 auto 20px auto !important; /* Vycentrování a mezera pod polem */
+    display: block !important;
+    transition: all 0.3s ease;
+}
+
+/* Efekt při kliknutí / psaní */
+input:focus, select:focus {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-bottom: 2px solid #00ff88 !important; /* Škodovácká zelená při aktivaci */
 }
 
 /* Úprava barvy nápisů (Datum, Směna, Vyhledat jméno) */
@@ -244,6 +256,38 @@ th { color: #facc15 !important; font-weight: 900; background: rgba(0,0,0,0.2); }
     max-width: 400px !important;
     margin-left: auto !important;
     margin-right: auto !important;
+}
+select {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+}
+
+/* Odstranění ikonky kalendáře u DATUMU (pro Chrome/Safari) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    display: none !important;
+    -webkit-appearance: none !important;
+}
+
+/* Odstranění šipek u čísel (pokud bys je někde měl) */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+label, .input-label, .form-label {
+    width: 100% !important;
+    display: block !important;
+    text-align: center !important; /* Vycentruje nápisy přesně nad kolonky */
+    color: #38bdf8 !important; /* Světle modrá barva z tvého Chatu */
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    margin-bottom: 8px !important;
+    margin-top: 15px !important;
+    opacity: 0.8;
+    font-family: 'Inter', sans-serif !important;
 }
 </style>
 </head>
