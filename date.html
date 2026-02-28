@@ -334,87 +334,65 @@ const msgInput = document.getElementById("msgInput");
 const sendBtn = document.getElementById("sendBtn");
 
 let currentUserNickname = "Host";
+let allNicknames = {}; // Zde budeme držet seznam: email -> jméno
 
-// 3. ZJIŠTĚNÍ PŘEZDÍVKY PŘIHLÁŠENÉHO UŽIVATELE
+// 1. NAČTENÍ SEZNAMU ZAMĚSTNANCŮ (Email -> fName)
+async function loadNicknames() {
+    const snap = await getDocs(collection(db, "employees"));
+    snap.forEach(doc => {
+        const d = doc.data();
+        if (d.email) allNicknames[d.email] = d.fName || d.Name || d.email;
+    });
+}
+
+// 2. KONTROLA PŘIHLÁŠENÍ A NASTAVENÍ JMÉNA
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        try {
-            const q = query(collection(db, "employees"), where("email", "==", user.email));
-            const snap = await getDocs(q);
-            
-            if (!snap.empty) {
-                const empData = snap.docs[0].data();
-                // Priorita: 1. fName (přezdívka), 2. nickname (pro jistotu), 3. email před zavináčem
-                currentUserNickname = empData.fName || empData.nickname || user.email.split('@')[0];
-            } else {
-                currentUserNickname = user.email.split('@')[0];
-            }
-        } catch (e) { 
-            console.error("Chyba při hledání jména:", e);
-            currentUserNickname = user.email.split('@')[0];
-        }
+        await loadNicknames(); // Nejdřív načteme jména
+        currentUserNickname = allNicknames[user.email] || user.email.split('@')[0];
+        startChatListener(); // Pak spustíme chat
     } else {
         window.location.href = "index.html"; 
     }
 });
 
-// 4. NAČÍTÁNÍ ZPRÁV V REÁLNÉM ČASE S PŘEKLADEM EMAILŮ NA PŘEZDÍVKY
-const qChat = query(collection(db, "chat"), orderBy("createdAt", "asc"));
+// 3. POSLOUCHÁNÍ CHATU
+function startChatListener() {
+    const qChat = query(collection(db, "chat"), orderBy("createdAt", "asc"));
+    onSnapshot(qChat, (snapshot) => {
+        chatBox.innerHTML = "";
+        snapshot.forEach((docSnap) => {
+            const m = docSnap.data();
+            if (!m.text) return;
 
-onSnapshot(qChat, async (snapshot) => {
-    // Nejdřív si načteme aktuální seznam všech zaměstnanců pro "překlad" email -> přezdívka
-    const empSnap = await getDocs(collection(db, "employees"));
-    const nicknamesMap = {};
-    empSnap.forEach(doc => {
-        const d = doc.data();
-        if (d.email) {
-            nicknamesMap[d.email] = d.fName || d.nickname || d.email;
-        }
+            // Zjistíme jméno podle emailu v mapě, jinak použijeme co je u zprávy
+            const senderName = allNicknames[m.senderEmail] || m.sender || "Host";
+            const isMe = m.senderEmail === auth.currentUser.email;
+            const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "...";
+
+            chatBox.innerHTML += `
+                <div class="msg ${isMe ? 'me' : ''}">
+                    <span class="msg-sender">${senderName}</span>
+                    <div class="msg-text">${m.text}</div>
+                    <span class="msg-time">${time}</span>
+                </div>`;
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
     });
+}
 
-    chatBox.innerHTML = "";
-    snapshot.forEach((docSnap) => {
-        const m = docSnap.data();
-        if (!m.text || m.text.trim() === "") return;
-
-        // TADY SE URČUJE JMÉNO: Pokud máme email odesílatele, najdeme přezdívku v mapě
-        const displaySender = nicknamesMap[m.senderEmail] || m.sender || "Host";
-        const isMe = m.senderEmail === auth.currentUser?.email;
-        
-        let time = "";
-        if (m.createdAt) {
-            time = new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        } else {
-            time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        }
-        
-        chatBox.innerHTML += `
-            <div class="msg ${isMe ? 'me' : ''}">
-                <span class="msg-sender">${displaySender}</span>
-                <div class="msg-text">${m.text}</div>
-                <span class="msg-time">${time}</span>
-            </div>
-        `;
-    });
-    chatBox.scrollTop = chatBox.scrollHeight;
-});
-
-// 5. ODESÍLÁNÍ ZPRÁVY
+// 4. ODESÍLÁNÍ
 async function sendMessage() {
     const text = msgInput.value.trim();
     if (!text || !auth.currentUser) return;
 
-    try {
-        await addDoc(collection(db, "chat"), {
-            text: text,
-            sender: currentUserNickname, 
-            senderEmail: auth.currentUser.email, // DŮLEŽITÉ: Ukládáme email pro zpětné dohledání přezdívky
-            createdAt: serverTimestamp() 
-        });
-        msgInput.value = "";
-    } catch (e) { 
-        console.error("Chyba odesílání:", e);
-    }
+    await addDoc(collection(db, "chat"), {
+        text: text,
+        sender: currentUserNickname,
+        senderEmail: auth.currentUser.email, // Klíč pro propojení
+        createdAt: serverTimestamp() 
+    });
+    msgInput.value = "";
 }
 
 sendBtn.onclick = sendMessage;
