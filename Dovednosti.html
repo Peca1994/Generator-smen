@@ -48,23 +48,29 @@
         padding: 15px; display: flex; flex-direction: column; align-items: center;
     }
     .skills-card {
-        width: 100%; max-width: 600px;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(15px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 20px;
-        padding: 20px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-        margin-top: 10px;
-    }
+    width: 100%;
+    max-width: 600px;
+    background: rgba(0, 0, 0, 0.4); /* Průhledná černá (40%) */
+    backdrop-filter: none !important; /* ÚPLNĚ ODSTRANÍ ROZMAZÁNÍ */
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); /* Jemnější stín */
+    margin-top: 10px;
+}
 
-    #skillSearch {
-        width: 100%; padding: 12px 15px;
-        background: rgba(0, 0, 0, 0.3) !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        color: white !important;
-        border-radius: 25px; font-size: 16px; margin-bottom: 20px; outline: none;
-    }
+   #skillSearch {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.5) !important; /* Tmavší průhledná pro kontrast */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    border-radius: 25px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    outline: none;
+}
 
     .skills-table { width: 100%; border-collapse: collapse; }
     .skill-row { border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
@@ -102,7 +108,7 @@
 
 <div class="container">
     <div class="skills-card">
-       <input type="text" id="skillSearch" placeholder="Hledat jméno nebo operaci (min. 3 znaky)..." oninput="searchSkills()">
+       <input type="text" id="skillSearch" placeholder="Hledat jméno nebo operaci (min. 2 znaky)..." oninput="searchSkills()">
         
         <div id="loading" style="text-align: center; opacity: 0.5; padding: 20px;">⌛ Načítám tým...</div>
 
