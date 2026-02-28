@@ -290,16 +290,16 @@ select option {
     color: black;
 }
 select {
-    -webkit-appearance: none; /* Klíčové pro odstranění iOS vzhledu a kolečka */
-    -moz-appearance: none;
-    appearance: none;
+    -webkit-appearance: none !important; /* Vynutí odstranění vzhledu Apple/Android */
+    -moz-appearance: none !important;
+    appearance: none !important;
     
-    padding: 10px;
-    border-radius: 5px;
+    background-color: white !important; /* Základní barva, kterou pak JS přepíše */
     border: 1px solid #444;
-    font-size: 16px; /* Brání automatickému přiblížení na iPhone */
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px !important; /* Zabrání automatickému zoomování obrazovky na mobilu */
     width: 100%;
-    cursor: pointer;
 }
 
 /* Pokud chceš barvy vidět i v tom rozbaleném seznamu na PC */
