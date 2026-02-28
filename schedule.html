@@ -220,6 +220,31 @@ th { color: #facc15 !important; font-weight: 900; background: rgba(0,0,0,0.2); }
     font-size: 14px !important;
     backdrop-filter: none !important; /* Ostré pozadí */
 }
+.card, .container, .main-box, .schedule-card {
+    background: transparent !important; /* Karta bude neviditelná, zůstane jen obsah */
+    border: none !important;           /* Smaže čáru ohraničení */
+    border-width: 0 !important;        /* Pojistka pro starší prohlížeče */
+    outline: none !important;          /* Smaže případný obrys */
+    box-shadow: none !important;       /* Smaže ten tmavý stín kolem dokola */
+    backdrop-filter: none !important;  /* Zruší rozmazání loga */
+    margin-top: 10px !important;
+}
+#statusMsg, .no-data-msg, .error-message, [id^="status"] {
+    background: rgba(255, 255, 255, 0.05) !important; /* Jemné skleněné prosvětlení */
+    border: none !important; /* Smaže ohraničení hlášky */
+    border-radius: 15px !important;
+    color: #ffb100 !important; /* Tvá nová žlutá/jantarová barva pro upozornění */
+    padding: 20px !important;
+    margin-top: 30px !important; /* Větší mezera od vyhledávání */
+    text-align: center !important;
+    font-weight: 600 !important;
+    font-size: 15px !important;
+    backdrop-filter: none !important; /* Ostré pozadí pod textem */
+    width: 100% !important;
+    max-width: 400px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
 </style>
 </head>
 
