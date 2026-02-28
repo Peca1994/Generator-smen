@@ -339,14 +339,13 @@ let currentUserNickname = "Host";
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
-            // Hledáme v employees dokument, kde email odpovídá přihlášenému uživateli
             const q = query(collection(db, "employees"), where("email", "==", user.email));
             const snap = await getDocs(q);
             
             if (!snap.empty) {
-                // Oprava: Získání dat z prvního nalezeného dokumentu
                 const empData = snap.docs[0].data();
-                currentUserNickname = empData.nickname || empData.fName || user.email.split('@')[0];
+                // Priorita: 1. fName (přezdívka), 2. nickname (pro jistotu), 3. email před zavináčem
+                currentUserNickname = empData.fName || empData.nickname || user.email.split('@')[0];
             } else {
                 currentUserNickname = user.email.split('@')[0];
             }
@@ -355,25 +354,33 @@ onAuthStateChanged(auth, async (user) => {
             currentUserNickname = user.email.split('@')[0];
         }
     } else {
-        // Pokud nikdo není přihlášen, nepustíme ho do chatu
         window.location.href = "index.html"; 
     }
 });
 
-// 4. NAČÍTÁNÍ ZPRÁV V REÁLNÉM ČASE
+// 4. NAČÍTÁNÍ ZPRÁV V REÁLNÉM ČASE S PŘEKLADEM EMAILŮ NA PŘEZDÍVKY
 const qChat = query(collection(db, "chat"), orderBy("createdAt", "asc"));
 
-onSnapshot(qChat, (snapshot) => {
+onSnapshot(qChat, async (snapshot) => {
+    // Nejdřív si načteme aktuální seznam všech zaměstnanců pro "překlad" email -> přezdívka
+    const empSnap = await getDocs(collection(db, "employees"));
+    const nicknamesMap = {};
+    empSnap.forEach(doc => {
+        const d = doc.data();
+        if (d.email) {
+            nicknamesMap[d.email] = d.fName || d.nickname || d.email;
+        }
+    });
+
     chatBox.innerHTML = "";
     snapshot.forEach((docSnap) => {
         const m = docSnap.data();
-        
-        // Pokud je text prázdný, zprávu vůbec nevykresluj
         if (!m.text || m.text.trim() === "") return;
 
-        const isMe = m.sender === currentUserNickname;
+        // TADY SE URČUJE JMÉNO: Pokud máme email odesílatele, najdeme přezdívku v mapě
+        const displaySender = nicknamesMap[m.senderEmail] || m.sender || "Host";
+        const isMe = m.senderEmail === auth.currentUser?.email;
         
-        // Ošetření času (pokud serverTimestamp ještě nedorazil, použij aktuální čas)
         let time = "";
         if (m.createdAt) {
             time = new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -381,16 +388,14 @@ onSnapshot(qChat, (snapshot) => {
             time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         }
         
-        // ČISTÁ ŠABLONA BEZ TEČEK
         chatBox.innerHTML += `
             <div class="msg ${isMe ? 'me' : ''}">
-                <span class="msg-sender">${m.sender}</span>
+                <span class="msg-sender">${displaySender}</span>
                 <div class="msg-text">${m.text}</div>
                 <span class="msg-time">${time}</span>
             </div>
         `;
     });
-    // Scroll dolů
     chatBox.scrollTop = chatBox.scrollHeight;
 });
 
@@ -399,14 +404,11 @@ async function sendMessage() {
     const text = msgInput.value.trim();
     if (!text || !auth.currentUser) return;
 
-    // Pojistka: Pokud nickname stále není načten, zkusíme ho vzít z profilu nebo e-mailu
-    const senderName = currentUserNickname !== "Host" ? currentUserNickname : (auth.currentUser.displayName || auth.currentUser.email);
-
     try {
         await addDoc(collection(db, "chat"), {
             text: text,
-            sender: senderName, // Použijeme zjištěné jméno
-            senderEmail: auth.currentUser.email, // Uložíme i email pro jistotu do budoucna
+            sender: currentUserNickname, 
+            senderEmail: auth.currentUser.email, // DŮLEŽITÉ: Ukládáme email pro zpětné dohledání přezdívky
             createdAt: serverTimestamp() 
         });
         msgInput.value = "";
@@ -415,7 +417,6 @@ async function sendMessage() {
     }
 }
 
-// Připojení na tlačítka
 sendBtn.onclick = sendMessage;
 msgInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
 </script>
