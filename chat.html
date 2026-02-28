@@ -78,14 +78,16 @@ body {
 
     /* 3. CHAT BOX - OPRAVA VÝŠKY A MEZER */
     #chatBox {
-        height: calc(100vh - 160px); /* Chat sahá mnohem níž */
-        margin-top: 10px;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 6px; /* Menší mezery mezi zprávami */
-        padding: 15px 15px 100px 15px; /* Rezerva dole, aby text nezajel pod lištu */
-    }
+    /* Zvětšíme výšku - odečteme jen 100px místo 160px */
+    height: calc(100vh - 100px) !important; 
+    margin-top: 5px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    /* Zmenšíme rezervu dole, aby zprávy končily těsně nad lištou */
+    padding: 10px 15px 75px 15px !important; 
+}
 
     /* Bublina zprávy - KOMPAKTNÍ DESIGN */
     .msg {
