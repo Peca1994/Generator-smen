@@ -890,33 +890,45 @@ window.submitAuth = async ()=>{
 window.logout = ()=> signOut(auth);
 window.go = (p)=> location.href=p;
 
-onAuthStateChanged(auth, (user) => {
-    // Najdeme elementy na stránce (ujisti se, že tato ID v HTML máš)
-    const loginSection = document.getElementById("loginSection"); // Celý ten box s logem a loginem
-    const appContent = document.getElementById("appContent");     // Hlavní obsah aplikace (menu, rozpis)
-    const loadingScreen = document.getElementById("loadingScreen"); // To, co vidíme na screenu (SKODA OVERUJI...)
+onAuthStateChanged(auth, async user => {
+  
+  // SEM vložíš ten nový kód (místo původních řádků 444-465):
+  if (user) {
+     const loadingCard = document.getElementById("loading");
+    const menuCard = document.getElementById("menuCard");
 
-    if (user) {
-        // --- UŽIVATEL PŘIHLÁŠEN ---
-        console.log("Přihlášen jako:", user.email);
-        
-        // Schováme loading a login, ukážeme aplikaci
-        if (loadingScreen) loadingScreen.style.display = "none";
-        if (loginSection) loginSection.style.display = "none";
-        if (appContent) appContent.style.display = "block";
-        
-        // Zde můžeš zavolat načítání dat pro rozpis
-        // loadSchedule(); 
-        
-    } else {
-        // --- UŽIVATEL ODHLÁŠEN NEBO NENÍ PŘIHLÁŠEN ---
-        console.log("Uživatel není přihlášen.");
-        
-        // Schováme loading a aplikaci, ukážeme login
-        if (loadingScreen) loadingScreen.style.display = "none";
-        if (appContent) appContent.style.display = "none";
-        if (loginSection) loginSection.style.display = "block";
+    if (loadingCard) {
+        loadingCard.style.setProperty("display", "none", "important");
     }
+
+    if (menuCard) {
+        menuCard.style.setProperty("display", "block", "important");
+        menuCard.classList.remove("hidden");
+    }
+
+    if (menuCard) {
+        menuCard.style.setProperty("display", "block", "important");
+        menuCard.classList.remove("hidden");
+    }
+
+    const snap = await getDoc(doc(db, "users", user.uid));
+    const role = snap.data()?.role || "user";
+
+    if (role !== "admin") {
+      document.querySelectorAll(".adminOnly").forEach(b => {
+        b.style.display = "none";
+      });
+    }
+
+    loadMyNote(user);
+    loadBroadcast();
+  } else {
+    // Pokud není přihlášen, pouze schovej menu a ukaž přihlášení (neobnovuj stránku!)
+    if (loadingCard) loadingCard.classList.add("hidden");
+    if (menuCard) menuCard.classList.add("hidden");
+    if (authCard) authCard.classList.remove("hidden");
+    console.log("Uživatel odhlášen, čekám na přihlášení.");
+}
 });
 async function loadMyNote(user){
 
