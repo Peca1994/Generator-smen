@@ -890,45 +890,55 @@ window.submitAuth = async ()=>{
 window.logout = ()=> signOut(auth);
 window.go = (p)=> location.href=p;
 
-onAuthStateChanged(auth, async user => {
-  
-  // SEM vložíš ten nový kód (místo původních řádků 444-465):
+onAuthStateChanged(auth, async (user) => {
+  const loadingCard = document.getElementById("loading");
+  const authCard = document.getElementById("authCard");
+  const menuCard = document.getElementById("menuCard");
+
   if (user) {
-     const loadingCard = document.getElementById("loading");
-    const menuCard = document.getElementById("menuCard");
+    // --- UŽIVATEL SE PŘIHLÁSIL ---
+    console.log("Přihlášen:", user.email);
 
-    if (loadingCard) {
-        loadingCard.style.setProperty("display", "none", "important");
-    }
-
-    if (menuCard) {
-        menuCard.style.setProperty("display", "block", "important");
-        menuCard.classList.remove("hidden");
-    }
-
-    if (menuCard) {
-        menuCard.style.setProperty("display", "block", "important");
-        menuCard.classList.remove("hidden");
-    }
-
-    const snap = await getDoc(doc(db, "users", user.uid));
-    const role = snap.data()?.role || "user";
-
-    if (role !== "admin") {
-      document.querySelectorAll(".adminOnly").forEach(b => {
-        b.style.display = "none";
-      });
-    }
-
-    loadMyNote(user);
-    loadBroadcast();
-  } else {
-    // Pokud není přihlášen, pouze schovej menu a ukaž přihlášení (neobnovuj stránku!)
+    // 1. Schováme loading i přihlašovací kartu
     if (loadingCard) loadingCard.classList.add("hidden");
+    if (authCard) authCard.classList.add("hidden");
+
+    // 2. Ukážeme menu
+    if (menuCard) {
+      menuCard.classList.remove("hidden");
+      menuCard.style.display = "block";
+    }
+
+    // 3. Načtení role a dat (tvoje původní logika)
+    try {
+      const snap = await getDoc(doc(db, "users", user.uid));
+      const role = snap.data()?.role || "user";
+
+      if (role !== "admin") {
+        document.querySelectorAll(".adminOnly").forEach(b => {
+          b.style.display = "none";
+        });
+      }
+      loadMyNote(user);
+      loadBroadcast();
+    } catch (e) {
+      console.error("Chyba při načítání role:", e);
+    }
+
+  } else {
+    // --- UŽIVATEL SE ODHLÁSIL ---
+    console.log("Uživatel odhlášen");
+
+    // 1. Schováme menu a loading
     if (menuCard) menuCard.classList.add("hidden");
-    if (authCard) authCard.classList.remove("hidden");
-    console.log("Uživatel odhlášen, čekám na přihlášení.");
-}
+    if (loadingCard) loadingCard.classList.add("hidden");
+
+    // 2. Ukážeme přihlašovací kartu
+    if (authCard) {
+      authCard.classList.remove("hidden");
+      authCard.style.display = "block";
+    }
+  }
 });
 async function loadMyNote(user){
 
