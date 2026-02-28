@@ -102,7 +102,7 @@
 
 <div class="container">
     <div class="skills-card">
-        <input type="text" id="skillSearch" placeholder="Hledat jméno nebo operaci..." onkeyup="filterSkills()">
+       <input type="text" id="skillSearch" placeholder="Hledat jméno nebo operaci (min. 3 znaky)..." oninput="searchSkills()">
         
         <div id="loading" style="text-align: center; opacity: 0.5; padding: 20px;">⌛ Načítám tým...</div>
 
@@ -118,20 +118,8 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-import { 
-    getFirestore, 
-    collection, 
-    addDoc, 
-    query,       // TATO FUNKCE TI CHYBĚLA
-    orderBy, 
-    onSnapshot, 
-    getDocs, 
-    where,       // TATO TAKÉ
-    serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
@@ -146,48 +134,72 @@ import {
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    onAuthStateChanged(auth, (user) => {
-        if (!user) window.location.href = "index.html";
-        else startLoading();
+    let allEmployees = []; // Cache pro bleskové vyhledávání v paměti mobilu
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = "index.html";
+        } else {
+            const loading = document.getElementById("loading");
+            try {
+                // Stažení dat proběhne jen JEDNOU při startu
+                const snap = await getDocs(collection(db, "employees"));
+                allEmployees = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Po stažení dat změníme nápis pro uživatele
+                loading.innerText = "Zadejte jméno nebo operaci (min. 2 znaky)...";
+            } catch (e) {
+                console.error(e);
+                loading.innerText = "Chyba při načítání dat. Zkuste to znovu.";
+            }
+        }
     });
 
-    function startLoading() {
+    // Nová blesková vyhledávací funkce
+    window.searchSkills = () => {
+        const queryText = document.getElementById("skillSearch").value.toLowerCase().trim();
         const tableBody = document.getElementById("skillsTableBody");
         const loading = document.getElementById("loading");
         const table = document.getElementById("skillsTable");
 
-        onSnapshot(collection(db, "employees"), (snapshot) => {
+        // Pokud uživatel nic nepíše (nebo jen 1 písmeno), tabulku schováme a mobil si oddechne
+        if (queryText.length < 2) {
+            table.style.display = "none";
+            loading.style.display = "block";
+            loading.innerText = "Zadejte alespoň 2 znaky...";
+            return;
+        }
+
+        // Filtrujeme už stažená data v paměti (to je i na mobilu bleskové)
+        const filtered = allEmployees.filter(emp => {
+            const name = `${emp.name || ""} ${emp.surname || ""}`.toLowerCase();
+            const skills = (emp.skills || []).join(" ").toLowerCase();
+            return name.includes(queryText) || skills.includes(queryText);
+        });
+
+        if (filtered.length > 0) {
             let html = "";
-            const sortedDocs = [...snapshot.docs].sort((a, b) => {
-                const sA = (a.data().surname || "").toLowerCase();
-                const sB = (b.data().surname || "").toLowerCase();
-                return sA.localeCompare(sB);
-            });
-
-            sortedDocs.forEach(docSnap => {
-                const emp = docSnap.data();
+            // Seřazení výsledků podle příjmení
+            filtered.sort((a, b) => (a.surname || "").localeCompare(b.surname || ""));
+            
+            filtered.forEach(emp => {
                 const fullName = `${emp.name || ""} ${emp.surname || ""}`.trim();
-                if (fullName) {
-                    const skillsHtml = (emp.skills || []).map(s => `<span class="badge">${s}</span>`).join("");
-                    html += `
-                        <tr class="skill-row">
-                            <td class="emp-name">${fullName}</td>
-                            <td>${skillsHtml || '<i style="color:rgba(255,255,255,0.2);font-size:10px;">Bez operací</i>'}</td>
-                        </tr>`;
-                }
+                const skillsHtml = (emp.skills || []).map(s => `<span class="badge">${s}</span>`).join("");
+                html += `
+                    <tr class="skill-row">
+                        <td class="emp-name">${fullName}</td>
+                        <td>${skillsHtml || '<i style="color:rgba(255,255,255,0.2);font-size:10px;">Bez operací</i>'}</td>
+                    </tr>`;
             });
-
+            
             tableBody.innerHTML = html;
             loading.style.display = "none";
             table.style.display = "table";
-        });
-    }
-
-    window.filterSkills = () => {
-        const filter = document.getElementById("skillSearch").value.toLowerCase();
-        document.querySelectorAll(".skill-row").forEach(row => {
-            row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
-        });
+        } else {
+            table.style.display = "none";
+            loading.style.display = "block";
+            loading.innerText = "Žádná shoda nenalezena.";
+        }
     };
 </script>
 
