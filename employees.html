@@ -623,17 +623,13 @@ async function load() {
     "paragraf": 7     // Paragraf poslední
   };
 
-  // 3. Samotné řazení: nejdříve podle priority statusu, pak podle jména
-  emps.sort((a, b) => {
-    const prioA = priority[a.statusToday] || 99;
-    const prioB = priority[b.statusToday] || 99;
+ snapshot.docs.sort((a, b) => {
+    // Zajistíme, že i když jméno chybí, kód nespadne (použije prázdný text)
+    const nameA = (a.data().surname || "").toLowerCase();
+    const nameB = (b.data().surname || "").toLowerCase();
     
-    if (prioA !== prioB) {
-      return prioA - prioB; // Seřazení podle statusu
-    }
-    // Pokud mají stejný status, seřadíme je podle abecedy (Jméno v rozpisu)
-    return a.name.localeCompare(b.name);
-  });
+    return nameA.localeCompare(nameB);
+});
 
   // 4. Vykreslení seřazeného seznamu
   emps.forEach(e => {
