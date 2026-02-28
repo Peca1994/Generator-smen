@@ -891,52 +891,53 @@ window.logout = ()=> signOut(auth);
 window.go = (p)=> location.href=p;
 
 onAuthStateChanged(auth, async (user) => {
+  // Získání elementů
   const loadingCard = document.getElementById("loading");
   const authCard = document.getElementById("authCard");
   const menuCard = document.getElementById("menuCard");
+  const myNoteCard = document.getElementById("myNoteCard");
 
   if (user) {
-    // --- UŽIVATEL SE PŘIHLÁSIL ---
-    console.log("Přihlášen:", user.email);
+    console.log("Uživatel přihlášen:", user.email);
 
-    // 1. Schováme loading i přihlašovací kartu
-    if (loadingCard) loadingCard.classList.add("hidden");
-    if (authCard) authCard.classList.add("hidden");
+    // 1. SCHOVAT VŠE OSTATNÍ (Loading i Přihlášení)
+    if (loadingCard) loadingCard.style.setProperty("display", "none", "important");
+    if (authCard) authCard.style.setProperty("display", "none", "important");
 
-    // 2. Ukážeme menu
+    // 2. UKÁZAT MENU
     if (menuCard) {
+      menuCard.style.setProperty("display", "block", "important");
       menuCard.classList.remove("hidden");
-      menuCard.style.display = "block";
     }
 
-    // 3. Načtení role a dat (tvoje původní logika)
+    // 3. NAČTENÍ ROLE A DALŠÍCH DAT
     try {
       const snap = await getDoc(doc(db, "users", user.uid));
       const role = snap.data()?.role || "user";
 
-      if (role !== "admin") {
-        document.querySelectorAll(".adminOnly").forEach(b => {
-          b.style.display = "none";
-        });
-      }
+      // Skrytí admin prvků pro běžné uživatele
+      document.querySelectorAll(".adminOnly").forEach(b => {
+        b.style.setProperty("display", role === "admin" ? "block" : "none", "important");
+      });
+
       loadMyNote(user);
       loadBroadcast();
     } catch (e) {
-      console.error("Chyba při načítání role:", e);
+      console.error("Chyba při načítání dat uživatele:", e);
     }
 
   } else {
-    // --- UŽIVATEL SE ODHLÁSIL ---
-    console.log("Uživatel odhlášen");
+    console.log("Uživatel odhlášen.");
 
-    // 1. Schováme menu a loading
-    if (menuCard) menuCard.classList.add("hidden");
-    if (loadingCard) loadingCard.classList.add("hidden");
+    // 1. SCHOVAT VŠECHNY KARTY APLIKACE
+    if (menuCard) menuCard.style.setProperty("display", "none", "important");
+    if (myNoteCard) myNoteCard.style.setProperty("display", "none", "important");
+    if (loadingCard) loadingCard.style.setProperty("display", "none", "important");
 
-    // 2. Ukážeme přihlašovací kartu
+    // 2. UKÁZAT PŘIHLAŠOVACÍ OKNO
     if (authCard) {
+      authCard.style.setProperty("display", "block", "important");
       authCard.classList.remove("hidden");
-      authCard.style.display = "block";
     }
   }
 });
