@@ -54,16 +54,6 @@
         -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
     }
 
-    .background-logo h1 {
-        font-size: 16vw !important;
-        margin-top: -30px !important;
-        letter-spacing: 25px !important;
-        filter: none !important;
-        color: #1a3a2a !important;
-        opacity: 0.5 !important;
-        text-shadow: 0 0 15px rgba(0,0,0,0.8) !important;
-    }
-
     .topbar {
         width: 100% !important;
         height: 60px;
@@ -82,53 +72,140 @@
     .menuBtn { padding: 8px 16px; border-radius: 12px; background: rgba(51, 65, 85, 0.8); color: white; font-weight: 800; cursor: pointer; border: none; }
     
     #chatBox { padding: 15px 15px 160px 15px; height: calc(100vh - 180px); overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-    .msg { padding: 10px 16px; border-radius: 20px; max-width: 80%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255,255,255,0.05); align-self: flex-start; }
-    .msg.me { align-self: flex-end; background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.3); }
-    .msg-sender { font-size: 10px; font-weight: 800; color: #38bdf8; margin-bottom: 3px; display: block; }
-    .msg-text { font-size: 14px; line-height: 1.4; word-wrap: break-word; }
-    .msg-time { font-size: 9px; opacity: 0.4; text-align: right; margin-top: 5px; }
+    
+    /* STYL ZPRÁV */
+    .msg { 
+    padding: 10px 14px !important; 
+    border-radius: 18px !important; 
+    max-width: 90%; 
+    background: rgba(255, 255, 255, 0.05) !important; 
+    border: 1px solid rgba(255, 255, 255, 0.08) !important; 
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    margin-bottom: 8px;
+}
 
+/* Moje zprávy (vpravo) */
+.msg.me { 
+    align-self: flex-end; 
+    background: rgba(34, 197, 94, 0.1) !important; 
+    border-color: rgba(34, 197, 94, 0.2) !important; 
+}
+
+/* Jméno (Nick) - Světle modré, normální velikost písma */
+.msg-sender { 
+    font-size: 13px !important; 
+    font-weight: 700 !important; 
+    color: #38bdf8 !important; 
+    letter-spacing: 0.2px;
+}
+
+/* Řádek s ikonou a textem */
+.msg-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+}
+
+.msg-icon {
+    color: #22c55e;
+    flex-shrink: 0;
+}
+
+.msg-text { 
+    font-size: 14px !important; 
+    line-height: 1.4; 
+    font-weight: 500;
+}
+
+.msg-time { 
+    font-size: 9px; 
+    opacity: 0.3; 
+    text-align: right;
+}
     .chat-input-container { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 550px; z-index: 1001; }
-    .chat-input-wrapper { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 35px; padding: 6px 6px 6px 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
-    #msgInput { flex: 1; background: transparent; border: none; color: white; font-size: 15px; outline: none; }
-    .disclaimer {
-        position: relative;
-        margin-top: 20px;
-        padding: 10px 20px;
-        font-size: 9px;
-        color: rgba(255, 255, 255, 0.3);
-        text-align: left;
-        font-family: sans-serif;
-        line-height: 1.3;
-        width: 100%;
-        box-sizing: border-box;
+    
+    /* OPRAVA: Odstraněno backdrop-filter z inputu */
+    .chat-input-wrapper { 
+        background: rgba(255, 255, 255, 0.1); 
+        border: 1px solid rgba(255, 255, 255, 0.2); 
+        border-radius: 35px; 
+        padding: 6px 6px 6px 20px; 
+        display: flex; 
+        align-items: center; 
+        gap: 12px; 
+        box-shadow: 0 10px 40px rgba(0,0,0,0.6); 
     }
-    @media (max-width: 480px) { .disclaimer { text-align: center; } }
+    
+    #msgInput { flex: 1; background: transparent; border: none; color: white; font-size: 15px; outline: none; }
+    
+    .change-form-container { 
+    background: rgba(255, 255, 255, 0.05); 
+    border: 1px solid rgba(255,255,255,0.1); 
+    border-radius: 20px; 
+    padding: 15px; 
+    margin-bottom: 10px; 
+    display: none; 
+}
+
+.change-form-container select, .change-form-container input { 
+    background: rgba(0,0,0,0.3); 
+    border: 1px solid rgba(255,255,255,0.2); 
+    color: white; 
+    padding: 8px; 
+    border-radius: 10px; 
+    font-size: 14px; 
+    outline: none; 
+}
+
+/* TENTO ŘÁDEK OPRAVÍ TU ŠEDOU PLOCHU V SEZNAMU */
+.change-form-container select option { 
+    background: #020617 !important; /* Pevná tmavá barva, která ladí k tvému pozadí */
+    color: white !important; 
+}
+
+.send-change-btn { 
+    background: #22c55e; 
+    color: white; 
+    font-weight: 800; 
+    padding: 12px; 
+    border-radius: 12px; 
+    width: 100%; 
+    margin-top: 10px; 
+    font-size: 14px; 
+}
+
+    /* OPRAVA PANELU: Žádné pozadí ani rozmazání */
+    #topicInfoPanel {
+        padding: 20px 25px !important;
+        margin-top: 10px !important;
+        background: transparent !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    #topicInfoDesc {
+        font-size: 16px !important;
+        line-height: 1.5 !important;
+        color: #ffffff !important;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+        max-width: 800px;
+    }
+
+    #topicInfoDesc strong { color: #22c55e !important; font-weight: 800; }
+
+    .disclaimer {
+        position: fixed !important; bottom: 15px !important; left: 0; width: 100%; text-align: center !important; 
+        font-size: 9px; color: rgba(255, 255, 255, 0.3); z-index: 9999; pointer-events: none;
+    }
     
     #chatInterface, #backBtn { display: none; }
-    #topicInfoPanel {
-    padding: 10px 15px !important; /* Zmenšení vnitřního okraje celé karty */
-    margin-top: 10px !important;
-}
-
-#topicInfoDesc {
-    font-size: 11px !important;
-    line-height: 1.4 !important; /* Menší rozestup mezi řádky */
-    color: rgba(255, 255, 255, 0.9) !important;
-}
-
-/* Zrušení velkých mezer u vzoru a příkladu */
-#topicInfoDesc strong {
-    color: #22c55e !important; 
-    display: inline; /* Změna z block na inline, aby to neházelo další mezeru */
-}
-
-#topicInfoDesc em {
-    color: #38bdf8 !important; 
-    font-style: normal;
-    display: block; /* Necháme block, ale s minimálním okrajem */
-    margin-top: 2px !important; /* Jen malinký odstup od vzoru */
-}
 </style>
 </head>
 <body>
@@ -136,75 +213,70 @@
 <div class="background-logo"><img src="pozadi.jpg" alt="Logo"></div>
 
 <div class="topbar" id="chatTopbar">
-    <div class="topTitle flex items-center gap-3">
-        <!-- TLAČÍTKO ZPĚT -->
-        <button id="backBtn" onclick="showTopics()" class="p-1 hover:bg-white/10 rounded-full transition-colors" style="display: none;">
+    <div class="topTitle flex items-center gap-3 text-white">
+        <button id="backBtn" onclick="showTopics()" class="p-1 hover:bg-white/10 rounded-full transition-colors">
             <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="white" stroke-width="3"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
-        
-        <!-- KONTEJNER PRO IKONU (Zde se budou měnit ruce za ikonu tématu) -->
         <div id="headerIcon" class="flex items-center opacity-80">
-            <!-- Výchozí ruce -->
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M10 14 5.6 8.4a1 1 0 0 0-1.4 0l-1.4 1.4a1 1 0 0 0 0 1.4l5.6 5.6"></path>
                 <path d="m14 14 5.6-5.6a1 1 0 0 1 1.4 0l1.4 1.4a1 1 0 0 1 0 1.4L17 17"></path>
                 <path d="m11 11-2-2a1 1 0 0 0-1.4 0l-1.4 1.4a1 1 0 0 0 0 1.4l2 2"></path>
                 <path d="m13 13 2 2a1 1 0 0 1 0 1.4l-1.4 1.4a1 1 0 0 1-1.4 0l-2-2"></path>
             </svg>
-        </div>
-
-        <span id="headerLabel" class="tracking-wider font-extrabold text-[18px]">Týmový portál</span>
+        </div><span id="headerLabel" class="tracking-wider font-extrabold text-[18px]">Týmový portál</span>
     </div>
     <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
-</div>>
+</div>
 
-<div id="topicSelection" class="max-w-4xl mx-auto p-4 grid grid-cols-1 md:grid-cols-3 gap-6 pt-10">
-    
-    <!-- Karta 1: Změny (Sytá modrá) -->
+<div id="topicSelection" class="max-w-4xl mx-auto p-4 grid grid-cols-1 md:grid-cols-3 gap-6 pt-10 text-white">
+    <!-- Karta 1: Změny -->
     <div onclick="window.selectTopic('zmeny', 'Změny v rozpisu', 'from-blue-600 to-indigo-700')" 
          class="group cursor-pointer relative overflow-hidden rounded-[2.5rem] py-4 px-6 bg-blue-500/20 hover:bg-blue-500/30 transition-all shadow-[0_0_20px_rgba(59,130,246,0.2)] border border-blue-400/30 active:scale-95">
-        <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-400/20 rounded-full blur-2xl"></div>
-        
-        <div class="mb-2 inline-flex p-3 bg-blue-400/20 rounded-xl relative z-10 text-blue-200">
+        <div class="mb-2 inline-flex p-3 bg-blue-400/20 rounded-xl text-blue-200">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><polyline points="21 3 21 8 16 8"></polyline></svg>
         </div>
-        <h3 class="text-lg font-bold text-blue-100 mb-1 relative z-10">Změny v rozpisu</h3>
-        <p class="text-blue-100/60 text-[10px] leading-snug relative z-10">Hlášení operativních změn.</p>
+        <h3 class="text-lg font-bold text-blue-100 mb-1">Změny v rozpisu</h3>
+        <p class="text-blue-100/60 text-[10px] leading-snug">Hlášení operativních změn.</p>
     </div>
 
-    <!-- Karta 2: Absence (Teplá oranžová) -->
+    <!-- Karta 2: Absence -->
     <div onclick="window.selectTopic('absence', 'Žádosti o volno / paragrafy', 'from-orange-500 to-red-600')" 
          class="group cursor-pointer relative overflow-hidden rounded-[2.5rem] py-4 px-6 bg-orange-500/20 hover:bg-orange-500/30 transition-all shadow-[0_0_20px_rgba(249,115,22,0.2)] border border-orange-400/30 active:scale-95">
-        <div class="absolute -right-4 -top-4 w-20 h-20 bg-orange-400/20 rounded-full blur-2xl"></div>
-        
-        <div class="mb-2 inline-flex p-3 bg-orange-400/20 rounded-xl relative z-10 text-orange-200">
+        <div class="mb-2 inline-flex p-3 bg-orange-400/20 rounded-xl text-orange-200">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         </div>
-        <h3 class="text-lg font-bold text-orange-100 mb-1 relative z-10">Žádosti o volno</h3>
-        <p class="text-orange-100/60 text-[10px] leading-snug relative z-10">Dovolené a paragrafy s datem absence.</p>
+        <h3 class="text-lg font-bold text-orange-100 mb-1">Žádosti o volno</h3>
+        <p class="text-orange-100/60 text-[10px] leading-snug">Dovolené a paragrafy.</p>
     </div>
 
-    <!-- Karta 3: Pokec (Svěží zelená) -->
+    <!-- Karta 3: Pokec -->
     <div onclick="window.selectTopic('pokec', 'Společný prostor', 'from-emerald-500 to-teal-600')" 
          class="group cursor-pointer relative overflow-hidden rounded-[2.5rem] py-4 px-6 bg-emerald-500/20 hover:bg-emerald-500/30 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] border border-emerald-400/30 active:scale-95">
-        <div class="absolute -right-4 -top-4 w-20 h-20 bg-emerald-400/20 rounded-full blur-2xl"></div>
-        
-        <div class="mb-2 inline-flex p-3 bg-emerald-400/20 rounded-xl relative z-10 text-emerald-200">
+        <div class="mb-2 inline-flex p-3 bg-emerald-400/20 rounded-xl text-emerald-200">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         </div>
-        <h3 class="text-lg font-bold text-emerald-100 mb-1 relative z-10">Společný prostor</h3>
-        <p class="text-emerald-100/60 text-[10px] leading-snug relative z-10">Volná diskuse a neformální pokec.</p>
+        <h3 class="text-lg font-bold text-emerald-100 mb-1">Společný prostor</h3>
+        <p class="text-emerald-100/60 text-[10px] leading-snug">Volná diskuse.</p>
     </div>
-</div> <!-- KONEC topicSelection -->
+</div>
 
-<!-- CHAT ROZHRANÍ -->
 <div id="chatInterface">
     <div id="topicInfoPanel" class="mx-4 mt-4 p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-xl">
-        <div class="flex items-start gap-4">
-            <div class="flex-1">
-                <p id="topicInfoDesc" class="text-white/60 text-[11px] leading-relaxed">Popis...</p>
-            </div>
+        <p id="topicInfoDesc" class="text-white/60 text-[11px] leading-relaxed">Popis...</p>
+    </div>
+
+    <!-- NOVÝ FORMULÁŘ PRO ZMĚNY -->
+    <div id="changeForm" class="change-form-container mx-4 mt-4">
+        <div class="grid grid-cols-2 gap-2">
+            <select id="workerSelect" class="col-span-2 w-full"><option value="">-- Vyber jméno --</option></select>
+            <select id="posFrom"><option value="">Odkud</option></select>
+            <select id="posTo"><option value="">Kam</option></select>
+            <input type="time" id="timeFrom">
+            <input type="time" id="timeTo">
+            <input type="date" id="changeDate" class="col-span-2">
         </div>
+        <button id="submitChangeBtn" class="send-change-btn">Odeslat hlášení změny</button>
     </div>
 
     <div id="chatBox"></div>
@@ -217,98 +289,126 @@
             </button>
         </div>
     </div>
-</div> <!-- KONEC chatInterface -->
+</div>
 
-<!-- JEDINÝ SPOLEČNÝ NÁPIS PRO CELOU STRÁNKU (VENKU ZE VŠECH ID) -->
-<div class="disclaimer" style="position: fixed !important; bottom: 15px !important; left: 0; width: 100%; text-align: center !important; font-size: 9px; color: rgba(255, 255, 255, 0.3); z-index: 9999; pointer-events: none; display: block !important;">
+<div class="disclaimer">
     © 2026 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import {getFirestore, 
+    collection, 
+    getDocs, 
+    addDoc, 
+    query,       // TATO ŘÁDKA TI CHYBÍ
+    where,       // TATO PRAVDĚPODOBNĚ TAKY
+    orderBy,     // A TATO TAKY
+    onSnapshot, 
+    serverTimestamp  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
-    authDomain: "generator-smen-9fba1.firebaseapp.com",
-    projectId: "generator-smen-9fba1",
-    storageBucket: "generator-smen-9fba1.firebasestorage.app",
-    messagingSenderId: "541779211883",
-    appId: "1:541779211883:web:1d8578ec61b0f428a4632e"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
+        authDomain: "generator-smen-9fba1.firebaseapp.com",
+        projectId: "generator-smen-9fba1",
+        storageBucket: "generator-smen-9fba1.firebasestorage.app",
+        messagingSenderId: "541779211883",
+        appId: "1:541779211883:web:1d8578ec61b0f428a4632e"
+    };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app); 
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app); 
 
-let allNicknames = {}; 
-let currentTopicId = null;
-let chatUnsubscribe = null;
+    const positions = ["DP-L","DP-P","ZRC-L","ZRC-P","T-L","T-P","AGR-LP","AGR-PP","AGR-PZ","AGR-LZ","MOT-L","MOT-P","LEP-LP","LEP-PP","LEP-Z","REPRO-L","REPRO-P","VYP1-L","VYP1-P","VYP2-L","VYP2-P","PR-L","PR-P","ZAM-L","ZAM-P","VET","VET2","INST","INST2","JINE","JINE2"];
 
-const topicData = {
+    let allNicknames = {}; 
+    let currentTopicId = null;
+    let chatUnsubscribe = null;
+
+    const topicData = {
     'zmeny': { 
-    desc: "Zde nahlašujte veškeré <strong>výměny pozic</strong>. Parťák je následně zanese do systému, abychom při reklamaci zamezili postihu nesprávného zaměstnance. <br><strong>Vzor: DATUM | ČAS OD–DO | JMÉNO: PŮVODNÍ → NÁHRADNÍ</strong><br><em>Příklad: 01.03. | 06:00–08:00 | Jan: DP P → PŘ P ... Jana: PŘ P → DP P</em>", 
+        desc: "Zde nahlašujte veškeré <strong>výměny pozic</strong>. Parťák je následně zanese do systému, abychom při reklamaci zamezili postihu nesprávného zaměstnance.", 
         icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><polyline points="21 3 21 8 16 8"></polyline></svg>' 
     },
-    'absence': { desc: "Oficiální žádosti o dovolenou nebo paragraf. Uveďte prosím konkrétní datum.", icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>' },
-    'pokec': { desc: "Volná diskuse mimo pracovní témata. Dodržujte prosím zásady slušného chování.", icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>' }
-};
+        'absence': { desc: "Oficiální žádosti o dovolenou nebo paragraf.", icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>' },
+        'pokec': { desc: "Volná diskuse mimo pracovní témata.", icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>' }
+    };
 
-window.selectTopic = (id, name) => {
-    currentTopicId = id;
-    document.getElementById("topicSelection").style.display = 'none';
-    document.getElementById("chatInterface").style.display = 'block';
-    
-    // 1. UKÁŽE ŠIPKU ZPĚT
-    document.getElementById("backBtn").style.display = 'inline-block';
-    
-    // 2. VLOŽÍ SPRÁVNOU IKONU TÉMATU (Šipka, kalendář nebo bublina)
-    document.getElementById("headerIcon").innerHTML = topicData[id].icon;
-    
-    // 3. NASTAVÍ NÁZEV TÉMATU
-    document.getElementById("headerLabel").innerText = name;
-    
-    document.getElementById("topicInfoDesc").innerHTML = topicData[id].desc;
+    // Naplnění výběru pozic
+    const pFrom = document.getElementById("posFrom");
+    const pTo = document.getElementById("posTo");
+    positions.forEach(p => {
+        pFrom.innerHTML += `<option value="${p}">${p}</option>`;
+        pTo.innerHTML += `<option value="${p}">${p}</option>`;
+    });
+
+    window.selectTopic = (id, name) => {
+        currentTopicId = id;
+        document.getElementById("topicSelection").style.display = 'none';
+        document.getElementById("chatInterface").style.display = 'block';
+        document.getElementById("backBtn").style.display = 'inline-block';
+        document.getElementById("headerIcon").innerHTML = topicData[id].icon;
+        document.getElementById("headerLabel").innerText = name;
+        document.getElementById("topicInfoDesc").innerHTML = topicData[id].desc;
+        
+        // Zobrazit formulář jen u změn
+        document.getElementById("changeForm").style.display = (id === 'zmeny') ? 'block' : 'none';
+        const standardInput = document.querySelector(".chat-input-container");
+    if (id === 'zmeny') {
+        standardInput.style.display = 'none';
+    } else {
+        standardInput.style.display = 'block';
+    }
+
     startChatListener(id);
 };
 
-window.showTopics = () => {
-    if (chatUnsubscribe) chatUnsubscribe();
-    document.getElementById("topicSelection").style.display = 'grid';
-    document.getElementById("chatInterface").style.display = 'none';
-    
-    // 1. SCHOVÁ ŠIPKU ZPĚT
-    document.getElementById("backBtn").style.display = 'none';
-    
-    // 2. VRÁTÍ IKONU RUKOU
-    document.getElementById("headerIcon").innerHTML = `
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10 14 5.6 8.4a1 1 0 0 0-1.4 0l-1.4 1.4a1 1 0 0 0 0 1.4l5.6 5.6"></path>
-            <path d="m14 14 5.6-5.6a1 1 0 0 1 1.4 0l1.4 1.4a1 1 0 0 1 0 1.4L17 17"></path>
-            <path d="m11 11-2-2a1 1 0 0 0-1.4 0l-1.4 1.4a1 1 0 0 0 0 1.4l2 2"></path>
-            <path d="m13 13 2 2a1 1 0 0 1 0 1.4l-1.4 1.4a1 1 0 0 1-1.4 0l-2-2"></path>
-        </svg>
-    `;
-    
-    // 3. VRÁTÍ NÁZEV PORTÁLU
-    document.getElementById("headerLabel").innerText = 'Týmový portál';
-};
+    window.showTopics = () => {
+        if (chatUnsubscribe) chatUnsubscribe();
+        document.getElementById("topicSelection").style.display = 'grid';
+        document.getElementById("chatInterface").style.display = 'none';
+        document.getElementById("backBtn").style.display = 'none';
+        document.getElementById("headerIcon").innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14 5.6 8.4a1 1 0 0 0-1.4 0l-1.4 1.4a1 1 0 0 0 0 1.4l5.6 5.6"></path><path d="m14 14 5.6-5.6a1 1 0 0 1 1.4 0l1.4 1.4a1 1 0 0 1 0 1.4L17 17"></path><path d="m11 11-2-2a1 1 0 0 0-1.4 0l-1.4 1.4a1 1 0 0 0 0 1.4l2 2"></path><path d="m13 13 2 2a1 1 0 0 1 0 1.4l-1.4 1.4a1 1 0 0 1-1.4 0l-2-2"></path></svg>`;
+        document.getElementById("headerLabel").innerText = 'Týmový portál';
+    };
 
-async function loadNicknames() {
+   async function loadNicknames() {
     const snap = await getDocs(collection(db, "employees"));
+    const wSelect = document.getElementById("workerSelect");
+    
+    // 1. Nejdříve načteme všechna jména do pole
+    let namesArray = [];
+    allNicknames = {}; 
+
     snap.forEach(doc => {
         const d = doc.data();
-        if (d.email) allNicknames[d.email.replace(/"/g, '').trim().toLowerCase()] = d.name || d.surname;
+        const jmeno = d.name || d.surname || "Bezejmenný";
+        namesArray.push(jmeno);
+
+        if (d.email) {
+            const cleanEmail = d.email.replace(/["']/g, '').trim().toLowerCase();
+            allNicknames[cleanEmail] = jmeno;
+        }
+    });
+
+    // 2. Pole seřadíme podle abecedy (česká lokalizace pro správné řazení Č, Š, Ž...)
+    namesArray.sort((a, b) => a.localeCompare(b, 'cs'));
+
+    // 3. Vymažeme select a vložíme seřazená jména
+    wSelect.innerHTML = '<option value="">-- Vyber jméno --</option>';
+    namesArray.forEach(name => {
+        wSelect.innerHTML += `<option value="${name}">${name}</option>`;
     });
 }
 
-onAuthStateChanged(auth, async (user) => {
-    if (user) { await loadNicknames(); } 
-    else { window.location.href = "index.html"; }
-});
+    onAuthStateChanged(auth, async (user) => {
+        if (user) { await loadNicknames(); } 
+        else { window.location.href = "index.html"; }
+    });
 
-function startChatListener(topicId) {
+   function startChatListener(topicId) {
     const q = query(collection(db, "chat"), where("topic", "==", topicId), orderBy("createdAt", "asc"));
     chatUnsubscribe = onSnapshot(q, (snapshot) => {
         let html = "";
@@ -316,7 +416,21 @@ function startChatListener(topicId) {
             const m = docSnap.data();
             const isMe = m.senderEmail === auth.currentUser?.email;
             const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "...";
-            html += `<div class="msg ${isMe ? 'me' : ''}"><span class="msg-sender">${allNicknames[m.senderEmail?.toLowerCase()] || m.sender || 'Host'}</span><div class="msg-text">${m.text}</div><span class="msg-time">${time}</span></div>`;
+            
+            // 1. Zjištění jména (pokud je v customWorker, použijeme ho, jinak hledáme v nicknames)
+            const displayNick = m.customWorker || allNicknames[m.senderEmail?.toLowerCase()] || m.sender || "Host";
+
+            // 2. Definice zelené točící se šipky (ikona)
+            const iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-right:8px;"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><polyline points="21 3 21 8 16 8"></polyline></svg>`;
+
+            // 3. Sestavení moderní karty zprávy
+            html += `<div class="msg ${isMe ? 'me' : ''}" style="margin-bottom: 8px; padding: 10px 14px; border-radius: 18px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+                <span class="msg-sender" style="color: #38bdf8; font-weight: 800; font-size: 13px; display: block; margin-bottom: 4px;">${displayNick}</span>
+                <div style="display: flex; align-items: center; color: white; font-weight: 600; font-size: 14px;">
+                    ${iconSvg} <span>${m.text}</span>
+                </div>
+                <div style="font-size: 9px; opacity: 0.3; text-align: right; margin-top: 4px; color: white;">${time}</div>
+            </div>`;
         });
         const box = document.getElementById("chatBox");
         box.innerHTML = html;
@@ -324,21 +438,66 @@ function startChatListener(topicId) {
     });
 }
 
-const handleSend = async () => {
-    const text = document.getElementById("msgInput").value.trim();
-    if (!text || !currentTopicId) return;
-    const user = auth.currentUser;
+   const handleSendChange = async () => {
+    const worker = document.getElementById("workerSelect").value;
+    const f = document.getElementById("posFrom").value;
+    const t = document.getElementById("posTo").value;
+    const t1 = document.getElementById("timeFrom").value;
+    const t2 = document.getElementById("timeTo").value;
+    const d = document.getElementById("changeDate").value;
+
+    if(!worker || !f || !t || !t1 || !t2 || !d) return alert("Vyplň všechna pole!");
+
+    const dateCzech = new Date(d).toLocaleDateString('cs-CZ');
+
+    // POSKLÁDÁNÍ TEXTU S IKONOU ŠIPKY
+    const finalMsg = `
+        <div class="msg-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><polyline points="21 3 21 8 16 8"></polyline></svg>
+        </div>
+        <div class="msg-text">${f} ➔ ${t} (${t1}–${t2}) | ${dateCzech}</div>
+    `;
+
     await addDoc(collection(db, "chat"), { 
-        text, 
-        senderEmail: user.email, 
-        topic: currentTopicId, 
-        createdAt: serverTimestamp() 
+        text: finalMsg, 
+        senderEmail: auth.currentUser.email, 
+        topic: "zmeny", 
+        createdAt: serverTimestamp(),
+        customWorker: worker // Uložíme jméno vybrané z tabulky
     });
-    document.getElementById("msgInput").value = "";
+
+    document.getElementById("posFrom").value = "";
+    document.getElementById("posTo").value = "";
 };
 
-document.getElementById("sendBtn").onclick = handleSend;
-document.getElementById("msgInput").onkeypress = (e) => { if (e.key === "Enter") handleSend(); };
+    // LOGIKA PRO SYSTÉMOVOU ZMĚNU
+    document.getElementById("submitChangeBtn").onclick = async () => {
+        const worker = document.getElementById("workerSelect").value;
+        const f = document.getElementById("posFrom").value;
+        const t = document.getElementById("posTo").value;
+        const t1 = document.getElementById("timeFrom").value;
+        const t2 = document.getElementById("timeTo").value;
+        const d = document.getElementById("changeDate").value;
+
+        if(!worker || !f || !t || !t1 || !t2 || !d) return alert("Doplň všechny údaje!");
+
+        const dateCzech = new Date(d).toLocaleDateString('cs-CZ');
+        const changeMsg = `${f} ➔ ${t} (${t1}–${t2}) | ${dateCzech}`;
+
+        await addDoc(collection(db, "chat"), { 
+            text: changeMsg, 
+            senderEmail: auth.currentUser.email, 
+            topic: "zmeny", 
+            createdAt: serverTimestamp() 
+        });
+        
+        // Vymazat pole (kromě jména a data pro usnadnění dalšího zápisu)
+        document.getElementById("posFrom").value = "";
+        document.getElementById("posTo").value = "";
+    };
+
+    document.getElementById("sendBtn").onclick = handleSend;
+    document.getElementById("msgInput").onkeypress = (e) => { if (e.key === "Enter") handleSend(); };
 </script>
 </body>
 </html>
