@@ -733,6 +733,18 @@ body {
     background-color: #334155 !important;
     color: white !important;
 }
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Pokud chceš, aby text v chatu šel i nadále kopírovat, přidej toto: */
+.msg-text {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+}
 </style>
 </head>
 
@@ -775,7 +787,6 @@ body {
 
 <!-- MENU -->
 <div id="menuCard" class="card hidden">
-<div class="roleTag" id="roleLabel"></div>
  <div id="broadcastText" class="message-box"></div>
 
 <!-- MOJE POZNÁMKA -->
