@@ -788,8 +788,7 @@ body {
 
   <div class="menu">
 
-<!-- 1. Karty zaměstnance (Fialová) -->
-<button onclick="go('employees.html')" style="display: flex !important; align-items: center !important; justify-content: center !important; gap: 14px !important; margin-bottom: 10px; background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.3); min-height: 52px; width: 100%; border-radius: 12px; cursor: pointer; color: white; padding: 0 15px;">
+<button id="btnEmployees" onclick="go('employees.html')" style="display: none !important; align-items: center !important; justify-content: center !important; gap: 14px !important; margin-bottom: 10px; background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.3); min-height: 52px; width: 100%; border-radius: 12px; cursor: pointer; color: white; padding: 0 15px;">
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
     <div style="text-align: left; flex: 1;">
         <div style="font-weight: 700; font-size: 14px; letter-spacing: 0.2px;">Karty zaměstnance</div>
@@ -798,7 +797,7 @@ body {
 </button>
 
 <!-- 2. Generátor (Oranžová) -->
-<button onclick="go('generator.html')" style="display: flex !important; align-items: center !important; justify-content: center !important; gap: 14px !important; margin-bottom: 10px; background: linear-gradient(135deg, #f97316 0%, #c2410c 100%); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.3); min-height: 52px; width: 100%; border-radius: 12px; cursor: pointer; color: white; padding: 0 15px;">
+<button id="btnGenerator" onclick="go('generator.html')" style="display: none !important; align-items: center !important; justify-content: center !important; gap: 14px !important; margin-bottom: 10px; background: linear-gradient(135deg, #f97316 0%, #c2410c 100%); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.3); min-height: 52px; width: 100%; border-radius: 12px; cursor: pointer; color: white; padding: 0 15px;">
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
     <div style="text-align: left; flex: 1;">
         <div style="font-weight: 700; font-size: 14px; letter-spacing: 0.2px;">Generátor</div>
@@ -959,7 +958,11 @@ onAuthStateChanged(auth, async (user) => {
   const authCard = document.getElementById("authCard");
   const menuCard = document.getElementById("menuCard");
   const myNoteCard = document.getElementById("myNoteCard");
-  const btnDovednosti = document.getElementById("btnDovednosti"); // NOVÉ
+  const btnDovednosti = document.getElementById("btnDovednosti");
+  
+  // NOVÉ: Načtení konkrétních tlačítek pro schování
+  const btnEmployees = document.getElementById("btnEmployees");
+  const btnGenerator = document.getElementById("btnGenerator");
 
   if (user) {
     console.log("Uživatel přihlášen:", user.email);
@@ -974,20 +977,27 @@ onAuthStateChanged(auth, async (user) => {
       menuCard.classList.remove("hidden");
     }
     
-    if (btnDovednosti) { // NOVÉ
-      btnDovednosti.style.setProperty("display", "block", "important");
+    if (btnDovednosti) {
+      btnDovednosti.style.setProperty("display", "flex", "important"); // změněno na flex kvůli tvému stylu karet
       btnDovednosti.classList.remove("hidden");
     }
 
-    // 3. NAČTENÍ ROLE A DALŠÍCH DAT
+    // 3. NAČTENÍ ROLE A OMEZENÍ PŘÍSTUPU
     try {
       const snap = await getDoc(doc(db, "users", user.uid));
       const role = snap.data()?.role || "user";
+      const isAdmin = role === "admin";
 
-      // Skrytí admin prvků pro běžné uživatele
+    
+
+      // Schování/Zobrazení Admin prvků (třída .adminOnly)
       document.querySelectorAll(".adminOnly").forEach(b => {
-        b.style.setProperty("display", role === "admin" ? "block" : "none", "important");
+        b.style.setProperty("display", isAdmin ? "block" : "none", "important");
       });
+
+      // SCHOVÁNÍ KONKRÉTNÍCH KARET PRO NE-ADMINY
+      if (btnEmployees) btnEmployees.style.setProperty("display", isAdmin ? "flex" : "none", "important");
+      if (btnGenerator) btnGenerator.style.setProperty("display", isAdmin ? "flex" : "none", "important");
 
       loadMyNote(user);
       loadBroadcast();
@@ -998,12 +1008,12 @@ onAuthStateChanged(auth, async (user) => {
   } else {
     console.log("Uživatel odhlášen.");
 
-    // 1. SCHOVAT VŠECHNY KARTY APLIKACE I TLAČÍTKO DOVEDNOSTÍ
+    // 1. SCHOVAT VŠECHNY KARTY APLIKACE
     if (menuCard) menuCard.style.setProperty("display", "none", "important");
     if (myNoteCard) myNoteCard.style.setProperty("display", "none", "important");
     if (loadingCard) loadingCard.style.setProperty("display", "none", "important");
     
-    if (btnDovednosti) { // NOVÉ
+    if (btnDovednosti) {
       btnDovednosti.style.setProperty("display", "none", "important");
       btnDovednosti.classList.add("hidden");
     }
