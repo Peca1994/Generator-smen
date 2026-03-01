@@ -66,14 +66,17 @@ body {
 }
 
 /* Moderní karty zaměstnanců jako na screenu */
-.employee-item, 
-.employee-item * { 
-    cursor: pointer !important; 
-}
-
-.employee-item:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.2); /* Jemná zelená záře pro potvrzení */
+.employee-item {
+    background: rgba(30, 41, 59, 0.5) !important; /* Tmavě modrá s průhledností */
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    padding: 16px !important;
+    margin-bottom: 12px !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* 2. TOPBAR A KONTEJNERY */
@@ -203,18 +206,22 @@ select { font-weight: 900 !important; }
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    /* ÚPLNÉ ODSTRANĚNÍ RÁMEČKU A POZADÍ */
     background: transparent !important; 
     border: none !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
-    
     padding: 10px 0 !important;
     margin-bottom: 5px !important;
     width: 100% !important;
+
+    /* PŘIDANÉ ŘÁDKY: */
+    cursor: pointer !important; /* Vynutí ruku na celém řádku */
+    transition: transform 0.1s ease; /* Jemná animace při kliku */
 }
 
 .empName {
+    /* ODEBER pointer-events: none; pokud tam byl */
+    pointer-events: auto !important; 
     font-family: 'Inter', sans-serif !important;
     font-weight: 700 !important;
     font-size: 16px !important;
@@ -222,6 +229,15 @@ select { font-weight: 900 !important; }
     text-shadow: 2px 2px 4px rgba(0,0,0,0.8) !important;
     flex: 1 !important;
     text-align: left !important;
+}
+.empRow:hover {
+    background: rgba(255, 255, 255, 0.05) !important; /* Velmi jemné podbarvení */
+    border-radius: 8px !important;
+}
+
+/* Efekt zmáčknutí při kliknutí */
+.empRow:active {
+    transform: scale(0.98);
 }
 
 .empRow select {
@@ -649,7 +665,7 @@ async function load() {
   emps.forEach(e => {
     const row = document.createElement("div");
     row.className = "empRow";
-    
+    row.onclick = () => edit(e.id);
     // Ochrana pro zobrazení "undefined undefined"
     const fullName = (e.name + " " + e.surname).trim() || "Neznámé jméno";
 
