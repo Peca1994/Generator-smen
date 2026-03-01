@@ -456,7 +456,13 @@ async function loadShift(){
 function render(){
     const filter = nameFilterEl.value.toLowerCase().trim();
     const s = shiftEl.value;
-    const labels = (s === "ranni") ? ["6:00","8:00","10:45","12:00"] : (s === "odpo") ? ["14:00","16:00","18:45","20:00"] : ["22:00","00:00","02:45","04:00"];
+    
+    // TADY JSOU TVOJE PŘESNÉ ČASY
+    const labels = (s === "ranni") 
+        ? ["06:00-08:00", "08:05-10:15", "10:45-12:00", "12:05-14:00"] 
+        : (s === "odpo") 
+        ? ["14:00-16:00", "16:05-18:15", "18:45-20:00", "20:05-22:00"] 
+        : ["22:00-00:00", "00:05-02:15", "02:45-04:00", "04:05-06:00"];
     
     let html = "<thead><tr><th>Pozice</th>" + labels.map(l => `<th>${l}</th>`).join('') + "</tr></thead><tbody>";
 
@@ -467,13 +473,11 @@ function render(){
             rowNames.push(wid ? (workerMap[wid] || "???" ) : "");
         }
 
-        // TADY JE TA MAGIE S BARVOU: Pokud je aspoň jedno jméno v řádku, bude zelená, jinak červená
         const isOccupied = rowNames.some(n => n !== "");
         const statusClass = isOccupied ? "active-pos" : "inactive-pos";
 
         if(filter && !rowNames.some(n => n.toLowerCase().includes(filter))) return;
         
-        // Přidáváme třídu statusClass do buňky s pozicí
         html += `<tr><td class="posCol ${statusClass}">${pos}</td>`;
         rowNames.forEach(n => {
             if(!n) html += `<td class="empty">—</td>`;
