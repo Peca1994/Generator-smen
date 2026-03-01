@@ -16,7 +16,6 @@
         -webkit-touch-callout: none !important;
         -webkit-user-select: none !important;
         user-select: none !important;
-    
     }
 
     html, body {
@@ -27,13 +26,13 @@
     }
 
     body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    background-color: #020617 !important;
-    background: radial-gradient(circle at 50% 25%, #064e3b 0%, #020617 85%) !important;
-    background-attachment: fixed !important;
-}
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background-color: #020617 !important;
+        background: radial-gradient(circle at 50% 25%, #064e3b 0%, #020617 85%) !important;
+        background-attachment: fixed !important;
+    }
 
     .background-logo {
         position: fixed;
@@ -46,29 +45,24 @@
     }
 
     .background-logo img {
-    /* Šířka a pozice */
-    width: 650px !important; /* Velikost odpovídající hlavní stránce */
-    max-width: 90vw !important;
-    
-    /* KLÍČOVÉ ŘÁDKY PRO STŘÍBRNÝ EFEKT */
-    mix-blend-mode: screen; /* Odstraní černé pozadí */
-    filter: grayscale(100%) brightness(1.1) contrast(1.1) !important; /* Udělá logo stříbrné */
-    opacity: 0.4 !important; /* Jemná viditelnost jako u indexu */
-    
-    /* Vymazání okrajů do ztracena (necháváme tvoji masku) */
-    mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
-    -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
-}
-.background-logo h1 {
-    font-size: 16vw !important;
-    margin-top: -30px !important;
-    letter-spacing: 25px !important;
-    /* Nápis taky necháme ostrý bez blur */
-    filter: none !important;
-    color: #1a3a2a !important;
-    opacity: 0.5 !important;
-    text-shadow: 0 0 15px rgba(0,0,0,0.8) !important;
-}
+        width: 650px !important;
+        max-width: 90vw !important;
+        mix-blend-mode: screen;
+        filter: grayscale(100%) brightness(1.1) contrast(1.1) !important;
+        opacity: 0.4 !important;
+        mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
+        -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
+    }
+
+    .background-logo h1 {
+        font-size: 16vw !important;
+        margin-top: -30px !important;
+        letter-spacing: 25px !important;
+        filter: none !important;
+        color: #1a3a2a !important;
+        opacity: 0.5 !important;
+        text-shadow: 0 0 15px rgba(0,0,0,0.8) !important;
+    }
 
     .topbar {
         width: 100% !important;
@@ -81,45 +75,56 @@
         position: sticky;
         top: 0;
         z-index: 1000;
-        color: white !important; /* TOTO PŘIDEJ PRO BÍLÝ TEXT */
+        color: white !important;
     }
-        .topTitle { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 12px; }
-        .menuBtn { padding: 8px 16px; border-radius: 12px; background: rgba(51, 65, 85, 0.8); color: white; font-weight: 800; cursor: pointer; border: none; }
-        
-        #chatBox { padding: 15px 15px 160px 15px; height: calc(100vh - 180px); overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .msg { 
-    padding: 6px 14px !important; /* Zmenšeno z 10px na 6px - to ubere na výšce */
-    border-radius: 15px !important; /* Trochu menší zaoblení pro menší kartu */
-    max-width: 80%; 
-    background: rgba(255, 255, 255, 0.08); 
-    border: 1px solid rgba(255,255,255,0.05); 
-    align-self: flex-start; 
-}
-        .msg.me { align-self: flex-end; background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.3); }
-        .msg-sender { font-size: 10px; font-weight: 800; color: #38bdf8; margin-bottom: 3px; display: block; }
-        .msg-text { font-size: 14px; line-height: 1.4; word-wrap: break-word; }
-        .msg-time { font-size: 9px; opacity: 0.4; text-align: right; margin-top: 5px; }
 
-        .chat-input-container { position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 550px; z-index: 1001; }
-        .chat-input-wrapper { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 35px; padding: 6px 6px 6px 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
-        #msgInput { flex: 1; background: transparent; border: none; color: white; font-size: 15px; outline: none; }
+    .topTitle { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 12px; }
+    .menuBtn { padding: 8px 16px; border-radius: 12px; background: rgba(51, 65, 85, 0.8); color: white; font-weight: 800; cursor: pointer; border: none; }
+    
+    #chatBox { padding: 15px 15px 160px 15px; height: calc(100vh - 180px); overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .msg { padding: 10px 16px; border-radius: 20px; max-width: 80%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255,255,255,0.05); align-self: flex-start; }
+    .msg.me { align-self: flex-end; background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.3); }
+    .msg-sender { font-size: 10px; font-weight: 800; color: #38bdf8; margin-bottom: 3px; display: block; }
+    .msg-text { font-size: 14px; line-height: 1.4; word-wrap: break-word; }
+    .msg-time { font-size: 9px; opacity: 0.4; text-align: right; margin-top: 5px; }
 
-        .disclaimer {
-            position: relative;
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 9px;
-            color: rgba(255, 255, 255, 0.3);
-            text-align: left;
-            font-family: sans-serif;
-            line-height: 1.3;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        @media (max-width: 480px) { .disclaimer { text-align: center; } }
-        
-        #chatInterface, #backBtn { display: none; }
-    </style>
+    .chat-input-container { position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 550px; z-index: 1001; }
+    .chat-input-wrapper { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 35px; padding: 6px 6px 6px 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+    #msgInput { flex: 1; background: transparent; border: none; color: white; font-size: 15px; outline: none; }
+
+    /* --- NOVÁ ÚPRAVA PRO ZMENŠENÍ OKEN TÉMAT --- */
+    #topicsList > div, [onclick*="openChat"] {
+        min-height: 120px !important; /* Zmenšeno z cca 180px */
+        padding: 15px !important;    /* Menší vnitřní okraj */
+        margin-bottom: 10px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+    }
+
+    /* Zmenšení ikonek v oknech */
+    #topicsList svg, [onclick*="openChat"] svg {
+        width: 32px !important;
+        height: 32px !important;
+        margin-bottom: 6px !important;
+    }
+
+    .disclaimer {
+        position: relative;
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 9px;
+        color: rgba(255, 255, 255, 0.3);
+        text-align: left;
+        font-family: sans-serif;
+        line-height: 1.3;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    @media (max-width: 480px) { .disclaimer { text-align: center; } }
+    
+    #chatInterface, #backBtn { display: none; }
+</style>
 </head>
 <body>
 
