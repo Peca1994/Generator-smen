@@ -3,176 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Týmový Chat | ShiftMaster</title>
-    <!-- Tailwind CSS pro moderní vzhled karet -->
+    <title>Týmová komunikace</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
         * { box-sizing: border-box; max-width: 100%; }
         html, body { width: 100%; margin: 0; padding: 0; overflow-x: hidden; }
-        
         body {
             background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
-            margin: 0; padding: 0;
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            color: white;
-            min-height: 100vh;
+            font-family: 'Inter', sans-serif; color: white; min-height: 100vh;
         }
+        .background-logo { position: fixed; top: 25%; left: 50%; transform: translate(-50%, -50%); z-index: -1; text-align: center; pointer-events: none; }
+        .background-logo img { width: 650px !important; opacity: 0.12; filter: brightness(0.6) sepia(1) hue-rotate(85deg) saturate(2.5) blur(1px); mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%); }
+        
+        .topbar { width: 100%; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: sticky; top: 0; z-index: 1000; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); }
+        .topTitle { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 12px; }
+        .menuBtn { padding: 8px 16px; border-radius: 12px; background: rgba(51, 65, 85, 0.8); color: white; font-weight: 800; cursor: pointer; border: none; }
+        
+        #chatBox { padding: 15px 15px 160px 15px; height: calc(100vh - 180px); overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .msg { padding: 10px 16px; border-radius: 20px; max-width: 80%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255,255,255,0.05); align-self: flex-start; }
+        .msg.me { align-self: flex-end; background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.3); }
+        .msg-sender { font-size: 10px; font-weight: 800; color: #38bdf8; margin-bottom: 3px; display: block; }
+        .msg-text { font-size: 14px; line-height: 1.4; word-wrap: break-word; }
+        .msg-time { font-size: 9px; opacity: 0.4; text-align: right; margin-top: 5px; }
 
-        /* Logo na pozadí */
-        .background-logo {
-            position: fixed; top: 25%; left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: -1; text-align: center; pointer-events: none;
-        }
-        .background-logo img {
-            width: 650px !important; max-width: 90vw !important;
-            opacity: 0.12 !important;
-            filter: brightness(0.6) sepia(1) hue-rotate(85deg) saturate(2.5) blur(1px) !important;
-            mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
-            -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
-        }
-
-        /* Topbar */
-        .topbar {
-            width: 100% !important; height: 60px;
-            display: flex !important; align-items: center !important;
-            justify-content: space-between !important;
-            padding: 0 20px !important; background: rgba(0,0,0,0.3) !important;
-            backdrop-filter: blur(10px);
-            position: sticky; top: 0; z-index: 1000;
-        }
-        .topTitle { font-size: 20px !important; font-weight: 800 !important; display: flex; align-items: center; gap: 10px; }
-        .menuBtn { padding: 8px 14px; border-radius: 10px; border: none; font-weight: 800; background: rgba(51, 65, 85, 0.8); color: white; cursor: pointer; }
-        #backBtn { background: none; border: none; color: white; cursor: pointer; display: none; padding: 5px; margin-right: 5px; }
-
-        /* Chat Box */
-        #chatBox {
-            padding: 10px 15px 130px 15px !important; 
-            height: calc(100vh - 70px) !important; 
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        /* Bubliny zpráv */
-        .msg {
-            padding: 8px 14px !important;
-            border-radius: 18px;
-            max-width: 85%;
-            width: fit-content;
-            position: relative;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            align-self: flex-start;
-            color: white;
-        }
-        .msg.me {
-            align-self: flex-end; 
-            background: rgba(34, 197, 94, 0.25);
-            border: 1px solid rgba(34, 197, 94, 0.5);
-        }
-        .msg-sender { font-size: 10px !important; font-weight: 800; color: #38bdf8; margin-bottom: 2px !important; display: block; }
-        .msg-text { font-size: 14px; word-wrap: break-word; line-height: 1.3; }
-        .msg-time { font-size: 9px !important; opacity: 0.5; display: block; text-align: right; margin-top: 4px !important; }
-
-        /* Psací lišta */
-        .chat-input-container {
-            position: fixed; bottom: 5px; left: 50%; 
-            transform: translateX(-50%); width: 95%; 
-            max-width: 500px; z-index: 1001;
-        }
-        .chat-input-wrapper {
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 30px; padding: 6px 6px 6px 18px;
-            display: flex; align-items: center; gap: 10px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-        }
+        .chat-input-container { position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 550px; z-index: 1001; }
+        .chat-input-wrapper { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 35px; padding: 6px 6px 6px 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
         #msgInput { flex: 1; background: transparent; border: none; color: white; font-size: 15px; outline: none; }
-        #sendBtn {
-            background: #22c55e; color: white; border: none;
-            width: 42px; height: 42px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
+
+        .disclaimer {
+            position: relative;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.3);
+            text-align: left;
+            font-family: sans-serif;
+            line-height: 1.3;
+            width: 100%;
+            box-sizing: border-box;
         }
-
-        /* Skrytí rozhraní chatu na začátku */
-        #chatInterface { display: none; }
-
-        .disclaimer { margin-top: 5px; font-size: 8px; opacity: 0.2; text-align: center; }
+        @media (max-width: 480px) { .disclaimer { text-align: center; } }
+        
+        #chatInterface, #backBtn { display: none; }
     </style>
 </head>
-
 <body>
 
-<div class="background-logo">
-    <img src="pozadi.jpg" alt="Logo">
-</div>
+<div class="background-logo"><img src="pozadi.jpg" alt="Logo"></div>
 
-<!-- TOPBAR -->
 <div class="topbar">
-    <span class="topTitle">
-        <button id="backBtn" onclick="showTopics()">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    <div class="topTitle">
+        <button id="backBtn" onclick="window.showTopics()" class="p-1">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="white" stroke-width="3"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
         <span id="headerLabel">Týmová komunikace</span>
-    </span>
+    </div>
     <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
 </div>
 
-<!-- ROZCESTNÍK TÉMAT -->
-<div id="topicSelection" class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6 pt-10">
-    
-    <!-- Karta 1 -->
-    <div onclick="selectTopic('zmeny', 'Změny v rozpisu', 'from-blue-600 to-indigo-700')" class="group cursor-pointer relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br from-blue-600 to-indigo-700 transition-all hover:-translate-y-2 shadow-2xl">
-        <div class="mb-6 inline-flex p-4 bg-white/20 backdrop-blur-lg rounded-2xl">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 10 5-5 5 5M7 14l5 5 5-5"/></svg>
-        </div>
+<!-- ROZCESTNÍK KARET -->
+<div id="topicSelection" class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-8 pt-12">
+    <div onclick="window.selectTopic('zmeny', 'Změny v rozpisu')" class="cursor-pointer relative overflow-hidden rounded-[2rem] p-8 bg-gradient-to-br from-blue-600 to-indigo-700 transition-all hover:-translate-y-2 shadow-2xl">
+        <div class="mb-6 inline-flex p-4 bg-white/20 rounded-2xl shadow-inner"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="m7 10 5-5 5 5M7 14l5 5 5-5""")/>></svg></div>
         <h3 class="text-2xl font-bold text-white mb-3 tracking-tight">Změny v rozpisu</h3>
         <p class="text-white/80 text-sm leading-relaxed">Pro nahlašování operativních změn a vzájemných záskoků. Jakoukoli dohodu zde nahlaste, aby ji <b>Parťák</b> mohl zanést do systému.</p>
     </div>
-
-    <!-- Karta 2 -->
-    <div onclick="selectTopic('absence', 'Žádosti o volno / paragrafy', 'from-orange-500 to-red-600')" class="group cursor-pointer relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br from-orange-500 to-red-600 transition-all hover:-translate-y-2 shadow-2xl">
-        <div class="mb-6 inline-flex p-4 bg-white/20 backdrop-blur-lg rounded-2xl">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        </div>
+    <div onclick="window.selectTopic('absence', 'Žádosti o volno / paragrafy')" class="cursor-pointer relative overflow-hidden rounded-[2rem] p-8 bg-gradient-to-br from-orange-500 to-red-600 transition-all hover:-translate-y-2 shadow-2xl">
+        <div class="mb-6 inline-flex p-4 bg-white/20 rounded-2xl shadow-inner"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2""")/>><line x1="16" y1="2" x2="16" y2="6""")/>><line x1="8" y1="2" x2="8" y2="6""")/>><line x1="3" y1="10" x2="21" y2="10""")/>></svg></div>
         <h3 class="text-2xl font-bold text-white mb-3 tracking-tight">Žádosti o volno / paragrafy</h3>
         <p class="text-white/80 text-sm leading-relaxed">Místo pro podávání oficiálních žádostí o dovolenou nebo čerpání paragrafu. U každé žádosti uveďte konkrétní datum a typ absence.</p>
     </div>
-
-    <!-- Karta 3 -->
-    <div onclick="selectTopic('pokec', 'Společný prostor', 'from-emerald-500 to-teal-600')" class="group cursor-pointer relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br from-emerald-500 to-teal-600 transition-all hover:-translate-y-2 shadow-2xl">
-        <div class="mb-6 inline-flex p-4 bg-white/20 backdrop-blur-lg rounded-2xl">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        </div>
+    <div onclick="window.selectTopic('pokec', 'Společný prostor')" class="cursor-pointer relative overflow-hidden rounded-[2rem] p-8 bg-gradient-to-br from-emerald-500 to-teal-600 transition-all hover:-translate-y-2 shadow-2xl">
+        <div class="mb-6 inline-flex p-4 bg-white/20 rounded-2xl shadow-inner"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z""")/>></svg></div>
         <h3 class="text-2xl font-bold text-white mb-3 tracking-tight">Společný prostor</h3>
         <p class="text-white/80 text-sm leading-relaxed">Místo pro volnou diskusi a neformální komunikaci. Podmínkou účasti je vzájemný respekt a dodržování zásad slušného chování.</p>
     </div>
-
+    <!-- Nápis pod kartami -->
+    <div class="disclaimer md:col-span-3">© 2026 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.</div>
 </div>
 
-<!-- ROZHRANÍ CHATU -->
+<!-- CHAT INTERFACE -->
 <div id="chatInterface">
+    <!-- INFO PANEL -->
+    <div id="topicInfoPanel" class="mx-4 mt-4 p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-xl">
+        <div class="flex items-start gap-4">
+            <div id="topicInfoIcon" class="p-3 rounded-xl bg-white/10 text-white"></div>
+            <div class="flex-1">
+                <h4 id="topicInfoTitle" class="text-white font-bold text-sm uppercase tracking-[0.2em] mb-1">Téma</h4>
+                <p id="topicInfoDesc" class="text-white/60 text-[11px] leading-relaxed">Popis...</p>
+            </div>
+        </div>
+    </div>
+
     <div id="chatBox"></div>
+
     <div class="chat-input-container">
         <div class="chat-input-wrapper">
             <input type="text" id="msgInput" placeholder="Napiš vzkaz...">
-            <button id="sendBtn">
-                <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z" /></svg>
+            <button id="sendBtn" class="bg-[#22c55e] text-white w-11 h-11 rounded-full flex items-center justify-center">
+                <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z" /></svg>
             </button>
         </div>
-        <div class="disclaimer">
-            © 2024 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.
-        </div>
+        <!-- Nápis v chatu -->
+        <div class="disclaimer" style="margin-top: 10px;">© 2026 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.</div>
     </div>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com";
-import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, getDocs, where, serverTimestamp } from "https://www.gstatic.com";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
@@ -187,116 +127,80 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app); 
 
-const chatBox = document.getElementById("chatBox");
-const msgInput = document.getElementById("msgInput");
-const sendBtn = document.getElementById("sendBtn");
-const topicSelection = document.getElementById("topicSelection");
-const chatInterface = document.getElementById("chatInterface");
-const backBtn = document.getElementById("backBtn");
-const headerLabel = document.getElementById("headerLabel");
-
-let currentUserNickname = "Host";
 let allNicknames = {}; 
 let currentTopicId = null;
 let chatUnsubscribe = null;
 
-// Načtení přezdívek z DB
-async function loadNicknames() {
-    try {
-        const snap = await getDocs(collection(db, "employees"));
-        allNicknames = {};
-        snap.forEach(doc => {
-            const d = doc.data();
-            if (d.email) {
-                const cleanEmail = d.email.replace(/"/g, '').trim().toLowerCase();
-                allNicknames[cleanEmail] = d.name || d.surname || cleanEmail;
-            }
-        });
-    } catch (err) { console.error("Chyba nicknames:", err); }
-}
+const topicData = {
+    'zmeny': { desc: "Zde nahlašujte operativní změny a záskoky. Parťák je následně zanese do systému.", icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 10 5-5 5 5M7 14l5 5 5-5""")/>></svg>' },
+    'absence': { desc: "Oficiální žádosti o dovolenou nebo paragraf. Uveďte prosím konkrétní datum.", icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2""")/>><line x1="16" y1="2" x2="16" y2="6""")/>><line x1="8" y1="2" x2="8" y2="6""")/>><line x1="3" y1="10" x2="21" y2="10""")/>></svg>' },
+    'pokec': { desc: "Volná diskuse mimo pracovní témata. Dodržujte prosím zásady slušného chování.", icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z""")/>></svg>' }
+};
 
-// Přihlášení
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        await loadNicknames();
-        const userEmail = user.email.toLowerCase().trim();
-        currentUserNickname = allNicknames[userEmail] || user.email.split('@')[0];
-    } else {
-        window.location.href = "index.html"; 
-    }
-});
-
-// PŘEPÍNÁNÍ TÉMAT
-window.selectTopic = (id, name, gradient) => {
+window.selectTopic = (id, name) => {
     currentTopicId = id;
-    topicSelection.style.display = 'none';
-    chatInterface.style.display = 'block';
-    backBtn.style.display = 'inline-block';
-    headerLabel.innerText = name;
+    document.getElementById("topicSelection").style.display = 'none';
+    document.getElementById("chatInterface").style.display = 'block';
+    document.getElementById("backBtn").style.display = 'inline-block';
+    document.getElementById("headerLabel").innerText = name;
+    document.getElementById("topicInfoTitle").innerText = name;
+    document.getElementById("topicInfoDesc").innerText = topicData[id].desc;
+    document.getElementById("topicInfoIcon").innerHTML = topicData[id].icon;
     startChatListener(id);
 };
 
 window.showTopics = () => {
     if (chatUnsubscribe) chatUnsubscribe();
-    topicSelection.style.display = 'grid';
-    chatInterface.style.display = 'none';
-    backBtn.style.display = 'none';
-    headerLabel.innerText = 'Týmová komunikace';
-    chatBox.innerHTML = "";
+    document.getElementById("topicSelection").style.display = 'grid';
+    document.getElementById("chatInterface").style.display = 'none';
+    document.getElementById("backBtn").style.display = 'none';
+    document.getElementById("headerLabel").innerText = 'Týmová komunikace';
 };
 
-function scrollChatToBottom() {
-    chatBox.scrollTop = chatBox.scrollHeight;
+async function loadNicknames() {
+    const snap = await getDocs(collection(db, "employees"));
+    snap.forEach(doc => {
+        const d = doc.data();
+        if (d.email) allNicknames[d.email.replace(/"/g, '').trim().toLowerCase()] = d.name || d.surname;
+    });
 }
 
+onAuthStateChanged(auth, async (user) => {
+    if (user) { await loadNicknames(); } 
+    else { window.location.href = "index.html"; }
+});
+
 function startChatListener(topicId) {
-    const qChat = query(
-        collection(db, "chat"), 
-        where("topic", "==", topicId),
-        orderBy("createdAt", "asc")
-    );
-    
-    chatUnsubscribe = onSnapshot(qChat, (snapshot) => {
+    const q = query(collection(db, "chat"), where("topic", "==", topicId), orderBy("createdAt", "asc"));
+    chatUnsubscribe = onSnapshot(q, (snapshot) => {
         let html = "";
         snapshot.forEach((docSnap) => {
             const m = docSnap.data();
-            const senderEmailKey = m.senderEmail ? m.senderEmail.toLowerCase().trim().replace(/"/g, '') : "";
-            const displayName = allNicknames[senderEmailKey] || m.sender || "Host";
-            const myEmail = auth.currentUser ? auth.currentUser.email.toLowerCase().trim() : "";
-            const isMe = senderEmailKey === myEmail;
+            const isMe = m.senderEmail === auth.currentUser?.email;
             const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "...";
-
-            html += `
-                <div class="msg ${isMe ? 'me' : ''}">
-                    <span class="msg-sender">${displayName}</span>
-                    <div class="msg-text">${m.text}</div>
-                    <span class="msg-time">${time}</span>
-                </div>
-            `;
+            html += `<div class="msg ${isMe ? 'me' : ''}"><span class="msg-sender">${allNicknames[m.senderEmail?.toLowerCase()] || m.sender || 'Host'}</span><div class="msg-text">${m.text}</div><span class="msg-time">${time}</span></div>`;
         });
-        chatBox.innerHTML = html;
-        scrollChatToBottom();
-        setTimeout(scrollChatToBottom, 300);
+        const box = document.getElementById("chatBox");
+        box.innerHTML = html;
+        box.scrollTop = box.scrollHeight;
     });
 }
 
-async function sendMessage() {
-    const text = msgInput.value.trim();
-    if (!text || !auth.currentUser || !currentTopicId) return;
-
-    await addDoc(collection(db, "chat"), {
-        text: text,
-        sender: currentUserNickname,
-        senderEmail: auth.currentUser.email,
-        topic: currentTopicId,
+const handleSend = async () => {
+    const text = document.getElementById("msgInput").value.trim();
+    if (!text || !currentTopicId) return;
+    const user = auth.currentUser;
+    await addDoc(collection(db, "chat"), { 
+        text, 
+        senderEmail: user.email, 
+        topic: currentTopicId, 
         createdAt: serverTimestamp() 
     });
-    msgInput.value = "";
-}
+    document.getElementById("msgInput").value = "";
+};
 
-sendBtn.onclick = sendMessage;
-msgInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
+document.getElementById("sendBtn").onclick = handleSend;
+document.getElementById("msgInput").onkeypress = (e) => { if (e.key === "Enter") handleSend(); };
 </script>
-
 </body>
 </html>
