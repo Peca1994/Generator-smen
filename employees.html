@@ -6,50 +6,51 @@
 <title>Zaměstnanci</title>
 
 <style>
-        /* 1. GLOBÁLNÍ OPRAVA (Vložte hned sem) */
-        * {
-            box-sizing: border-box;
-            max-width: 100%;
-        }
+    /* IMPORT MODERNÍHO PÍSMA */
+    @import url('https://fonts.googleapis.com');
 
-        html, body {
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-        }
-body {
-    background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
+    * {
+        box-sizing: border-box;
+        max-width: 100%;
+    }
+
+    html, body {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+    body {
     margin: 0;
     padding: 0;
-    font-family: 'Inter', 'Segoe UI', sans-serif;
-    color: white;
     min-height: 100vh;
-    /* Žádný flex zde nebude, aby se obsah nerozbil */
+    background-color: #020617 !important;
+    background: radial-gradient(circle at 50% 25%, #064e3b 0%, #020617 85%) !important;
+    background-attachment: fixed !important;
 }
 
-/* Toto vytvoří to zapuštěné logo a nápis ŠKODA na pozadí */
-.background-logo {
-    position: fixed;
-    top: 25%; /* Pozice nahoře jako v indexu */
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: -1;
-    text-align: center;
-    pointer-events: none;
-}
+    .background-logo {
+        position: fixed;
+        top: 25%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: -1;
+        text-align: center;
+        pointer-events: none;
+    }
 
-.background-logo img {
-    /* Zvětšení rozměrů pro dominantní vzhled */
-    width: 650px !important; 
+    .background-logo img {
+    /* Šířka a pozice */
+    width: 650px !important; /* Velikost odpovídající hlavní stránce */
     max-width: 90vw !important;
     
-    /* Vyladění ostrosti a zapuštění */
-    opacity: 0.12 !important;
-    /* Blur jsme snížili na minimum (1px), aby logo bylo ostré */
-    filter: brightness(0.6) sepia(1) hue-rotate(85deg) saturate(2.5) blur(1px) !important;
+    /* KLÍČOVÉ ŘÁDKY PRO STŘÍBRNÝ EFEKT */
+    mix-blend-mode: screen; /* Odstraní černé pozadí */
+    filter: grayscale(100%) brightness(1.1) contrast(1.1) !important; /* Udělá logo stříbrné */
+    opacity: 0.4 !important; /* Jemná viditelnost jako u indexu */
     
-    /* TATO ČÁST VYMAŽE OKRAJE - kruh od středu do ztracena */
+    /* Vymazání okrajů do ztracena (necháváme tvoji masku) */
     mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
     -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
 }

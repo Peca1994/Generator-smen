@@ -6,57 +6,63 @@
 <title>Směnový graf | ShiftMaster</title>
 
 <style>
-        /* 1. GLOBÁLNÍ OPRAVA (Vložte hned sem) */
-        * {
-            box-sizing: border-box;
-            max-width: 100%;
-        }
+    /* IMPORT MODERNÍHO PÍSMA */
+    @import url('https://fonts.googleapis.com');
 
-        html, body {
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-        }
-/* 1. GLOBÁLNÍ DESIGN S LOGEM ŠKODA */
-body {
-    /* Identické tmavě zelené pozadí */
-    background: radial-gradient(circle at center, #062111 0%, #000000 100%) !important;
+    * {
+        box-sizing: border-box;
+        max-width: 100%;
+    }
+
+    html, body {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+    body {
     margin: 0;
     padding: 0;
-    font-family: 'Inter', 'Segoe UI', sans-serif;
-    color: white;
     min-height: 100vh;
+    background-color: #020617 !important;
+    background: radial-gradient(circle at 50% 25%, #064e3b 0%, #020617 85%) !important;
+    background-attachment: fixed !important;
 }
 
-/* Zapuštěné logo ŠKODA na pozadí */
-.background-logo {
-    position: fixed;
-    top: 25%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: -1;
-    text-align: center;
-    pointer-events: none;
-}
+    .background-logo {
+        position: fixed;
+        top: 25%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: -1;
+        text-align: center;
+        pointer-events: none;
+    }
 
-.background-logo img {
-    width: 650px !important;
+    .background-logo img {
+    /* Šířka a pozice */
+    width: 650px !important; /* Velikost odpovídající hlavní stránce */
     max-width: 90vw !important;
-    opacity: 0.12 !important;
-    filter: brightness(0.6) sepia(1) hue-rotate(85deg) saturate(2.5) blur(1px) !important;
+    
+    /* KLÍČOVÉ ŘÁDKY PRO STŘÍBRNÝ EFEKT */
+    mix-blend-mode: screen; /* Odstraní černé pozadí */
+    filter: grayscale(100%) brightness(1.1) contrast(1.1) !important; /* Udělá logo stříbrné */
+    opacity: 0.4 !important; /* Jemná viditelnost jako u indexu */
+    
+    /* Vymazání okrajů do ztracena (necháváme tvoji masku) */
     mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
     -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
 }
-
 .background-logo h1 {
     font-size: 16vw !important;
     margin-top: -30px !important;
     letter-spacing: 25px !important;
+    /* Nápis taky necháme ostrý bez blur */
+    filter: none !important;
     color: #1a3a2a !important;
     opacity: 0.5 !important;
-    font-weight: 900;
-    text-transform: uppercase;
+    text-shadow: 0 0 15px rgba(0,0,0,0.8) !important;
 }
 
 /* 2. TOPBAR */
@@ -137,19 +143,18 @@ th { color: #facc15 !important; font-weight: 900; background: rgba(0,0,0,0.2); }
 .highlight { color: #22c55e !important; font-weight: 900; background: rgba(34, 197, 94, 0.1); }
 .empty { opacity: .3; }
 .topbar {
-    width: 100% !important;
-    height: 60px;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 0 20px !important;
-    box-sizing: border-box !important;
-    background: transparent !important;
-    border: none !important;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
+        width: 100% !important;
+        height: 60px;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 20px !important;
+        background: transparent !important;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        color: white !important; /* TOTO PŘIDEJ PRO BÍLÝ TEXT */
+    }
 
 .topTitle {
     font-family: 'Inter', 'Segoe UI', system-ui, sans-serif !important;
