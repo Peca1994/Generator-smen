@@ -158,30 +158,33 @@
     }
     #loading {
     margin-top: 50px !important;
-    padding: 15px 25px !important;
+    padding: 20px !important;
     text-align: center !important;
     color: #22c55e !important; /* Škodovácká zelená */
-    font-weight: 600 !important; /* Méně tučné, aby to působilo jemněji */
-    font-size: 15px !important;
-    letter-spacing: 0.5px;
+    font-weight: 800 !important;
+    font-size: 16px !important;
+    letter-spacing: 1px;
     
-    /* ZRUŠENO: text-transform: uppercase; (teď bude jen první velké) */
+    /* TENTO ŘÁDEK JSEM SMAZAL: text-transform: uppercase; */
     
-    /* Skleněný efekt */
-    background: rgba(15, 23, 42, 0.4) !important;
-    border: 1px solid rgba(34, 197, 94, 0.2) !important;
-    border-radius: 20px !important;
-    display: inline-block; /* Karta se přizpůsobí délce textu */
+    /* Skleněný efekt místo obyčejného textu */
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid rgba(34, 197, 94, 0.3) !important;
+    border-radius: 15px !important;
+    max-width: 250px;
+    margin-left: auto;
+    margin-right: auto;
     
-    /* Jemná pulzující animace */
-    animation: pulse 2s infinite ease-in-out;
-    text-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
+    /* Pulzující animace místo "hodin" */
+    animation: pulse 1.5s infinite ease-in-out;
+    text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
 }
 
+/* Definice pulzování */
 @keyframes pulse {
-    0% { opacity: 0.5; transform: scale(0.98); }
+    0% { opacity: 0.4; transform: scale(0.98); }
     50% { opacity: 1; transform: scale(1); }
-    100% { opacity: 0.5; transform: scale(0.98); }
+    100% { opacity: 0.4; transform: scale(0.98); }
 }
 
     .skills-table { width: 100%; border-collapse: collapse; }
