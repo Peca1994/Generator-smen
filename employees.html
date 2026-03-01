@@ -67,16 +67,13 @@ body {
 
 /* Moderní karty zaměstnanců jako na screenu */
 .employee-item {
-    background: rgba(30, 41, 59, 0.5) !important; /* Tmavě modrá s průhledností */
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 12px !important;
-    padding: 16px !important;
-    margin-bottom: 12px !important;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    cursor: pointer !important; /* Vynutí kurzor ruky */
+    transition: background-color 0.2s; /* Plynulá změna barvy */
+}
+
+/* Toto zvýrazní řádek, když na něj najedeš myší */
+.employee-item:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Jemně zešedne/zesvětlí pozadí */
 }
 
 /* 2. TOPBAR A KONTEJNERY */
