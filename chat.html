@@ -87,7 +87,14 @@
         .menuBtn { padding: 8px 16px; border-radius: 12px; background: rgba(51, 65, 85, 0.8); color: white; font-weight: 800; cursor: pointer; border: none; }
         
         #chatBox { padding: 15px 15px 160px 15px; height: calc(100vh - 180px); overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .msg { padding: 10px 16px; border-radius: 20px; max-width: 80%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255,255,255,0.05); align-self: flex-start; }
+        .msg { 
+    padding: 6px 14px !important; /* Zmenšeno z 10px na 6px - to ubere na výšce */
+    border-radius: 15px !important; /* Trochu menší zaoblení pro menší kartu */
+    max-width: 80%; 
+    background: rgba(255, 255, 255, 0.08); 
+    border: 1px solid rgba(255,255,255,0.05); 
+    align-self: flex-start; 
+}
         .msg.me { align-self: flex-end; background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.3); }
         .msg-sender { font-size: 10px; font-weight: 800; color: #38bdf8; margin-bottom: 3px; display: block; }
         .msg-text { font-size: 14px; line-height: 1.4; word-wrap: break-word; }
@@ -132,7 +139,7 @@
                 <path d="m11 11-2-2a1 1 0 0 0-1.4 0l-1.4 1.4a1 1 0 0 0 0 1.4l2 2"></path>
                 <path d="m13 13 2 2a1 1 0 0 1 0 1.4l-1.4 1.4a1 1 0 0 1-1.4 0l-2-2"></path>
             </svg>
-            <span id="headerLabel" class="uppercase tracking-wider font-extrabold text-[18px]">Týmový portál</span>
+            <span id="headerLabel" class=" tracking-wider font-extrabold text-[18px]">Týmový portál</span>
         </div>
     </div>
     <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
