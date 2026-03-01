@@ -191,7 +191,7 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = {
+   const firebaseConfig = {
         apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
         authDomain: "generator-smen-9fba1.firebaseapp.com",
         projectId: "generator-smen-9fba1",
@@ -207,17 +207,18 @@
     let allEmployees = []; // Cache pro bleskové vyhledávání v paměti mobilu
 
     onAuthStateChanged(auth, async (user) => {
+        const loading = document.getElementById("loading");
         if (!user) {
             window.location.href = "index.html";
         } else {
-            const loading = document.getElementById("loading");
             try {
                 // Stažení dat proběhne jen JEDNOU při startu
                 const snap = await getDocs(collection(db, "employees"));
                 allEmployees = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 
-                // Po stažení dat změníme nápis pro uživatele
-                loading.innerText = "Zadejte jméno nebo operaci (min. 2 znaky)...";
+                // OKAMŽITÉ ZOBRAZENÍ: Vykreslíme všechny hned po stažení
+                renderSkills(""); 
+                loading.style.display = "none";
             } catch (e) {
                 console.error(e);
                 loading.innerText = "Chyba při načítání dat. Zkuste to znovu.";
@@ -225,33 +226,25 @@
         }
     });
 
-    // Nová blesková vyhledávací funkce
-    window.searchSkills = () => {
-        const queryText = document.getElementById("skillSearch").value.toLowerCase().trim();
+    // Univerzální vykreslovací a filtrovací funkce
+    function renderSkills(queryText) {
         const tableBody = document.getElementById("skillsTableBody");
-        const loading = document.getElementById("loading");
         const table = document.getElementById("skillsTable");
+        const loading = document.getElementById("loading");
 
-        // Pokud uživatel nic nepíše (nebo jen 1 písmeno), tabulku schováme a mobil si oddechne
-        if (queryText.length < 2) {
-            table.style.display = "none";
-            loading.style.display = "block";
-            loading.innerText = "Zadejte alespoň 2 znaky...";
-            return;
-        }
-
-        // Filtrujeme už stažená data v paměti (to je i na mobilu bleskové)
+        // Filtrujeme cache v paměti
         const filtered = allEmployees.filter(emp => {
+            if (!queryText) return true; // Pokud nic nepíšeme, projdou všichni
             const name = `${emp.name || ""} ${emp.surname || ""}`.toLowerCase();
             const skills = (emp.skills || []).join(" ").toLowerCase();
             return name.includes(queryText) || skills.includes(queryText);
         });
 
         if (filtered.length > 0) {
-            let html = "";
-            // Seřazení výsledků podle příjmení
+            // Seřazení výsledků podle příjmení (A-Z)
             filtered.sort((a, b) => (a.surname || "").localeCompare(b.surname || ""));
             
+            let html = "";
             filtered.forEach(emp => {
                 const fullName = `${emp.name || ""} ${emp.surname || ""}`.trim();
                 const skillsHtml = (emp.skills || []).map(s => `<span class="badge">${s}</span>`).join("");
@@ -263,13 +256,19 @@
             });
             
             tableBody.innerHTML = html;
-            loading.style.display = "none";
             table.style.display = "table";
+            loading.style.display = "none";
         } else {
             table.style.display = "none";
             loading.style.display = "block";
             loading.innerText = "Žádná shoda nenalezena.";
         }
+    }
+
+    // Vyhledávací funkce napojená na vstupní pole
+    window.searchSkills = () => {
+        const queryText = document.getElementById("skillSearch").value.toLowerCase().trim();
+        renderSkills(queryText);
     };
 </script>
 
