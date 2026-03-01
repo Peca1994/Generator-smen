@@ -98,13 +98,16 @@
 input, select {
     width: 100% !important;
     max-width: 300px !important; /* Nastav si šířku, která ti vyhovuje */
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: none !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 2px solid #22c55e !important;
     border-bottom: 2px solid rgba(255, 255, 255, 0.2) !important; /* Decentní spodní linka */
     border-radius: 12px !important;
     padding: 12px 15px !important;
-    color: white !important;
+   color: #ffffff !important;
     font-size: 16px !important;
+    font-weight: 900 !important;
+    text-shadow: 0 1px 5px rgba(0,0,0,1) !important;
+    letter-spacing: 1px;
     text-align: center !important;
     outline: none !important;
     margin: 0 auto 20px auto !important; /* Vycentrování a mezera pod polem */
@@ -120,13 +123,15 @@ input:focus, select:focus {
 
 /* Úprava barvy nápisů (Datum, Směna, Vyhledat jméno) */
 label, .input-label {
-    color: #38bdf8 !important; /* Světle modrá jako jména v chatu */
-    font-size: 11px !important;
-    font-weight: 800 !important;
+    color: #22c55e !important; /* Jasná "jedovatá" zelená */
+    text-shadow: 0 0 10px rgba(0,0,0,1), 0 0 5px rgba(0,0,0,1) !important; /* Dvojitý černý stín pro čitelnost */
+    font-size: 13px !important; /* Trochu zvětšíme */
+    font-weight: 900 !important;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px !important;
+    letter-spacing: 2px !important;
+    margin-bottom: 10px !important;
     display: block;
+    text-align: center;
 }
 
 /* 5. TABULKA */
@@ -289,7 +294,8 @@ label, .input-label, .form-label {
     width: 100% !important;
     display: block !important;
     text-align: center !important; /* Vycentruje nápisy přesně nad kolonky */
-    color: #38bdf8 !important; /* Světle modrá barva z tvého Chatu */
+    text-shadow: 2px 2px 4px rgba(0,0,0,1), -2px -2px 4px rgba(0,0,0,1), 0 0 10px rgba(0,0,0,1) !important;
+    color: #22c55e !important; /* Jasná "jedovatá" zelená */
     font-size: 11px !important;
     font-weight: 800 !important;
     letter-spacing: 1.5px !important;
