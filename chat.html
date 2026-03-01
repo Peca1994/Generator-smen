@@ -106,6 +106,24 @@
     @media (max-width: 480px) { .disclaimer { text-align: center; } }
     
     #chatInterface, #backBtn { display: none; }
+    #topicInfoDesc {
+    font-size: 11px !important;
+    line-height: 1.5 !important; /* Větší mezery mezi řádky pro čitelnost */
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+#topicInfoDesc strong {
+    color: #22c55e !important; /* Vzor bude svítit zeleně */
+    display: block;
+    margin-top: 10px;
+}
+
+#topicInfoDesc em {
+    color: #38bdf8 !important; /* Modrý příklad pro odlišení */
+    font-style: normal;
+    display: block;
+    margin-top: 4px;
+}
 </style>
 </head>
 <body>
@@ -224,9 +242,12 @@ let currentTopicId = null;
 let chatUnsubscribe = null;
 
 const topicData = {
-    'zmeny': { desc: "Zde nahlašujte operativní změny a záskoky. Parťák je následně zanese do systému.", icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><polyline points="21 3 21 8 16 8"></polyline></svg>' },
-    'absence': { desc: "Oficiální žádosti o dovolenou nebo paragraf. Uveďte prosím konkrétní datum.", icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2""")/>><line x1="16" y1="2" x2="16" y2="6""")/>><line x1="8" y1="2" x2="8" y2="6""")/>><line x1="3" y1="10" x2="21" y2="10""")/>></svg>' },
-    'pokec': { desc: "Volná diskuse mimo pracovní témata. Dodržujte prosím zásady slušného chování.", icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z""")/>></svg>' }
+    'zmeny': { 
+        desc: "Zde nahlašujte veškeré <strong>výměny pozic</strong>. Parťák je následně zanese do systému, abychom při reklamaci zamezili postihu nesprávného zaměstnance. <br><br><strong>Vzor: DATUM | ČAS OD–DO | JMÉNO: PŮVODNÍ → NÁHRADNÍ</strong><br><em>Příklad: 01.03. | 06:00–08:00 | Jan: DP P → PŘ P ... Jana: PŘ P → DP P</em>", 
+        icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><polyline points="21 3 21 8 16 8"></polyline></svg>' 
+    },
+    'absence': { desc: "Oficiální žádosti o dovolenou nebo paragraf. Uveďte prosím konkrétní datum.", icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>' },
+    'pokec': { desc: "Volná diskuse mimo pracovní témata. Dodržujte prosím zásady slušného chování.", icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>' }
 };
 
 window.selectTopic = (id, name) => {
@@ -243,7 +264,7 @@ window.selectTopic = (id, name) => {
     // 3. NASTAVÍ NÁZEV TÉMATU
     document.getElementById("headerLabel").innerText = name;
     
-    document.getElementById("topicInfoDesc").innerText = topicData[id].desc;
+    document.getElementById("topicInfoDesc").innerHTML = topicData[id].desc;
     startChatListener(id);
 };
 
