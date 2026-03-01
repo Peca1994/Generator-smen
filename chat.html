@@ -114,23 +114,26 @@
 
 <div class="topbar" id="chatTopbar">
     <div class="topTitle flex items-center gap-3">
-        <button id="backBtn" onclick="showTopics()" class="p-1 hover:bg-white/10 rounded-full transition-colors">
+        <!-- TLAČÍTKO ZPĚT -->
+        <button id="backBtn" onclick="showTopics()" class="p-1 hover:bg-white/10 rounded-full transition-colors" style="display: none;">
             <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="white" stroke-width="3"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
         
-        <!-- IKONKA RUKOU + NÁZEV -->
-        <div class="flex items-center gap-2">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-80">
+        <!-- KONTEJNER PRO IKONU (Zde se budou měnit ruce za ikonu tématu) -->
+        <div id="headerIcon" class="flex items-center opacity-80">
+            <!-- Výchozí ruce -->
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M10 14 5.6 8.4a1 1 0 0 0-1.4 0l-1.4 1.4a1 1 0 0 0 0 1.4l5.6 5.6"></path>
                 <path d="m14 14 5.6-5.6a1 1 0 0 1 1.4 0l1.4 1.4a1 1 0 0 1 0 1.4L17 17"></path>
                 <path d="m11 11-2-2a1 1 0 0 0-1.4 0l-1.4 1.4a1 1 0 0 0 0 1.4l2 2"></path>
                 <path d="m13 13 2 2a1 1 0 0 1 0 1.4l-1.4 1.4a1 1 0 0 1-1.4 0l-2-2"></path>
             </svg>
-            <span id="headerLabel" class=" tracking-wider font-extrabold text-[18px]">Týmový portál</span>
         </div>
+
+        <span id="headerLabel" class="tracking-wider font-extrabold text-[18px]">Týmový portál</span>
     </div>
     <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
-</div>
+</div>>
 
 <div id="topicSelection" class="max-w-4xl mx-auto p-4 grid grid-cols-1 md:grid-cols-3 gap-6 pt-10">
     
@@ -175,9 +178,7 @@
 <div id="chatInterface">
     <div id="topicInfoPanel" class="mx-4 mt-4 p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-xl">
         <div class="flex items-start gap-4">
-            <div id="topicInfoIcon" class="p-3 rounded-xl bg-white/10 text-white"></div>
             <div class="flex-1">
-                <h4 id="topicInfoTitle" class="text-white font-bold text-sm uppercase tracking-[0.2em] mb-1">Téma</h4>
                 <p id="topicInfoDesc" class="text-white/60 text-[11px] leading-relaxed">Popis...</p>
             </div>
         </div>
@@ -232,26 +233,40 @@ window.selectTopic = (id, name) => {
     currentTopicId = id;
     document.getElementById("topicSelection").style.display = 'none';
     document.getElementById("chatInterface").style.display = 'block';
+    
+    // 1. UKÁŽE ŠIPKU ZPĚT
     document.getElementById("backBtn").style.display = 'inline-block';
+    
+    // 2. VLOŽÍ SPRÁVNOU IKONU TÉMATU (Šipka, kalendář nebo bublina)
+    document.getElementById("headerIcon").innerHTML = topicData[id].icon;
+    
+    // 3. NASTAVÍ NÁZEV TÉMATU
     document.getElementById("headerLabel").innerText = name;
-    document.getElementById("topicInfoTitle").innerText = name;
+    
     document.getElementById("topicInfoDesc").innerText = topicData[id].desc;
-    document.getElementById("topicInfoIcon").innerHTML = topicData[id].icon;
     startChatListener(id);
-const disc = document.querySelector(".disclaimer");
-    if(disc) disc.style.setProperty("display", "none", "important");
 };
 
 window.showTopics = () => {
     if (chatUnsubscribe) chatUnsubscribe();
     document.getElementById("topicSelection").style.display = 'grid';
     document.getElementById("chatInterface").style.display = 'none';
-    document.getElementById("backBtn").style.display = 'none';
-    document.getElementById("headerLabel").innerText = 'Týmová komunikace';
     
-    // TENTO ŘÁDEK PŘIDEJ (vynutí zobrazení nápisu na rozcestníku):
-    const disc = document.querySelector(".disclaimer");
-    if(disc) disc.style.setProperty("display", "block", "important");
+    // 1. SCHOVÁ ŠIPKU ZPĚT
+    document.getElementById("backBtn").style.display = 'none';
+    
+    // 2. VRÁTÍ IKONU RUKOU
+    document.getElementById("headerIcon").innerHTML = `
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 14 5.6 8.4a1 1 0 0 0-1.4 0l-1.4 1.4a1 1 0 0 0 0 1.4l5.6 5.6"></path>
+            <path d="m14 14 5.6-5.6a1 1 0 0 1 1.4 0l1.4 1.4a1 1 0 0 1 0 1.4L17 17"></path>
+            <path d="m11 11-2-2a1 1 0 0 0-1.4 0l-1.4 1.4a1 1 0 0 0 0 1.4l2 2"></path>
+            <path d="m13 13 2 2a1 1 0 0 1 0 1.4l-1.4 1.4a1 1 0 0 1-1.4 0l-2-2"></path>
+        </svg>
+    `;
+    
+    // 3. VRÁTÍ NÁZEV PORTÁLU
+    document.getElementById("headerLabel").innerText = 'Týmový portál';
 };
 
 async function loadNicknames() {
