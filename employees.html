@@ -105,7 +105,20 @@
 /* 3. MODÁL A MŘÍŽKA POZIC */
 .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85) !important; z-index: 10000; overflow-y: auto !important; align-items: flex-start; justify-content: center; padding: 20px 10px; }
 .modalBox { background: #0f172a !important; padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); width: 100%; max-width: 450px; margin: 40px auto !important; box-shadow: 0 20px 50px #000; }
+.modalBox h4, 
+.modalBox p, 
+.modalBox label,
+.modalBox {
+    color: #ffffff !important;
+}
 
+/* Aby i text "Dovednosti..." byl výrazný */
+#modal h4 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 5px;
+}
 .skills, .grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; margin-top: 15px !important; }
 
 /* Červené karty pozic */
@@ -209,36 +222,55 @@ select { font-weight: 900 !important; }
 }
 
 .empRow {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    background: transparent !important; 
-    border: none !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    padding: 10px 0 !important;
-    margin-bottom: 5px !important;
-    width: 100% !important;
-
-    /* PŘIDANÉ ŘÁDKY: */
-    cursor: pointer !important; /* Vynutí ruku na celém řádku */
-    transition: transform 0.1s ease; /* Jemná animace při kliku */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* Odstraněno backdrop-filter: blur */
+    background: rgba(255, 255, 255, 0.08); /* Mírně zvýšena viditelnost karty */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 12px 20px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    width: 100%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.empName {
-    /* ODEBER pointer-events: none; pokud tam byl */
-    pointer-events: auto !important; 
-    font-family: 'Inter', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: 16px !important;
-    color: white !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8) !important;
-    flex: 1 !important;
-    text-align: left !important;
-}
+/* Efekt při najetí zůstává pro lepší odezvu */
 .empRow:hover {
-    background: rgba(255, 255, 255, 0.05) !important; /* Velmi jemné podbarvení */
-    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #22c55e;
+}
+
+/* Styl pro jméno */
+.editBtn {
+    background: transparent;
+    border: 1px solid rgba(34, 197, 94, 0.5); /* Jemnější zelená linka */
+    color: #22c55e;
+    padding: 5px 15px;
+    border-radius: 6px; /* Méně kulaté, víc industriální */
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px; /* Rozestupy mezi písmeny pro luxusnější vzhled */
+    transition: all 0.3s ease;
+}
+
+/* Efekt při najetí na celou kartu */
+.empRow:hover .editBtn {
+    background: #22c55e;
+    color: #ffffff;
+    border-color: #22c55e;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+}
+
+/* Jméno uděláme trošku výraznější */
+.empName {
+    font-size: 15px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 /* Efekt zmáčknutí při kliknutí */
@@ -355,48 +387,29 @@ function initAllSelects() {
 </div>
 
 <div class="container">
-    <!-- Tento blok zajistí tlačítka vedle sebe -->
-    <div style="display: flex; gap: 10px; width: 100%; margin-bottom: 15px; margin-top: 10px;">
-        <button class="addBtn" onclick="openNew()" style="flex: 1; margin-top: 0; padding: 12px 5px; font-size: 13px;">+Přidat Zaměstnance</button>
-        <button class="addBtn" onclick="openBroadcast()" style="background:#0ea5e9 !important; flex: 1; margin-top: 0; padding: 12px 5px; font-size: 13px;">📢 Hromadná zpráva</button>
-    </div>
-    
-    <div id="list"></div>
-</div>
-</button>
-<div id="list"></div>
+  <div style="display: flex; gap: 10px; width: 100%; margin-bottom: 15px; margin-top: 10px;">
+    <button class="addBtn" onclick="openNew()" style="flex: 1; margin-top: 0; padding: 12px 5px; font-size: 13px;">+ Přidat Zaměstnance</button>
+    <!-- Tlačítko hromadné zprávy bylo odstraněno -->
+  </div>
+  <div id="list"></div>
 </div>
 
+<!-- V MODÁLU (kolem řádku 32 v PDF) odstraníme sekci Stav dnes -->
 <div id="modal" class="modal">
-<div class="modalBox">
-    <!-- První řádek pro rozpis -->
-    <input id="fName" placeholder="Jméno v rozpisu (přezdívka)">
-    
-    <!-- Druhý řádek pro celé jméno -->
+  <div class="modalBox">
+    <input id="fName" placeholder="Jméno (přezdívka v rozpisu)">
     <input id="lName" placeholder="Celé jméno a příjmení">
+    <input id="email" placeholder="Email (pro párování s chatem)">
+    <textarea id="info" placeholder="Poznámka k zaměstnanci"></textarea>
     
-    <input id="email" placeholder="Email zaměstnance">
-    <textarea id="info" placeholder="Poznámka / Osobní údaje"></textarea>
-    
-    <h4>Pozice</h4>
+    <h4>Dovednosti (pozice, které ovládá)</h4>
     <div id="skillsBox" class="skills"></div>
-
-    <h4>Stav dnes</h4>
-    <select id="status">
-  <option value="work">V práci</option>
-  <option value="vacation">Dovolená</option>
-  <option value="paragraf">Paragraf</option>
-  <option value="sick">Nemoc</option>
-  <option value="shitmaking">Parťák</option>
-  <option value="borrowed">Půjčený</option>
-  <option value="loaned">Propůjčený</option>
-</select>
-
-
-    <button class="save" onclick="saveEmp()">Uložit</button>
-   <button class="delete" onclick="deleteEmp()">Smazat</button>
+    
+    <!-- Sekce Stav dnes (work/vacation...) zde byla odstraněna -->
+    
+    <button class="save" onclick="saveEmp()">Uložit do kartotéky</button>
+    <button class="delete" onclick="deleteEmp()">Smazat ze systému</button>
     <button class="close" onclick="closeModal()">Zavřít</button>
-
   </div>
 </div>
 <div class="disclaimer">
@@ -543,7 +556,6 @@ window.openNew=()=>{
   lNameEl.value="";
   emailEl.value="";
   infoEl.value="";
-  statusEl.value="work";
   skillsBox.querySelectorAll("input").forEach(c=>{
     c.checked=false;
     c.parentElement.classList.remove("active");
@@ -622,93 +634,33 @@ function paintStatusSelect(sel) {
 /* LIST */
 
 async function load() {
-  const list = document.getElementById("employeeList") || document.getElementById("list"); // Ujisti se, že ID sedí
-  if (!list) return;
-  
-  list.innerHTML = "";
-  const snap = await getDocs(collection(db, "employees"));
-  
-  let emps = [];
-  snap.forEach(d => {
-    const data = d.data();
-    // POJISTKA: Pokud jméno v DB chybí (i kdyby u jednoho tajného dokumentu), nahradíme ho prázdným textem
-    // Tím zabráníme pádu localeCompare
-    emps.push({ 
-      id: d.id, 
-      ...data,
-      name: data.name || "", 
-      surname: data.surname || "",
-      statusToday: data.statusToday || "work" 
+    const list = document.getElementById("list");
+    if (!list) return;
+    list.innerHTML = "";
+    const snap = await getDocs(collection(db, "employees"));
+    
+    let emps = [];
+    snap.forEach(d => {
+        const data = d.data();
+        emps.push({ id: d.id, ...data });
     });
-  });
 
-  const priority = {
-    "work": 1,
-    "shitmaking": 2,
-    "borrowed": 3,
-    "loaned": 4,
-    "vacation": 5,
-    "sick": 6,
-    "paragraf": 7
-  };
+    // Seřadíme jednoduše podle příjmení A-Z
+    emps.sort((a, b) => (a.surname || "").localeCompare(b.surname || ""));
 
-  // 3. BEZPEČNÉ ŘAZENÍ: Tady to dřív padalo a mazalo tabulku
-  emps.sort((a, b) => {
-    const prioA = priority[a.statusToday] || 99;
-    const prioB = priority[b.statusToday] || 99;
-    
-    if (prioA !== prioB) {
-      return prioA - prioB;
-    }
-    
-    // Tady už name nikdy nebude 'undefined', protože jsme ho nahoře ošetřili
-    const nameA = a.name.toString();
-    const nameB = b.name.toString();
-    return nameA.localeCompare(nameB);
-  });
-
-  // 4. Vykreslení
-  emps.forEach(e => {
-    const row = document.createElement("div");
-    row.className = "empRow";
-    row.onclick = () => edit(e.id);
-    // Ochrana pro zobrazení "undefined undefined"
-    const fullName = (e.name + " " + e.surname).trim() || "Neznámé jméno";
-
-    row.innerHTML = `
-      <div class="empName">${fullName}</div>
-      <select>
-        <option value="work">Práce</option>
-        <option value="vacation">Dovolená</option>
-        <option value="paragraf">Paragraf</option>
-        <option value="sick">Nemoc</option>
-        <option value="shitmaking">Parťák</option>
-        <option value="borrowed">Půjčený</option>
-        <option value="loaned">Propůjčený</option>
-      </select>`;
-
-    row.querySelector(".empName").onclick = () => edit(e.id);
-    const sel = row.querySelector("select");
-    sel.value = e.statusToday;
-    
-    if (typeof paintStatusSelect === "function") paintStatusSelect(sel);
-    
-    sel.onchange = async ev => {
-      const newVal = ev.target.value;
-      if (typeof paintStatusSelect === "function") paintStatusSelect(ev.target);
-      
-      try {
-        // Uložíme změnu do Firebase
-        await setDoc(doc(db, "employees", e.id), { statusToday: newVal }, { merge: true });
-        // DŮLEŽITÉ: Zavoláme load(), aby se tabulka přerovnala (Nemoc spadne dolů, Práce vyskočí nahoru)
-        load(); 
-      } catch (err) {
-        console.error("Chyba při ukládání:", err);
-      }
-    };
-
-    list.appendChild(row);
-  });
+    emps.forEach(e => {
+        const row = document.createElement("div");
+        row.className = "empRow";
+        row.onclick = () => edit(e.id);
+        
+        const fullName = (e.name + " " + e.surname).trim() || "Neznámé jméno";
+        // Zde už není žádný SELECT, jen jméno a šipka k editaci
+        row.innerHTML = `
+    <div class="empName">${fullName}</div>
+    <div style="color: rgba(255,255,255,0.3); font-size: 18px;">›</div>
+`;
+        list.appendChild(row);
+    });
 }
 
 async function edit(id){
