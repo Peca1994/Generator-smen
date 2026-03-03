@@ -377,8 +377,12 @@ function initAllSelects() {
 </script>
 
 <body>
-  <div class="background-logo">
-    <img src="pozadi.jpg" alt="Logo">
+<div class="background-logo" style="position: fixed; top: 10%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; pointer-events: none; z-index: -1; width: 100%; opacity: 0.2;">
+    <!-- Nápis ŠKODA (vycentrovaný a viditelný) -->
+    <img src="pozadi.jpg" alt="SKODA" style="width: 250px; height: auto; filter: brightness(0) invert(1);">
+    
+    <!-- Silueta auta (přisátá těsně pod nápis) -->
+    <img src="auto.png" alt="Silueta" style="width: 450px; height: auto; filter: brightness(0) invert(1); margin-top: -30px;">
 </div>
 
 <div class="topbar">
@@ -663,20 +667,41 @@ async function load() {
     });
 }
 
-async function edit(id){
- const snap=await getDoc(doc(db,"employees",id));
- const e=snap.data();
- editId=id;
- modal.style.display="block";
- fNameEl.value=e.name;
- lNameEl.value=e.surname;
- emailEl.value = e.email || "";
- infoEl.value=e.info;
- statusEl.value=e.statusToday||"work";
- skillsBox.querySelectorAll("input").forEach(c=>{
-   c.checked=e.skills?.includes(c.value);
-   c.parentElement.classList.toggle("active",c.checked);
- });
+async function edit(id) {
+    const snap = await getDoc(doc(db, "employees", id));
+    const e = snap.data();
+    editId = id;
+    modal.style.display = "block";
+
+    // Opravené plnění políček - používáme přímo e.name, e.surname atd.
+    const fNameEl = document.getElementById("fName");
+    if (fNameEl) fNameEl.value = e.name || "";
+    
+    const lNameEl = document.getElementById("lName");
+    if (lNameEl) lNameEl.value = e.surname || "";
+
+    const emailEl = document.getElementById("email");
+    if (emailEl) emailEl.value = e.email || "";
+
+    const infoEl = document.getElementById("info");
+    if (infoEl) infoEl.value = e.info || "";
+
+    const statusEl = document.getElementById("statusToday");
+    if (statusEl) statusEl.value = e.statusToday || "work";
+
+    // TATO ČÁST TEĎ PROBĚHNE VŽDY A OBARVÍ POZICE ZELENĚ
+    if (skillsBox) {
+        skillsBox.querySelectorAll("input").forEach(c => {
+            // Kontrola, zda má zaměstnanec tuto dovednost v poli skills
+            const hasSkill = e.skills && Array.isArray(e.skills) && e.skills.includes(c.value);
+            c.checked = hasSkill;
+            
+            // Přepne barvu (třída active musí odpovídat tvému CSS pro zelenou)
+            if (c.parentElement) {
+                c.parentElement.classList.toggle("active", hasSkill);
+            }
+        });
+    }
 }
 
 load();
