@@ -765,7 +765,12 @@ body {
         <img src="pozadi.jpg" class="skoda-blend-layer" alt="Škoda">
         
         <!-- Text zprávy vznášející se nad logem -->
-        <div id="broadcastText" class="message-overlay"></div>
+       <p id="broadcastText" 
+   onclick="window.openBroadcastEditor()" 
+   class="cursor-pointer hover:opacity-70 transition-opacity" 
+   style="color: #34d399; font-size: 0.875rem; line-height: 1.25rem; max-width: 200px; margin: 10px auto; position: relative; z-index: 9999; pointer-events: auto !important;">
+    Načítání aktuální zprávy...
+</p>
     </div>
 </div>
 
@@ -891,6 +896,7 @@ import {
   getDoc,
   setDoc,
   collection,
+  onSnapshot,
   getDocs,
   query,
   where
@@ -1015,8 +1021,6 @@ onAuthStateChanged(auth, async (user) => {
       if (btnEmployees) btnEmployees.style.setProperty("display", isAdmin ? "flex" : "none", "important");
       if (btnGenerator) btnGenerator.style.setProperty("display", isAdmin ? "flex" : "none", "important");
 
-      loadMyNote(user);
-      loadBroadcast();
     } catch (e) {
       console.error("Chyba při načítání dat uživatele:", e);
     }
@@ -1041,45 +1045,56 @@ onAuthStateChanged(auth, async (user) => {
     }
   }
 });
-async function loadMyNote(user){
-
-  const q = query(
-    collection(db,"employees"),
-    where("email","==", user.email)
-  );
-
-  const snap = await getDocs(q);
-
-  if(snap.empty){
-    myNoteCard.classList.add("hidden");
-    return;
-  }
-
-  const emp = snap.docs[0].data();
-
-  if(emp.info && emp.info.trim() !== ""){
-    myNoteText.innerText = emp.info;
-    myNoteCard.classList.remove("hidden");
-  }else{
-    myNoteCard.classList.add("hidden");
-  }
-}
-
-async function loadBroadcast() {
-  const snap = await getDoc(doc(db, "config", "global"));
-  const msg = snap.data()?.broadcastMessage || "";
-  const box = document.getElementById("broadcastText");
-
-  if (box) {
-    if (msg.trim() !== "") {
-      box.innerText = msg;
-      box.style.display = "block";
-    } else {
-      box.style.display = "none";
+onSnapshot(doc(db, "settings", "announcement"), (snapshot) => {
+    const box = document.getElementById("broadcastText");
+    if (snapshot.exists() && box) {
+        box.innerText = snapshot.data().text || "";
     }
-  }
-}
+});
 
+// --- 2. FUNKCE PRO EDITOR (Přístupné pro HTML tlačítka) ---
+window.openBroadcastEditor = function() {
+    const modal = document.getElementById('broadcastModal');
+    const input = document.getElementById('newBroadcastInput');
+    const currentText = document.getElementById('broadcastText');
+    if (modal && input && currentText) {
+        modal.style.display = 'flex'; // Zobrazíme okno
+        input.value = currentText.innerText;
+    }
+};
+
+window.closeBroadcast = function() {
+    const modal = document.getElementById('broadcastModal');
+    if (modal) modal.style.display = 'none';
+};
+
+window.saveBroadcast = async function() {
+    const input = document.getElementById('newBroadcastInput');
+    if (!input) return;
+    try {
+        const { updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js")
+        await updateDoc(doc(db, "settings", "announcement"), {
+            text: input.value,
+            updatedAt: new Date()
+        });
+        window.closeBroadcast();
+    } catch (error) {
+        alert("Chyba při ukládání do Firebase!");
+    }
+};
+</script>
+
+<!-- 3. EDITAČNÍ OKNO (Tohle ti tam chybělo - vlož před </body>) -->
+<div id="broadcastModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #1e293b; padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; border: 1px solid #334155;">
+        <h3 style="color: white; margin-bottom: 15px; text-align: center; font-weight: bold;">Upravit hromadnou zprávu</h3>
+        <textarea id="newBroadcastInput" style="width: 100%; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 12px; padding: 12px; height: 120px; margin-bottom: 15px; outline: none;"></textarea>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="window.closeBroadcast()" style="flex: 1; padding: 12px; background: #334155; color: white; border-radius: 12px; cursor: pointer; border: none;">Zrušit</button>
+            <button onclick="window.saveBroadcast()" style="flex: 1; padding: 12px; background: #059669; color: white; border-radius: 12px; font-weight: bold; cursor: pointer; border: none;">Publikovat</button>
+        </div>
+    </div>
+</div>
 </script>
 <div class="disclaimer">
     © 2026 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.

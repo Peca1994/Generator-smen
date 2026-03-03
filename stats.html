@@ -201,10 +201,15 @@ input, select {
 </head>
 
 <body>
-<div class="background-logo">
-    <img src="pozadi.jpg" alt="Logo">
 
+<div class="background-logo" style="position: fixed; top: 10%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; pointer-events: none; z-index: -1; width: 100%; opacity: 0.2;">
+    <!-- Nápis ŠKODA (vycentrovaný a viditelný) -->
+    <img src="pozadi.jpg" alt="SKODA" style="width: 250px; height: auto; filter: brightness(0) invert(1);">
+    
+    <!-- Silueta auta (přisátá těsně pod nápis) -->
+    <img src="auto.png" alt="Silueta" style="width: 450px; height: auto; filter: brightness(0) invert(1); margin-top: -30px;">
 </div>
+
 <div class="topbar">
   <span class="topTitle" style="display: flex; align-items: center; gap: 10px; color: #ffb100;">
     <!-- ZMĚNA: stroke jsme změnili na #ffb100 (žlutá), aby ikona ladila s textem -->
