@@ -363,27 +363,27 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 
 <div class="container">
   <!-- HLAVNÍ ŘADA TLAČÍTEK - Zůstávají všechny třídy a ID pro tvůj JS -->
-  <div style="display: flex; gap: 10px; margin-bottom: 20px; justify-content: center;">
+  <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
     
-    <!-- 1. INFORMACE (JS hledá .info-section a #infoBtn) -->
-    <div class="info-section" onclick="document.getElementById('infoBtn').click()" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid #22c55e; border-radius:12px; padding:15px; cursor:pointer; text-align:center; color:#22c55e; font-weight:bold; display:flex; flex-direction:column; align-items:center; gap:5px;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-      <span style="font-size: 12px;">INFORMACE</span>
-      <button id="infoBtn" style="display: none;"></button>
-    </div>
+    <!-- 1. Karta: Informace o směně (Bílá ikona) -->
+    <button onclick="switchTab('info')" style="width: 160px; height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; cursor: pointer; transition: 0.3s;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <span style="color: white; font-size: 11px; text-transform: uppercase; font-weight: 800; text-align: center; letter-spacing: 0.5px; line-height: 1.3;">Informace<br>o směně</span>
+    </button>
 
-    <!-- 2. DOCHÁZKA (JS hledá .attendance-section a h3 uvnitř) -->
-    <div class="attendance-section" onclick="toggleAttendance(true)" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid #22c55e; border-radius:12px; padding:15px; cursor:pointer; text-align:center; color:#22c55e; font-weight:bold; display:flex; flex-direction:column; align-items:center; gap:5px;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
-      <h3 style="font-size: 12px; color: #22c55e; margin: 0; font-weight: bold;">DNEŠNÍ DOCHÁZKA</h3>
-    </div>
+    <!-- 2. Karta: Seznam zaměstnanců (Zelená ikona) -->
+    <button onclick="switchTab('employees')" style="width: 160px; height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; cursor: pointer; transition: 0.3s;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span style="color: white; font-size: 11px; text-transform: uppercase; font-weight: 800; text-align: center; letter-spacing: 0.5px; line-height: 1.3;">Seznam<br>zaměstnanců</span>
+    </button>
 
-    <!-- 3. VYŘADIT (Teď jako MODÁL, JS stále uvidí ID lockBox) -->
-    <div class="nav-item" onclick="document.getElementById('lockModal').style.display='flex'" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid #eab308; border-radius:12px; padding:15px; cursor:pointer; text-align:center; color:#eab308; font-weight:bold; display:flex; flex-direction:column; align-items:center; gap:5px;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-      <span style="font-size: 12px;">VYŘADIT</span>
-    </div>
-  </div>
+    <!-- 3. Karta: Obsazování pozic (Žlutá ikona) -->
+    <button onclick="switchTab('layout')" style="width: 160px; height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; cursor: pointer; transition: 0.3s;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+        <span style="color: white; font-size: 11px; text-transform: uppercase; font-weight: 800; text-align: center; letter-spacing: 0.5px; line-height: 1.3;">Obsazování<br>pozic</span>
+    </button>
+
+</div>
 
   <!-- NOVÝ MODÁL PRO VYŘAZENÍ POZIC -->
   <div id="lockModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;">
@@ -416,23 +416,25 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 <option value="odpo">Odpolední</option>
 <option value="noc">Noční</option>
 </select>
-<button class="genBtn" id="genBtn">⚙️ Generovat</button>
-<button class="loadBtn" id="loadBtn">📂 Načíst uloženou směnu</button>
+<div style="display: flex; flex-direction: column; gap: 12px; margin-top: 25px; padding: 0 10px;">
+    <!-- 1. Generovat -->
+    <button id="genBtn" style="display: flex; align-items: center; justify-content: center; gap: 12px; height: 52px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3); transition: 0.3s;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
+        <span style="font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Generovat směnu</span>
+    </button>
+
+    <!-- 2. Načíst -->
+    <button id="loadBtn" style="display: flex; align-items: center; justify-content: center; gap: 12px; height: 52px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); transition: 0.3s;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span style="font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Načíst uloženou směnu</span>
+    </button>
+
+    <!-- 3. Uložit -->
+    <button id="saveBtn" style="display: flex; align-items: center; justify-content: center; gap: 12px; height: 52px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3); transition: 0.3s;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+        <span style="font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Uložit aktuální směnu</span>
+    </button>
 </div>
-
-<div class="card">
-<table id="grid"></table>
-</div>
-
-<div class="card">
-<h4>Náhradníci podle fází</h4>
-<div id="reservesBox"></div>
-</div>
-
-<button class="saveBtn" id="saveBtn">💾 Uložit</button>
-
-</div>
-
 <div class="modal" id="pickModal">
 <div class="modalBox">
 <div id="pickTitle"></div>
@@ -959,110 +961,60 @@ saveBtn.onclick = async ()=>{
 
  alert("✅ Uloženo (včetně status snapshotu)");
 };
-window.toggleParagrafOptions = () => {
-    const type = document.getElementById("absType").value;
-    const reasonSelect = document.getElementById("absReason");
-    reasonSelect.style.display = (type === "Paragraf") ? "block" : "none";
-};
-
-// Funkce pro odeslání absence
-const handleSendAbsence = async () => {
-    const worker = document.getElementById("absWorkerSelect").value;
-    const type = document.getElementById("absType").value;
-    const reason = (type === "Paragraf") ? ` (${document.getElementById("absReason").value})` : "";
-    const from = document.getElementById("absDateFrom").value;
-    const to = document.getElementById("absDateTo").value;
-
-    if(!worker || !from || !to) return alert("Vyplňte jméno a termín!");
-
-    const dFrom = new Date(from).toLocaleDateString('cs-CZ');
-    const dTo = new Date(to).toLocaleDateString('cs-CZ');
-    const dateRange = (from === to) ? dFrom : `${dFrom} – ${dTo}`;
-
-    // Moderní karta pro Absenci (oranžová barva)
-    const absMsg = `
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="color: #f59e0b; flex-shrink: 0;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            </div>
-            <div class="msg-text"><strong>${worker}:</strong> ${type}${reason} | ${dateRange}</div>
-        </div>
-    `;
-
-    await addDoc(collection(db, "chat"), { 
-        text: absMsg, 
-        senderEmail: auth.currentUser.email, 
-        topic: "absence", 
-        createdAt: serverTimestamp() 
-    });
-
-    alert("Žádost byla odeslána.");
-};
-async function loadAttendance() {
-    const list = document.getElementById("attendanceList");
-    if (!list || typeof db === 'undefined') return;
-
-    try {
-        const snap = await getDocs(collection(db, "employees"));
-        list.innerHTML = "";
-        let emps = [];
-        snap.forEach(d => emps.push({ id: d.id, ...d.data() }));
-
-        // Priority řazení: Parťák(1), Práce(2), Půjčení(3,4), Zbytek(5,6,7)
-     const prio = { 'shitmaking': 1, 'work': 2, 'borrowed': 3, 'loaned': 4, 'vacation': 5, 'paragraf': 6, 'sick': 7 };
-
-emps.sort((a, b) => {
-    // POZOR NA VELKÁ/MALÁ PÍSMENA (statusToday vs statusToday)
-    const vA = prio[a.statusToday] || 2; 
-    const vB = prio[b.statusToday] || 2;
+window.switchTab = (tabName) => {
+    console.log("Přepínám na kartu:", tabName);
     
-    if (vA !== vB) return vA - vB;
-    return (a.name || "").localeCompare(b.name || "");
-});
-        emps.forEach(e => {
-            const status = e.statusToday || 'work';
-            const row = document.createElement("div");
-            row.className = "att-row";
-            row.innerHTML = `
-    <div class="att-name">${e.name} ${e.surname || ''}</div>
-    <select class="status-select ${status}" 
-            onchange="this.className='status-select ' + this.value; updateStatus('${e.id}', this.value)">
-        <option value="work" ${status === 'work' ? 'selected' : ''}>V práci</option>
-        <option value="vacation" ${status === 'vacation' ? 'selected' : ''}>Dovolená</option>
-        <option value="paragraf" ${status === 'paragraf' ? 'selected' : ''}>Paragraf</option>
-        <option value="sick" ${status === 'sick' ? 'selected' : ''}>Nemoc</option>
-        <option value="shitmaking" ${status === 'shitmaking' ? 'selected' : ''}>Parťák</option>
-        <option value="borrowed" ${status === 'borrowed' ? 'selected' : ''}>Půjčený</option>
-        <option value="loaned" ${status === 'loaned' ? 'selected' : ''}>Propůjčený</option>
-    </select>`;
-            list.appendChild(row);
-        });
-    } catch (e) { console.error(e); }
-}
+    if (tabName === 'employees') {
+        window.toggleAttendance(true); // Otevře seznam zaměstnanců
+    } else if (tabName === 'info') {
+        // Otevře modál pro časy směny (využití tvého infoBtn)
+        const infoBtnOriginal = document.getElementById("infoBtn");
+        if (infoBtnOriginal) infoBtnOriginal.click();
+    } else if (tabName === 'layout') {
+        // Sjede dolů k tabulce obsazení pozic
+        const grid = document.getElementById("grid");
+        if (grid) grid.scrollIntoView({ behavior: 'smooth' });
+    }
+};
 
-// Funkce pro rozbalení - OPRAVENÁ
+// --- 2. DOPLNĚK PRO DOCHÁZKU (Zprovoznění Seznamu zaměstnanců) ---
 window.toggleAttendance = (show) => {
     const modal = document.getElementById('attendanceModal');
     if (modal) {
         modal.style.display = show ? 'flex' : 'none';
-        // Pokud otevíráme, rovnou načteme aktuální data
         if (show) loadAttendance();
     }
 };
 
 window.updateStatus = async (id, newStatus) => {
     try {
-        // Teď už updateDoc bude fungovat!
         await updateDoc(doc(db, "employees", id), { statusToday: newStatus });
-        // Po uložení okamžitě znovu načteme a seřadíme
-        loadAttendance(); 
+        loadAttendance(); // Znovu načte a seřadí seznam
     } catch (err) {
-        console.error("Chyba při ukládání role:", err);
+        console.error("Chyba při ukládání statusu:", err);
     }
 };
 
-// Start
+// --- 3. OSTATNÍ OVLÁDACÍ PRVKY ---
+window.closePick = () => { if (pickModal) pickModal.style.display = "none"; };
+window.closeInfo = () => { if (infoModal) infoModal.style.display = "none"; };
+
+// Inicializace docházky po startu
 setTimeout(loadAttendance, 1000);
+
+</script>
+
+<!-- 4. HTML MODAL PRO SEZNAM ZAMĚSTNANCŮ (Pokud v kódu chybí) -->
+<div id="attendanceModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #1e293b; padding: 25px; border-radius: 20px; width: 100%; max-width: 500px; border: 1px solid #334155; max-height: 85vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 10px;">
+            <h3 style="color: white; margin: 0; font-weight: 800; text-transform: uppercase;">Seznam zaměstnanců</h3>
+            <button onclick="window.toggleAttendance(false)" style="background: none; border: none; color: #94a3b8; font-size: 30px; cursor: pointer;">&times;</button>
+        </div>
+        <div id="attendanceList"></div>
+    </div>
+</div>
+
 
 </script>
 </body>
