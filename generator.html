@@ -339,6 +339,7 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
     background-position: right 10px center; /* Vycentrování šipky na výšku */
     background-size: 10px auto;
 }
+
 </style>
 </head>
 
@@ -355,15 +356,38 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 </div>
 
 <div class="container">
+  <!-- HLAVNÍ ŘADA TLAČÍTEK - Zůstávají všechny třídy a ID pro tvůj JS -->
+  <div style="display: flex; gap: 10px; margin-bottom: 20px; justify-content: center;">
+    
+    <!-- 1. INFORMACE (JS hledá .info-section a #infoBtn) -->
+    <div class="info-section" onclick="document.getElementById('infoBtn').click()" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid #22c55e; border-radius:12px; padding:15px; cursor:pointer; text-align:center; color:#22c55e; font-weight:bold; display:flex; flex-direction:column; align-items:center; gap:5px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+      <span style="font-size: 12px;">INFORMACE</span>
+      <button id="infoBtn" style="display: none;"></button>
+    </div>
 
-  <div class="info-section" onclick="document.getElementById('infoBtn').click()" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-    <span style="font-size: 14px; font-weight: 500; color: #22c55e; letter-spacing: 1px;">INFORMACE O SMĚNĚ</span>
-    <!-- Skryté původní tlačítko, aby ti zůstala funkčnost tvého skriptu -->
-    <button id="infoBtn" style="display: none;"></button>
-</div>
-<div class="attendance-section" onclick="toggleAttendance(true)" style="cursor: pointer;">
-    <h3 style="color: #22c55e; margin: 0; text-align: center; font-weight: 300; letter-spacing: 2px;">DNEŠNÍ DOCHÁZKA</h3>
+    <!-- 2. DOCHÁZKA (JS hledá .attendance-section a h3 uvnitř) -->
+    <div class="attendance-section" onclick="toggleAttendance(true)" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid #22c55e; border-radius:12px; padding:15px; cursor:pointer; text-align:center; color:#22c55e; font-weight:bold; display:flex; flex-direction:column; align-items:center; gap:5px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+      <h3 style="font-size: 12px; color: #22c55e; margin: 0; font-weight: bold;">DNEŠNÍ DOCHÁZKA</h3>
+    </div>
+
+    <!-- 3. VYŘADIT (Teď jako MODÁL, JS stále uvidí ID lockBox) -->
+    <div class="nav-item" onclick="document.getElementById('lockModal').style.display='flex'" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid #eab308; border-radius:12px; padding:15px; cursor:pointer; text-align:center; color:#eab308; font-weight:bold; display:flex; flex-direction:column; align-items:center; gap:5px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+      <span style="font-size: 12px;">VYŘADIT</span>
+    </div>
+  </div>
+
+  <!-- NOVÝ MODÁL PRO VYŘAZENÍ POZIC -->
+  <div id="lockModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;">
+    <div class="modalBox" style="background: #1a1a1a; padding: 25px; border-radius: 20px; border: 1px solid #eab308; width: 90%; max-width: 450px;">
+      <h3 style="color: #eab308; margin-top: 0; text-align: center;">🔒 VYŘADIT POZICE</h3>
+      <!-- Tady musí zůstat ID lockBox, tvůj JS do něj sype checkboxy -->
+      <div id="lockBox" class="lockList" style="max-height: 350px; overflow-y: auto; margin: 15px 0;"></div>
+      <button onclick="document.getElementById('lockModal').style.display='none'" class="saveBtn" style="width: 100%; background: #eab308; color: black; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer;">ZAVŘÍT</button>
+    </div>
+  </div>
 </div>
 
 <!-- PLOVOUCÍ OKNO (MODÁL) -->
@@ -376,8 +400,6 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
         <button onclick="toggleAttendance(false)" style="width: 100%; background: #22c55e; color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; margin-top: 25px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;">ULOŽIT A ZAVŘÍT</button>
     </div>
 </div>
-</div>
-</div>
 <div class="card">
 <label>Datum</label>
 <input type="date" id="date">
@@ -388,11 +410,6 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 <option value="odpo">Odpolední</option>
 <option value="noc">Noční</option>
 </select>
-
-<details>
-<summary>🔒 Vyřadit pozice z generování</summary>
-<div class="lockList" id="lockBox"></div>
-</details>
 <button class="genBtn" id="genBtn">⚙️ Generovat</button>
 <button class="loadBtn" id="loadBtn">📂 Načíst uloženou směnu</button>
 </div>
@@ -441,7 +458,7 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 </div>
 </div>
 <div class="disclaimer">
-        © 2024 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.
+        © 2026 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.
     </div>
 <script type="module">
 
