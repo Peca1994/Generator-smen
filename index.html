@@ -6,6 +6,72 @@
 <title>PecaShifter</title>
 
 <style>
+     @import url('https://fonts.googleapis.com');
+
+    * {
+        box-sizing: border-box;
+        max-width: 100%;
+        -webkit-tap-highlight-color: transparent !important;
+        -webkit-touch-callout: none !important;
+        -webkit-user-select: none !important;
+        user-select: none !important;
+    
+    }
+
+    html, body {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+    body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-color: #020617 !important;
+    background: radial-gradient(circle at 50% 25%, #064e3b 0%, #020617 85%) !important;
+    background-attachment: fixed !important;
+}
+
+    .background-logo {
+    position: fixed;
+    /* Změň top na 45% - to posune střed loga a auta doprostřed obrazovky */
+    top: 45% !important; 
+    left: 50%;
+    transform: translate(-50%, -50%); /* Přidáno -50% pro vertikální vycentrování */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    z-index: -1;
+    width: 100%;
+}
+
+    .background-logo img {
+    /* Šířka a pozice */
+    width: 650px !important; /* Velikost odpovídající hlavní stránce */
+    max-width: 90vw !important;
+    
+    /* KLÍČOVÉ ŘÁDKY PRO STŘÍBRNÝ EFEKT */
+    mix-blend-mode: screen; /* Odstraní černé pozadí */
+    filter: grayscale(100%) brightness(1.1) contrast(1.1) !important; /* Udělá logo stříbrné */
+    opacity: 0.4 !important; /* Jemná viditelnost jako u indexu */
+    
+    /* Vymazání okrajů do ztracena (necháváme tvoji masku) */
+    mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
+    -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 75%);
+}
+.background-logo h1 {
+    font-size: 16vw !important;
+    margin-top: -30px !important;
+    letter-spacing: 25px !important;
+    /* Nápis taky necháme ostrý bez blur */
+    filter: none !important;
+    color: #1a3a2a !important;
+    opacity: 0.5 !important;
+    text-shadow: 0 0 15px rgba(0,0,0,0.8) !important;
+}
         /* --- SEM VLOŽTE TENTO KÓD --- */
         * {
         box-sizing: border-box;
@@ -755,24 +821,25 @@ body {
 
 <body>
 
-<div class="app">
-
-<div class="hero-container">
-    <h1 class="logo">Shift<b>Master</b></h1>
-
-    <div class="stack-box">
-        <!-- Logo jako podklad -->
-        <img src="pozadi.jpg" class="skoda-blend-layer" alt="Škoda">
-        
-        <!-- Text zprávy vznášející se nad logem -->
-       <p id="broadcastText" 
-   onclick="window.openBroadcastEditor()" 
-   class="cursor-pointer hover:opacity-70 transition-opacity" 
-   style="color: #4ade80; font-weight: 700; font-size: 1rem; line-height: 1.4; max-width: 300px; margin: 15px auto; position: relative; z-index: 9999; pointer-events: auto !important; text-align: center; letter-spacing: 0.3px;">
-    Načítání aktuální zprávy...
-</p>
+<div class="background-logo">
+        <img src="pozadi.jpg" alt="SKODA">
+        <img src="auto.png" alt="Silueta" class="car-silhouette">
     </div>
-</div>
+
+    <!-- 2. HLAVNÍ OBSAH -->
+    <div class="hero-container">
+        <h1 class="logo">Shift<b>Master</b></h1>
+
+        <div class="stack-box">
+            <!-- Text zprávy (Zde už není potřeba ten vnořený obrázek, protože je v pozadí) -->
+            <p id="broadcastText" 
+               onclick="window.openBroadcastEditor()" 
+               class="cursor-pointer hover:opacity-70 transition-opacity" 
+               style="color: #4ade80; font-weight: 700; font-size: 1rem; line-height: 1.4; max-width: 300px; margin: 15px auto; position: relative; z-index: 9999; pointer-events: auto !important; text-align: center; letter-spacing: 0.3px;">
+                Načítání aktuální zprávy...
+            </p>
+        </div>
+    </div>
 
 <div id="loading" class="card">
   Ověřuji přihlášení…
@@ -975,76 +1042,83 @@ window.logout = ()=> signOut(auth);
 window.go = (p)=> location.href=p;
 
 onAuthStateChanged(auth, async (user) => {
-  // Získání elementů
   const loadingCard = document.getElementById("loading");
   const authCard = document.getElementById("authCard");
   const menuCard = document.getElementById("menuCard");
   const myNoteCard = document.getElementById("myNoteCard");
   const btnDovednosti = document.getElementById("btnDovednosti");
-  
-  // NOVÉ: Načtení konkrétních tlačítek pro schování
   const btnEmployees = document.getElementById("btnEmployees");
   const btnGenerator = document.getElementById("btnGenerator");
+  
+  // Element hromadné zprávy
+  const broadcastText = document.getElementById("broadcastText");
 
   if (user) {
-    console.log("Uživatel přihlášen:", user.email);
-
-    // 1. SCHOVAT VŠE OSTATNÍ (Loading i Přihlášení)
     if (loadingCard) loadingCard.style.setProperty("display", "none", "important");
     if (authCard) authCard.style.setProperty("display", "none", "important");
 
-    // 2. UKÁZAT MENU A TLAČÍTKO DOVEDNOSTÍ
     if (menuCard) {
       menuCard.style.setProperty("display", "block", "important");
       menuCard.classList.remove("hidden");
     }
     
     if (btnDovednosti) {
-      btnDovednosti.style.setProperty("display", "flex", "important"); // změněno na flex kvůli tvému stylu karet
+      btnDovednosti.style.setProperty("display", "flex", "important");
       btnDovednosti.classList.remove("hidden");
     }
 
-    // 3. NAČTENÍ ROLE A OMEZENÍ PŘÍSTUPU
-    try {
-      const snap = await getDoc(doc(db, "users", user.uid));
-      const role = snap.data()?.role || "user";
+  try {
+      // 1. Vyhledání v kolekci 'employees' podle pole 'email'
+      const userEmail = user.email.toLowerCase().trim();
+      const q = query(collection(db, "employees"), where("email", "==", userEmail));
+      const querySnapshot = await getDocs(q);
+      
+      let role = "user"; // Výchozí role, pokud se nic nenajde
+
+      // 2. Kontrola, zda jsme našli aspoň jednoho zaměstnance s tímto emailem
+      if (!querySnapshot.empty) {
+        // Musíme vzít první dokument z výsledků (index [0])
+        const userData = querySnapshot.docs[0].data();
+        role = userData.role || "user";
+      }
+
       const isAdmin = role === "admin";
+      console.log("Ověřeno v employees:", userEmail, "Role:", role);
 
-    
-
-      // Schování/Zobrazení Admin prvků (třída .adminOnly)
+      // --- ZBYTEK LOGIKY NASTAVENÍ UI ---
       document.querySelectorAll(".adminOnly").forEach(b => {
         b.style.setProperty("display", isAdmin ? "block" : "none", "important");
       });
 
-      // SCHOVÁNÍ KONKRÉTNÍCH KARET PRO NE-ADMINY
       if (btnEmployees) btnEmployees.style.setProperty("display", isAdmin ? "flex" : "none", "important");
       if (btnGenerator) btnGenerator.style.setProperty("display", isAdmin ? "flex" : "none", "important");
 
+      if (broadcastText) {
+        if (isAdmin) {
+          broadcastText.style.cursor = "pointer";
+          broadcastText.classList.add("hover:opacity-70");
+          broadcastText.onclick = () => window.openBroadcastEditor(); 
+        } else {
+          broadcastText.style.cursor = "default";
+          broadcastText.classList.remove("hover:opacity-70");
+          broadcastText.onclick = null;
+        }
+      }
+
     } catch (e) {
-      console.error("Chyba při načítání dat uživatele:", e);
+      console.error("Chyba při vyhledávání role v employees:", e);
     }
 
   } else {
-    console.log("Uživatel odhlášen.");
-
-    // 1. SCHOVAT VŠECHNY KARTY APLIKACE
+    // Logika pro odhlášeného uživatele (zůstává stejná)
     if (menuCard) menuCard.style.setProperty("display", "none", "important");
-    if (myNoteCard) myNoteCard.style.setProperty("display", "none", "important");
-    if (loadingCard) loadingCard.style.setProperty("display", "none", "important");
-    
-    if (btnDovednosti) {
-      btnDovednosti.style.setProperty("display", "none", "important");
-      btnDovednosti.classList.add("hidden");
-    }
-
-    // 2. UKÁZAT PŘIHLAŠOVACÍ OKNO
     if (authCard) {
       authCard.style.setProperty("display", "block", "important");
       authCard.classList.remove("hidden");
     }
   }
 });
+
 onSnapshot(doc(db, "settings", "announcement"), (snapshot) => {
     const box = document.getElementById("broadcastText");
     if (snapshot.exists() && box) {
