@@ -35,17 +35,18 @@
 }
 
     .background-logo {
-    position: fixed;
-    /* Změna na 25%, aby to bylo v horní polovině jako původně */
-    top: 25% !important; 
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    pointer-events: none;
-    z-index: -1;
-    width: 100%;
+    position: fixed !important;
+    /* Pevná pozice odshora v pixelech, ne v procentech */
+    top: 120px !important; 
+    left: 50% !important;
+    /* Změna: Transformace teď řeší jen vycentrování do stran */
+    transform: translateX(-50%) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+    width: 100% !important;
 }
 
     .background-logo img {
