@@ -481,14 +481,13 @@ function render(){
     const filter = nameFilterEl.value.toLowerCase().trim();
     const s = shiftEl.value;
     
-    // TADY JSOU TVOJE PŘESNÉ ČASY
     const labels = (s === "ranni") 
         ? ["06:00-08:00", "08:05-10:15", "10:45-12:00", "12:05-14:00"] 
         : (s === "odpo") 
         ? ["14:00-16:00", "16:05-18:15", "18:45-20:00", "20:05-22:00"] 
         : ["22:00-00:00", "00:05-02:15", "02:45-04:00", "04:05-06:00"];
     
-    let html = "<thead><tr><th>Pozice</th>" + labels.map(l => `<th>${l}</th>`).join('') + "</tr></thead><tbody>";
+    let html = "<thead><tr><th style='color: rgba(255,255,255,0.4); font-size: 11px;'>POZICE</th>" + labels.map(l => `<th style='color: rgba(255,255,255,0.4); font-size: 11px;'>${l}</th>`).join('') + "</tr></thead><tbody>";
 
     POSITIONS.forEach(pos => {
         let rowNames = [];
@@ -497,21 +496,41 @@ function render(){
             rowNames.push(wid ? (workerMap[wid] || "???" ) : "");
         }
 
-        const isOccupied = rowNames.some(n => n !== "");
-        const statusClass = isOccupied ? "active-pos" : "inactive-pos";
-
+        // 1. FILTR: Pokud hledáme a v řádku jméno není, celý řádek skryjeme
         if(filter && !rowNames.some(n => n.toLowerCase().includes(filter))) return;
-        
-        html += `<tr><td class="posCol ${statusClass}">${pos}</td>`;
+
+        const isOccupied = rowNames.some(n => n !== "");
+        const color = isOccupied ? "#2ecc71" : "rgba(255,255,255,0.15)";
+        const borderColor = isOccupied ? "rgba(46, 204, 113, 0.3)" : "rgba(255,255,255,0.05)";
+
+        html += `<tr>
+            <td class="posCol" style="color: ${color} !important; border: 1px solid ${borderColor} !important; font-weight: 900; background: rgba(0,0,0,0.2); padding-left: 20px; border-radius: 10px; margin: 4px 0; font-size: 13px; letter-spacing: 1px;">
+                ${pos}
+            </td>`;
+
         rowNames.forEach(n => {
-            if(!n) html += `<td class="empty">—</td>`;
-            else if(filter && n.toLowerCase().includes(filter)) html += `<td class="highlight">${n}</td>`;
-            else html += `<td>${n}</td>`;
+            if(!n) {
+                html += `<td style="color: rgba(255,255,255,0.05); text-align: center;">—</td>`;
+            } else {
+                // 2. ZVÝRAZNĚNÍ: Pokud se jméno shoduje s hledáním, vnutí se mu zelená barva
+                const isMatch = filter !== "" && n.toLowerCase().includes(filter);
+                
+                // Pokud hledáme, a jméno SOUHLASÍ -> ZELENÁ. Pokud hledáme a jméno NESOUHLASÍ -> ŠEDÁ. Pokud nehledáme -> BÍLÁ.
+                let currentNameColor = "white";
+                if (filter !== "") {
+                    currentNameColor = isMatch ? "#2ecc71" : "rgba(255,255,255,0.15)";
+                }
+
+                html += `<td style="color: ${currentNameColor} !important; font-weight: 900; text-align: center; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.03); transition: 0.2s;">${n}</td>`;
+            }
         });
         html += "</tr>";
     });
     gridEl.innerHTML = html + "</tbody>";
 }
+
+// 3. AKTIVACE: Tohle zajistí, že se barva změní hned, jak dopíšeš písmeno
+nameFilterEl.oninput = () => render();
 
 // POSLUCHAČE - REAKCE KALENDÁŘE NA ZMĚNU
 dateEl.addEventListener("change", loadShift);

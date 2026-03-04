@@ -9,48 +9,69 @@
 <style>
  #grid {
     width: 100% !important;
-    table-layout: fixed !important; /* KLÍČOVÉ: Srovná sloupce přesně pod sebe */
+    table-layout: fixed !important; 
     border-collapse: separate !important;
-    border-spacing: 0 10px !important;
+    border-spacing: 0 8px !important;
+    margin-top: 20px !important;
 }
 
-/* První sloupec (Pozice + Zámek) */
+/* 1. PRVNÍ SLOUPEC (NÁZEV POZICE) */
 #grid td:first-child {
-    width: 140px !important;
-    padding-left: 15px !important;
+    width: 150px !important;
+    padding-left: 20px !important;
     font-weight: 900 !important;
-    color: #f1c40f !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 12px 0 0 12px !important;
+    transition: all 0.3s ease;
 }
 
-/* Ostatní sloupce (Jména v časech) */
+/* 2. OSTATNÍ SLOUPCE (JMÉNA) */
 #grid td:not(:first-child) {
     text-align: center !important;
-    background: rgba(255, 255, 255, 0.03) !important;
+    padding: 14px 5px !important;
+    font-weight: 800 !important;
     color: white !important;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.02) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* MODERNÍ ZÁMEK (Kostička) */
+#grid td:last-child {
+    border-radius: 0 12px 12px 0 !important;
+}
+
+/* --- ZVÝRAZNĚNÍ AKTIVNÍHO ŘÁDKU (ZELENÁ) --- */
+/* Pokud má první buňka třídu 'active-pos', celý řádek zezelená */
+#grid tr:has(.active-pos) td {
+    background: rgba(46, 204, 113, 0.08) !important; /* Jemné zelené svícení */
+    border-color: rgba(46, 204, 113, 0.2) !important;
+}
+
+/* Barva textu pozice v aktivním řádku */
+#grid td.active-pos {
+    color: #2ecc71 !important; /* Škoda zelená */
+    text-shadow: 0 0 12px rgba(46, 204, 113, 0.4);
+}
+
+/* --- ZVÝRAZNĚNÍ NEAKTIVNÍHO ŘÁDKU (ŠEDÁ) --- */
+/* Pokud má první buňka třídu 'inactive-pos', řádek zhasne */
+#grid td.inactive-pos {
+    color: rgba(255, 255, 255, 0.15) !important; /* Utlumená šedá */
+}
+
+/* --- ODSTRANĚNÍ ZÁMKŮ (Už nejsou potřeba) --- */
 #grid button {
-    all: unset !important;
-    cursor: pointer !important;
-    width: 28px !important;
-    height: 28px !important;
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.5) !important;
-    border: 1px solid #f1c40f !important;
-    border-radius: 8px !important;
-    margin-right: 8px !important;
-    font-size: 16px !important;
-    color: #f1c40f !important;
+    display: none !important;
 }
 
-/* Zvýraznění zamknutého řádku */
+/* Speciální úprava pro zamknutý řádek (pokud ho stále používáš v JS) */
 #grid tr.lockedRow td {
-    background: rgba(241, 196, 15, 0.08) !important;
+    background: rgba(241, 196, 15, 0.1) !important;
+    border-color: rgba(241, 196, 15, 0.3) !important;
+}
+#grid tr.lockedRow td:first-child {
+    color: #f1c40f !important;
 }
     /* IMPORT MODERNÍHO PÍSMA */
     @import url('https://fonts.googleapis.com');
@@ -396,9 +417,16 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
     <!-- Silueta auta (přisátá těsně pod nápis) -->
     <img src="auto.png" alt="Silueta" style="width: 450px; height: auto; filter: brightness(0) invert(1); margin-top: -30px;">
 </div>
-<div id="loading" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center; color:white; font-size:24px;">
-     Načítám...
-  </div>
+<div id="loading" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    
+    <!-- Animovaný kroužek -->
+    <svg width="50" height="50" viewBox="0 0 50 50" style="animation: spin 1s linear infinite;">
+        <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="4"></circle>
+        <circle cx="25" cy="25" r="20" fill="none" stroke="#2ecc71" stroke-width="4" stroke-dasharray="31.4 31.4" stroke-linecap="round"></circle>
+    </svg>
+    
+    <span style="color: white; margin-top: 15px; font-weight: 900; letter-spacing: 2px; font-size: 12px; text-transform: uppercase;">Načítám data...</span>
+</div>
 <div class="topbar">
     <span class="topTitle"> <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Generátor směn</span>
      <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
@@ -522,51 +550,51 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 </div>
 </div>
 
-<div id="infoModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: none !important;">
+<div id="infoModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: none;">
     
-    <!-- KARTA: Průhlednost nastavena na 0.4 pro efekt skla -->
-    <div class="modalBox" style="background: rgba(0, 0, 0, 0.4) !important; padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.15); width: 95%; max-width: 450px; display: flex; flex-direction: column; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);">
+    <!-- Tady je ta hlavní změna: background: rgba(...) a bez bluru -->
+    <div class="modalBox" style="background: rgba(15, 15, 15, 0.75); padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); width: 90%; max-width: 450px; display: flex; flex-direction: column; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
         
-        <!-- IKONA -->
+        <!-- MODERNÍ IKONA INFORMACÍ -->
         <div style="margin: 0 auto 15px auto; color: white;">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="16" x2="12" y2="12"></line>
                 <line x1="12" y1="8" x2="12.01" y2="8"></line>
             </svg>
         </div>
 
-        <h3 style="color: white; margin: 0 0 30px 0; text-align: center; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; font-size: 14px;">Informace o směně</h3>
+        <h3 style="color: white; margin: 0 0 25px 0; text-align: center; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; font-size: 15px;">Informace o směně</h3>
 
         <!-- SEKCE S INPUTY -->
-        <div style="display: flex; flex-direction: column; gap: 18px; margin-bottom: 30px;">
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                <b style="color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; font-weight: 900;">Scala / Kamiq</b>
-                <div style="display: flex; gap: 12px;">
-                    <input id="skStart" placeholder="Začátek" style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 12px; color: white; font-weight: 900; text-align: center;">
-                    <input id="skEnd" placeholder="Konec" style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 12px; color: white; font-weight: 900; text-align: center;">
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px;">
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <b style="color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Scala / Kamiq</b>
+                <div style="display: flex; gap: 10px;">
+                    <input id="skStart" placeholder="Začátek" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; color: white; font-weight: 700;">
+                    <input id="skEnd" placeholder="Konec" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; color: white; font-weight: 700;">
                 </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                <b style="color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; font-weight: 900;">Fabie</b>
-                <div style="display: flex; gap: 12px;">
-                    <input id="faStart" placeholder="Začátek" style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 12px; color: white; font-weight: 900; text-align: center;">
-                    <input id="faEnd" placeholder="Konec" style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 12px; color: white; font-weight: 900; text-align: center;">
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <b style="color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Fabie</b>
+                <div style="display: flex; gap: 10px;">
+                    <input id="faStart" placeholder="Začátek" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; color: white; font-weight: 700;">
+                    <input id="faEnd" placeholder="Konec" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; color: white; font-weight: 700;">
                 </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                <b style="color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; font-weight: 900;">Zásobník</b>
-                <div style="display: flex; gap: 12px;">
-                    <input id="zaStart" placeholder="Začátek" style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 12px; color: white; font-weight: 900; text-align: center;">
-                    <input id="zaEnd" placeholder="Konec" style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 12px; color: white; font-weight: 900; text-align: center;">
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <b style="color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Zásobník</b>
+                <div style="display: flex; gap: 10px;">
+                    <input id="zaStart" placeholder="Začátek" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; color: white; font-weight: 700;">
+                    <input id="zaEnd" placeholder="Konec" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; color: white; font-weight: 700;">
                 </div>
             </div>
         </div>
 
-        <button id="infoSave" style="width: 100%; background: #2ecc71; color: white; border: none; padding: 18px; border-radius: 14px; font-weight: 900; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Uložit</button>
-        <button onclick="closeInfo()" style="width: 100%; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 18px; border-radius: 14px; font-weight: 900; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;">Zavřít</button>
+        <button id="infoSave" style="width: 100%; background: #2ecc71; color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 900; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; transition: 0.3s;">Uložit</button>
+        <button onclick="closeInfo()" style="width: 100%; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 16px; border-radius: 12px; font-weight: 900; cursor: pointer; text-transform: uppercase; letter-spacing: 2px;">Zavřít</button>
     </div>
 </div>
 <div class="disclaimer">
@@ -937,32 +965,44 @@ function render() {
   html += "</tr></thead><tbody>";
 
   POSITIONS.forEach(pos => {
-      const isLocked = locked.has(pos);
-    const rowClass = isLocked ? 'lockedRow' : '';
-    const lockColor = isLocked ? '#f1c40f' : 'rgba(255,255,255,0.2)'; // Žlutá vs. Šedá
+    const isLocked = locked.has(pos);
+    const lockColor = isLocked ? '#f1c40f' : 'rgba(255,255,255,0.2)';
 
-    // MODERNÍ SVG IKONA (Zámek/Odemčeno)
+    // --- 1. KONTROLA AKTIVITY (Zda je v řádku aspoň jeden člověk) ---
+    let isActive = false;
+    for (let p = 0; p < 4; p++) {
+        if (phases[p] && phases[p][pos]) {
+            isActive = true;
+            break;
+        }
+    }
+
+    // Určení barev pro řádek (Zelená pro aktivní, Žlutá pro zamknutý)
+    const rowBg = isActive ? 'rgba(46, 204, 113, 0.08)' : 'rgba(255,255,255,0.03)';
+    const posColor = isLocked ? '#f1c40f' : (isActive ? '#2ecc71' : 'white');
+
     const lockIcon = isLocked ? 
         `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>` : 
         `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>`;
 
-    html += `<tr class="${rowClass}">
-    <td class="posCol" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; min-width: 170px;">
+    // --- 2. VYKRESLENÍ ŘÁDKU (S novým stylem rowBg a posColor) ---
+    html += `<tr class="${isLocked ? 'lockedRow' : ''}">
+    <td class="posCol" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; min-width: 170px; background: ${rowBg} !important;">
         <div onclick="toggleLock('${pos}')" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; background: rgba(0,0,0,0.4); border-radius: 8px; transition: 0.2s;">
             ${lockIcon}
         </div>
-        <span style="font-weight: 900; color: ${isLocked ? '#f1c40f' : 'white'}; font-size: 14px; letter-spacing: 0.5px;">${pos}</span>
+        <span style="font-weight: 900; color: ${posColor}; font-size: 14px; letter-spacing: 0.5px;">${pos}</span>
     </td>`;
 
     for (let p = 0; p < 4; p++) {
       const w = phases[p]?.[pos];
       const cls = (w && w.status && w.status !== "work") ? "outWorker" : "";
-      // Nastaven font-weight: 900 pro maximální tloušťku jmen
-      html += `<td class="slot ${cls}" onclick="pick(${p},'${pos}')" style="text-align: center; font-weight: 900; color: white; padding: 12px 5px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.05);">${w ? w.name : "—"}</td>`;
+      // Každá buňka v aktivním řádku dostane jemný zelený podklad
+      html += `<td class="slot ${cls}" onclick="pick(${p},'${pos}')" style="text-align: center; font-weight: 900; color: white; padding: 12px 5px; background: ${rowBg} !important; border-bottom: 1px solid rgba(255,255,255,0.05);">${w ? w.name : "—"}</td>`;
     }
 
     html += "</tr>";
-  });
+});
 
   html += "</tbody>";
 
@@ -1044,45 +1084,82 @@ document.getElementById("infoSave").onclick = ()=>{
 
 /* SAVE */
 
-saveBtn.onclick = async ()=>{
+saveBtn.onclick = async () => {
+    if (!phases || phases.length === 0) {
+        saveBtn.style.background = "#b91c1c";
+        saveBtn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:10px; display:inline-block; vertical-align:middle;">
+                <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg> NEJDŘÍV VYGENERUJ SMĚNU`;
+        setTimeout(() => {
+            saveBtn.style.background = "#27ae60"; 
+            saveBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:10px; display:inline-block; vertical-align:middle;">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline>
+                </svg> ULOŽIT AKTUÁLNÍ SMĚNU`;
+        }, 3000);
+        return;
+    }
 
- if(!phases.length){
-  alert("Nejdřív generuj");
-  return;
- }
+    const originalText = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:10px; display:inline-block; vertical-align:middle;">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline>
+        </svg> ULOŽIT AKTUÁLNÍ SMĚNU`;
 
- // 🔷 phase data
- const out = phases.map(ph=>{
-  const o={};
-  Object.entries(ph).forEach(([pos,w])=>{
-   if(w) o[pos]=w.id;
-  });
-  return o;
- });
+    try {
+        // --- MODERNÍ LOADING (Točící se kroužek v tlačítku) ---
+        saveBtn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 50 50" style="margin-right:10px; display:inline-block; vertical-align:middle; animation: spin 1s linear infinite;">
+                <circle cx="25" cy="25" r="20" fill="none" stroke="white" stroke-width="5" stroke-dasharray="31.4 31.4" stroke-linecap="round"></circle>
+            </svg> UKLÁDÁM DATA...`;
+        saveBtn.disabled = true;
 
- // 🔷 status snapshot zaměstnanců v den uložení
- const empSnap = await getDocs(collection(db,"employees"));
- const statusSnapshot = {};
+        const out = phases.map(ph => {
+            const o = {};
+            Object.entries(ph).forEach(([pos, w]) => { if (w) o[pos] = w.id; });
+            return o;
+        });
 
- empSnap.forEach(d=>{
-   statusSnapshot[d.id] = d.data().statusToday || "work";
- });
+        const empSnap = await getDocs(collection(db, "employees"));
+        const statusSnapshot = {};
+        empSnap.forEach(d => { statusSnapshot[d.id] = d.data().statusToday || "work"; });
 
- await setDoc(doc(db,"shifts",dateEl.value+"_"+shiftEl.value),{
- date:dateEl.value,
- shift:shiftEl.value,
- phases:out,
- statusSnapshot,
- info: shiftInfo,   // ← NOVÉ
- createdAt:Date.now()
-});
+        await setDoc(doc(db, "shifts", dateEl.value + "_" + shiftEl.value), {
+            date: dateEl.value,
+            shift: shiftEl.value,
+            phases: out,
+            statusSnapshot,
+            info: shiftInfo,
+            createdAt: Date.now()
+        });
 
- alert("✅ Uloženo (včetně status snapshotu)");
-};
-window.toggleParagrafOptions = () => {
-    const type = document.getElementById("absType").value;
-    const reasonSelect = document.getElementById("absReason");
-    reasonSelect.style.display = (type === "Paragraf") ? "block" : "none";
+        // --- ÚSPĚCH: Moderní fajfka ---
+        saveBtn.style.background = "#15803d"; 
+        saveBtn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:10px; display:inline-block; vertical-align:middle;">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg> SMĚNA BYLA ÚSPĚŠNĚ ULOŽENA`;
+
+        setTimeout(() => {
+            saveBtn.style.background = "#27ae60";
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+        }, 3000);
+
+    } catch (err) {
+        console.error(err);
+        saveBtn.disabled = false;
+        saveBtn.style.background = "#b91c1c"; 
+        saveBtn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:10px; display:inline-block; vertical-align:middle;">
+                <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg> CHYBA PŘI UKLÁDÁNÍ`;
+        
+        setTimeout(() => {
+            saveBtn.style.background = "#27ae60";
+            saveBtn.innerHTML = originalText;
+        }, 5000);
+    }
 };
 
 // Funkce pro odeslání absence
