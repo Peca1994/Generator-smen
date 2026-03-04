@@ -35,18 +35,14 @@
 }
 
     .background-logo {
-    position: fixed;
-    /* Změň top na 45% - to posune střed loga a auta doprostřed obrazovky */
-    top: 45% !important; 
-    left: 50%;
-    transform: translate(-50%, -50%); /* Přidáno -50% pro vertikální vycentrování */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    pointer-events: none;
-    z-index: -1;
-    width: 100%;
-}
+        position: fixed;
+        top: 25%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: -1;
+        text-align: center;
+        pointer-events: none;
+    }
 
     .background-logo img {
     /* Šířka a pozice */
@@ -821,25 +817,29 @@ body {
 
 <body>
 
-<div class="background-logo">
-        <img src="pozadi.jpg" alt="SKODA">
-        <img src="auto.png" alt="Silueta" class="car-silhouette">
-    </div>
+<div class="background-logo" style="position: fixed; top: 15%; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; pointer-events: none; z-index: -1; width: 100%; opacity: 0.15;">
+    <!-- Nápis ŠKODA -->
+    <img src="pozadi.jpg" alt="SKODA" style="width: 220px; height: auto; filter: grayscale(100%) brightness(1.5); mix-blend-mode: screen;">
+    
+    <!-- Silueta auta (přisátá těsně pod nápis) -->
+    <img src="auto.png" alt="Silueta" style="width: 500px; height: auto; filter: grayscale(100%) brightness(1.2); margin-top: -45px; mix-blend-mode: screen;">
+</div>
 
-    <!-- 2. HLAVNÍ OBSAH -->
-    <div class="hero-container">
-        <h1 class="logo">Shift<b>Master</b></h1>
+<div class="hero-container">
+    <h1 class="logo">Shift<b>Master</b></h1>
 
-        <div class="stack-box">
-            <!-- Text zprávy (Zde už není potřeba ten vnořený obrázek, protože je v pozadí) -->
-            <p id="broadcastText" 
-               onclick="window.openBroadcastEditor()" 
-               class="cursor-pointer hover:opacity-70 transition-opacity" 
-               style="color: #4ade80; font-weight: 700; font-size: 1rem; line-height: 1.4; max-width: 300px; margin: 15px auto; position: relative; z-index: 9999; pointer-events: auto !important; text-align: center; letter-spacing: 0.3px;">
-                Načítání aktuální zprávy...
-            </p>
-        </div>
+    <div class="stack-box">
+        <!-- Zde už nemusíš mít to pozadi.jpg, protože je teď součástí background-logo nahoře -->
+        
+        <!-- Text zprávy vznášející se v prostoru -->
+       <p id="broadcastText" 
+          onclick="window.openBroadcastEditor()" 
+          class="cursor-pointer hover:opacity-70 transition-opacity" 
+          style="color: #4ade80; font-weight: 700; font-size: 1rem; line-height: 1.4; max-width: 300px; margin: 15px auto; position: relative; z-index: 9999; pointer-events: auto !important; text-align: center; letter-spacing: 0.3px;">
+          Načítání aktuální zprávy...
+       </p>
     </div>
+</div>
 
 <div id="loading" class="card">
   Ověřuji přihlášení…
