@@ -35,14 +35,18 @@
 }
 
     .background-logo {
-        position: fixed;
-        top: 25%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: -1;
-        text-align: center;
-        pointer-events: none;
-    }
+    position: fixed;
+    /* Změna na 25%, aby to bylo v horní polovině jako původně */
+    top: 25% !important; 
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    z-index: -1;
+    width: 100%;
+}
 
     .background-logo img {
     /* Šířka a pozice */
