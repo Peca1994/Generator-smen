@@ -177,34 +177,42 @@ th { color: #facc15 !important; font-weight: 900; background: rgba(0,0,0,0.2); }
 }
 /* ÚPRAVY PRO MOBILNÍ TELEFONY */
 @media screen and (max-width: 500px) {
+    /* 1. Přitáhneme celý obsah k horní liště (včetně záporného marginu) */
     .container { 
-        padding: 5px !important; 
-        margin-top: 0 !important; 
+        max-width: 100% !important; 
+        padding: 0 10px !important; 
+        margin-top: -10px !important; /* Vytáhne filtry nahoru k nápisu */
     }
     
+    /* 2. Zmenšíme vnitřní prostor karet */
     .card { 
-        padding: 8px !important; 
+        padding: 5px !important; 
+        margin-top: 0 !important;
         margin-bottom: 0 !important;
     }
 
+    /* 3. Smáčkneme labely (nápisy nad kolonkami) */
+    label, .input-label, .form-label {
+        margin-top: 5px !important;    /* Původně 15px */
+        margin-bottom: 2px !important; /* Původně 8px */
+        font-size: 10px !important;
+    }
+
+    /* 4. Políčka (inputy) hned pod sebe */
     input, select {
         padding: 6px !important;
-        margin-bottom: 5px !important; /* Políčka hned pod sebou */
+        margin-bottom: 6px !important; /* Původně 20px */
         font-size: 14px !important;
         height: 35px !important;
     }
 
-    label {
-        margin-top: 5px !important;
-        margin-bottom: 2px !important;
-        font-size: 10px !important;
-    }
-
+    /* 5. Přitáhneme tabulku hned pod vyhledávání */
     table {
-        margin-top: 10px !important;
+        margin-top: 0px !important; /* Původně 20px */
         font-size: 11px !important;
     }
-    
+
+    /* Zmenšíme i hlavičku tabulky (časy) */
     thead th {
         padding: 5px 2px !important;
     }
