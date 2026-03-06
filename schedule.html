@@ -445,7 +445,39 @@ const dateEl = document.getElementById("date");
 const shiftEl = document.getElementById("shift");
 const nameFilterEl = document.getElementById("nameFilter");
 const gridEl = document.getElementById("grid");
+function getContinuousShift() {
+    // 1. NASTAVENÍ: Vyber si pondělí, kdy jsi měl naposledy RANNÍ (např. 5. ledna 2026)
+    const anchorDate = new Date(2026, 0, 5); // Rok, Měsíc (0=leden), Den
+    const today = new Date();
 
+    // 2. Výpočet rozdílu v milisekundách a přepočet na celé týdny
+    const msDiff = today.getTime() - anchorDate.getTime();
+    const weeksDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24 * 7));
+
+    // 3. Pořadí směn v tvém cyklu (uprav si podle reality)
+    // Pokud se střídáte: Ranní -> Odpolední -> Noční
+    const shiftCycle = ["Ranní", "Odpolední", "Noční"];
+
+    // 4. Výpočet indexu (zbytek po dělení 3)
+    // Používáme modulo, které ošetří i záporná čísla (kdyby někdo koukal do historie)
+    let shiftIndex = weeksDiff % 3;
+    if (shiftIndex < 0) shiftIndex += 3;
+
+    return shiftCycle[shiftIndex];
+}
+
+// Funkce pro automatické vepsání do stránky
+function updateCurrentShift() {
+    const shiftName = getContinuousShift();
+    const displayEl = document.getElementById("currentShiftInfo");
+    
+    if (displayEl) {
+        displayEl.innerHTML = `Tento týden probíhá: <strong style="color:#22c55e;">${shiftName}</strong>`;
+    }
+}
+
+// Spustit po načtení stránky
+document.addEventListener("DOMContentLoaded", updateCurrentShift);
 // NASTAVENÍ DATA PRO KALENDÁŘ (Dnešek v ISO formátu)
 const today = new Date();
 const offset = today.getTimezoneOffset() * 60000;
@@ -468,7 +500,40 @@ async function loadWorkers(){
         });
     } catch (e) { console.error("Chyba loadWorkers:", e); }
 }
+function nastavitDnesekASmenu() {
+    const ted = new Date();
+    
+    // NASTAVENÍ DATA (dnešek)
+    const offset = ted.getTimezoneOffset() * 60000;
+    const localISO = (new Date(ted - offset)).toISOString().slice(0, 10);
+    const dateEl = document.getElementById("dateSelect"); // Zkontroluj si id v HTML
+    if (dateEl) dateEl.value = localISO;
 
+    // NASTAVENÍ SMĚNY (automatické střídání)
+    const msVTydnu = 604800000; 
+    const tydnyOdEpocha = Math.floor((ted.getTime() + 345600000) / msVTydnu);
+    const cyklus = tydnyOdEpocha % 3;
+
+    let nazevSmeny = "";
+    // Uprav hodnoty ("Ranní" atd.) přesně podle toho, jak je máš v <option> u tvého selectu!
+    if (cyklus === 0) nazevSmeny = "Ranní";
+    else if (cyklus === 1) nazevSmeny = "Noční"; 
+    else nazevSmeny = "Odpolední";
+
+    const shiftEl = document.getElementById("shiftSelect"); // Zkontroluj si id v HTML
+    if (shiftEl) {
+        shiftEl.value = nazevSmeny;
+    }
+}
+
+// 2. SPUŠTĚNÍ PŘI NAČTENÍ (Důležité pořadí!)
+async function init() {
+    nastavitDnesekASmenu(); // Nejdřív nastavíme políčka
+    await loadShift();      // Pak teprve loadShift() načte data z DB podle těch políček
+}
+
+// Zavolej init() místo samotného loadShift() na konci skriptu
+init();
 // Načtení konkrétní směny podle DATA a TYPU
 async function loadShift(){
     if(!dateEl.value) return;
@@ -554,6 +619,52 @@ nameFilterEl.addEventListener("input", render);
 (async () => {
     await loadWorkers();
     await loadShift();
+})();
+(function() {
+    function setShiftAutomatically() {
+        // Nastavíme anchor na pondělí 2. 3. 2026
+        const anchorDate = new Date(2026, 2, 2); 
+        const today = new Date();
+        
+        // Rozdíl týdnů
+        const msDiff = today.getTime() - anchorDate.getTime();
+        const weeksDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24 * 7));
+
+        // POŘADÍ SMĚN: 
+        // Index 0 (tento týden) = noc
+        // Index 1 (příští týden) = odpo
+        // Index 2 (další týden) = ranni
+        const shiftValues = ["noc", "odpo", "ranni"];
+        
+        let index = weeksDiff % 3;
+        if (index < 0) index += 3;
+
+        const shiftSelect = document.getElementById("shift");
+        const dateInput = document.getElementById("date");
+
+        // 1. Nastavíme dnešní datum
+        if (dateInput) {
+            dateInput.valueAsDate = today;
+        }
+
+        // 2. Nastavíme směnu
+        if (shiftSelect) {
+            shiftSelect.value = shiftValues[index];
+            // Vyvoláme změnu, aby se tabulka překreslila
+            shiftSelect.dispatchEvent(new Event('change'));
+            
+            // Pokud máš v kódu funkci na update tabulky, zavoláme ji (zkusíme nejčastější názvy)
+            if (typeof updateTable === "function") updateTable();
+            if (typeof filterData === "function") filterData();
+        }
+    }
+
+    // Spustíme to hned a pro jistotu i po úplném načtení okna
+    if (document.readyState === "complete") {
+        setShiftAutomatically();
+    } else {
+        window.addEventListener('load', setShiftAutomatically);
+    }
 })();
 </script>
 </body>

@@ -404,6 +404,10 @@ function initAllSelects() {
     <input id="fName" placeholder="Jméno (přezdívka v rozpisu)">
     <input id="lName" placeholder="Celé jméno a příjmení">
     <input id="email" placeholder="Email (pro párování s chatem)">
+<select id="empType" style="width: 100%; padding: 10px; margin-bottom: 15px; background: #1a1a1a; color: white; border: 1px solid #333; border-radius: 8px;">
+    <option value="kmenovy">Můj zaměstnanec (Kmenový)</option>
+    <option value="pujceny">Půjčený / Výpomoc</option>
+</select>
     <textarea id="info" placeholder="Poznámka k zaměstnanci"></textarea>
     
     <h4>Dovednosti (pozice, které ovládá)</h4>
@@ -564,159 +568,157 @@ window.closeModal=()=> modal.style.display="none";
 
 /* SAVE */
 
-window.saveEmp = async ()=>{
+window.saveEmp = async () => {
+  try {
+    const fName = document.getElementById("fName").value;
+    const lName = document.getElementById("lName").value;
 
- try{
+    if (!fName || !lName) {
+      alert("Vyplň jméno a příjmení");
+      return;
+    }
 
-  if(!fNameEl.value || !lNameEl.value){
-    alert("Vyplň jméno a příjmení");
-    return;
+    const skills = [...document.getElementById("skillsBox").querySelectorAll("input:checked")].map(x => x.value);
+    const id = editId || (fName + "_" + lName).toLowerCase().replace(/\s+/g, "_");
+
+    // Načtení typu (Kmenový/Půjčený)
+    const typeEl = document.getElementById("empType");
+    const typeValue = typeEl ? typeEl.value : "kmenovy";
+
+    await setDoc(doc(db, "employees", id), {
+      name: fName,
+      surname: lName,
+      email: document.getElementById("email").value.toLowerCase().trim(),
+      info: document.getElementById("info").value,
+      skills: skills,
+      type: typeValue
+    });
+
+    alert("Uloženo");
+    modal.style.display = "none";
+    load();
+  } catch (e) {
+    alert("CHYBA při ukládání: " + e.message);
+    console.error(e);
+  }
+};
+
+// 2. FUNKCE PRO MAZÁNÍ
+window.deleteEmp = async () => {
+  if (!editId) return;
+  if (!confirm("Opravdu chceš smazat záznam?")) return;
+  await deleteDoc(doc(db, "employees", editId));
+  alert("Smazáno");
+  modal.style.display = "none";
+  load();
+};
+
+// 3. FUNKCE PRO NAČTENÍ SEZNAMU (ROZDĚLENÍ NA SEKCE)
+async function load() {
+  const listDiv = document.getElementById("list");
+  if (!listDiv) return;
+  listDiv.innerHTML = "<p style='color:gray; text-align:center; padding: 20px;'>Načítám data...</p>";
+
+  const snap = await getDocs(collection(db, "employees"));
+  let emps = [];
+  snap.forEach(d => {
+    const data = d.data();
+    emps.push({ id: d.id, ...data });
+  });
+
+  // Seřazení A-Z podle příjmení
+  emps.sort((a, b) => (a.surname || "").localeCompare(b.surname || ""));
+
+  const kmenovi = emps.filter(e => e.type !== "pujceny");
+  const pujceni = emps.filter(e => e.type === "pujceny");
+
+  // Definice moderních ikon (SVG)
+  const iconKmenovi = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`;
+  const iconPujceni = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><path d="m7 16 3-3-3-3"></path><path d="M13 7h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-2"></path><path d="m9 11-3 3 3 3"></path><path d="M11 17H9a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"></path></svg>`;
+  const iconChevron = `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.3;"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+
+  let html = "";
+
+  // 1. SEKCE MOJI ZAMĚSTNANCI
+  html += `
+    <div style="display: flex; align-items: center; margin: 25px 0 12px 5px; color: #22c55e;">
+      ${iconKmenovi}
+      <span style="font-size: 0.75rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;">Moji Zaměstnanci (${kmenovi.length})</span>
+    </div>`;
+
+  kmenovi.forEach(e => {
+    html += `
+      <div class="empRow" style="border-left: 4px solid #22c55e; margin-bottom: 8px;" onclick="edit('${e.id}')">
+        <div class="empName">${e.name} ${e.surname || ""}</div>
+        ${iconChevron}
+      </div>`;
+  });
+
+  // 2. SEKCE PŮJČENÍ / VÝPOMOC
+  if (pujceni.length > 0) {
+    html += `
+      <div style="display: flex; align-items: center; margin: 35px 0 12px 5px; color: #3b82f6;">
+        ${iconPujceni}
+        <span style="font-size: 0.75rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;">Půjčení / Výpomoc (${pujceni.length})</span>
+      </div>`;
+
+    pujceni.forEach(e => {
+      html += `
+        <div class="empRow" style="border-left: 4px solid #3b82f6; margin-bottom: 8px; opacity: 0.85;" onclick="edit('${e.id}')">
+          <div class="empName">${e.name} ${e.surname || ""}</div>
+          ${iconChevron}
+        </div>`;
+    });
   }
 
-  const skills=[...skillsBox.querySelectorAll("input:checked")]
-    .map(x=>x.value);
-
-  const id = editId || (fNameEl.value+"_"+lNameEl.value)
-    .toLowerCase().replace(/\s+/g,"_");
-
-  await setDoc(doc(db,"employees",id),{
-  name:fNameEl.value,
-  surname:lNameEl.value,
-  email:emailEl.value.toLowerCase().trim(),
-  info:infoEl.value,
-  skills,
-  statusToday:statusEl.value
-});
-
-
-  alert("Uloženo");
-  modal.style.display="none";
-  load();
-
- }catch(e){
-  alert("CHYBA: "+e.message);
-  console.error(e);
- }
-
-};
-
-/* DELETE */
-
-window.deleteEmp = async ()=>{
-
- if(!editId) return;
-
- const ok = confirm("Opravdu chceš smazat záznam zaměstnance?");
-
- if(!ok) return;
-
- await deleteDoc(doc(db,"employees",editId));
-
- alert("Smazáno");
- modal.style.display="none";
- load();
-};
-
-function paintStatusSelect(sel) {
-  // Seznam všech možných stavů
-  const states = ["work", "vacation", "sick", "paragraf", "shitmaking", "borrowed", "loaned"];
-  
-  // Odstraníme všechny staré barevné třídy
-  states.forEach(s => sel.classList.remove("status-" + s));
-  
-  // Přidáme tu aktuální
-  sel.classList.add("status-" + sel.value);
+  listDiv.innerHTML = html;
 }
 
-/* LIST */
-
-async function load() {
-    const list = document.getElementById("list");
-    if (!list) return;
-    list.innerHTML = "";
-    const snap = await getDocs(collection(db, "employees"));
-    
-    let emps = [];
-    snap.forEach(d => {
-        const data = d.data();
-        emps.push({ id: d.id, ...data });
-    });
-
-    // Seřadíme jednoduše podle příjmení A-Z
-    emps.sort((a, b) => (a.surname || "").localeCompare(b.surname || ""));
-
-    emps.forEach(e => {
-        const row = document.createElement("div");
-        row.className = "empRow";
-        row.onclick = () => edit(e.id);
-        
-        const fullName = (e.name + " " + e.surname).trim() || "Neznámé jméno";
-        // Zde už není žádný SELECT, jen jméno a šipka k editaci
-        row.innerHTML = `
-    <div class="empName">${fullName}</div>
-    <div style="color: rgba(255,255,255,0.3); font-size: 18px;">›</div>
-`;
-        list.appendChild(row);
-    });
-}
-
+// 4. FUNKCE PRO EDITACI (OPRAVENÁ CHYBA NULL)
 async function edit(id) {
-    const snap = await getDoc(doc(db, "employees", id));
-    const e = snap.data();
-    editId = id;
-    modal.style.display = "block";
+  const snap = await getDoc(doc(db, "employees", id));
+  const e = snap.data();
+  if (!e) return;
 
-    // Opravené plnění políček - používáme přímo e.name, e.surname atd.
-    const fNameEl = document.getElementById("fName");
-    if (fNameEl) fNameEl.value = e.name || "";
-    
-    const lNameEl = document.getElementById("lName");
-    if (lNameEl) lNameEl.value = e.surname || "";
+  editId = id;
+  modal.style.display = "block";
 
-    const emailEl = document.getElementById("email");
-    if (emailEl) emailEl.value = e.email || "";
+  // Přímé přiřazení do políček, aby se vyhnulo chybě undefined proměnných
+  document.getElementById("fName").value = e.name || "";
+  document.getElementById("lName").value = e.surname || "";
+  document.getElementById("email").value = e.email || "";
+  document.getElementById("info").value = e.info || "";
+  
+  if(document.getElementById("empType")) {
+    document.getElementById("empType").value = e.type || "kmenovy";
+  }
 
-    const infoEl = document.getElementById("info");
-    if (infoEl) infoEl.value = e.info || "";
-
-    const statusEl = document.getElementById("statusToday");
-    if (statusEl) statusEl.value = e.statusToday || "work";
-
-    // TATO ČÁST TEĎ PROBĚHNE VŽDY A OBARVÍ POZICE ZELENĚ
-    if (skillsBox) {
-        skillsBox.querySelectorAll("input").forEach(c => {
-            // Kontrola, zda má zaměstnanec tuto dovednost v poli skills
-            const hasSkill = e.skills && Array.isArray(e.skills) && e.skills.includes(c.value);
-            c.checked = hasSkill;
-            
-            // Přepne barvu (třída active musí odpovídat tvému CSS pro zelenou)
-            if (c.parentElement) {
-                c.parentElement.classList.toggle("active", hasSkill);
-            }
-        });
-    }
+  // Skilly
+  const skillsBox = document.getElementById("skillsBox");
+  if (skillsBox) {
+    skillsBox.querySelectorAll("input").forEach(c => {
+      const hasSkill = e.skills && e.skills.includes(c.value);
+      c.checked = hasSkill;
+      c.parentElement.classList.toggle("active", hasSkill);
+    });
+  }
 }
 
+// Ostatní funkce (Broadcast atd.)
+window.openBroadcast = async () => {
+  const snap = await getDoc(doc(db, "config", "global"));
+  document.getElementById("broadcastText").value = snap.data()?.broadcastMessage || "";
+  document.getElementById("broadcastModal").style.display = "block";
+};
+window.closeBroadcast = () => document.getElementById("broadcastModal").style.display = "none";
+window.saveBroadcast = async () => {
+  await setDoc(doc(db, "config", "global"), { broadcastMessage: document.getElementById("broadcastText").value }, { merge: true });
+  alert("Uloženo");
+  window.closeBroadcast();
+};
+
+// Spuštění načítání
 load();
-
-window.openBroadcast = async ()=>{
-
- const snap = await getDoc(doc(db,"config","global"));
- broadcastTextEl.value = snap.data()?.broadcastMessage || "";
- broadcastModal.style.display = "block";
-};
-
-window.closeBroadcast = ()=> broadcastModal.style.display="none";
-
-window.saveBroadcast = async ()=>{
-
- await setDoc(doc(db,"config","global"),{
-   broadcastMessage: broadcastTextEl.value
- },{merge:true});
-
- alert("Uloženo pro všechny");
- broadcastModal.style.display="none";
-};
 
 </script>
 </body>
