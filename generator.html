@@ -16,13 +16,14 @@
 }
 
 /* 1. PRVNÍ SLOUPEC (NÁZEV POZICE) */
-#grid td:first-child, .posCol {
-    width: 140px !important;
-    padding-left: 15px !important;
+#grid td:first-child {
+    width: 150px !important;
+    padding-left: 20px !important;
     font-weight: 900 !important;
-    background: transparent !important; /* TOTO ZAJISTÍ PRŮHLEDNOST */
-    border: none !important;
-    color: white !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 12px 0 0 12px !important;
+    transition: all 0.3s ease;
 }
 
 /* 2. OSTATNÍ SLOUPCE (JMÉNA) */
@@ -309,82 +310,48 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
     }
 }
 @media screen and (max-width: 480px) {
-    /* 1. Kontejner - roztažení na maximum bez scrollu */
-    .container, .app, .main {
+    /* HLAVNÍ KONTEJNER - Povolí scroll prstem doleva/doprava */
+    .container {
         width: 100% !important;
-        max-width: 100% !important;
-        padding: 4px !important;
-        margin: 0 auto !important;
-        overflow-x: hidden !important;
-    }
-
-    /* 2. Tabulka - Pevné rozdělení na 5 sloupců */
-    #grid, table {
-        width: 100% !important;
-        table-layout: fixed !important; /* Vynutí přesné šířky */
-        border-spacing: 0 4px !important;
-        background: transparent !important;
-    }
-
-    /* 3. První sloupec (Pozice) - ÚZKÝ A PRŮHLEDNÝ */
-    tbody td:first-child, thead th:first-child {
-        width: 72px !important; /* Pevná šířka, aby nepodlézala pod jména */
-        padding: 4px 2px !important;
-        background: transparent !important; /* ODSTRANÍ TEN DIVNÝ FLEK */
-        border: none !important;
-    }
-
-    /* Ikonka a nápis pozice (např. DP-L) */
-    .posCol {
-        display: flex !important;
-        align-items: center !important;
-        gap: 4px !important;
-        background: transparent !important;
-    }
-    .posCol div {
-        width: 22px !important; height: 22px !important;
-        flex-shrink: 0;
-        background: rgba(0,0,0,0.3) !important;
-    }
-    .posCol svg { width: 12px; height: 12px; }
-    .posCol span {
-        font-size: 10px !important;
-        color: inherit !important;
-    }
-
-    /* 4. Sloupce se jmény - Rozdělení zbytku obrazovky */
-    tbody td:not(:first-child), thead th:not(:first-child) {
-        width: calc((100% - 72px) / 4) !important;
-        padding: 4px 1px !important;
-        background: transparent !important; /* Průhledné, aby barva byla jen na bublině */
-    }
-
-    /* 5. Bubliny se jmény (Badge) - Musí být kompaktní */
-    tbody td span {
+        max-width: 100vw !important;
+        margin: 10px 0 !important;
+        padding: 5px !important;
+        overflow-x: auto !important; /* Zapne vodorovný posun */
         display: block !important;
-        width: 96% !important;
-        margin: 0 auto !important;
-        padding: 5px 0 !important;
-        font-size: 9px !important; /* Velikost písma jmen */
-        font-weight: 900 !important;
-        border-radius: 6px !important;
-        text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis; /* Pokud je jméno moc dlouhé, udělá tečky */
+        -webkit-overflow-scrolling: touch;
     }
 
-    /* 6. Časy v hlavičce (06:00 - 08:00 atd.) */
+    /* TABULKA - Nesmí se mačkat, musí mít pevnou šířku pro scroll */
+    #grid, table {
+        width: 650px !important; /* Vynutíme šířku, aby se tam vešlo všech 5 sloupců */
+        min-width: 650px !important;
+        border-collapse: separate !important;
+        border-spacing: 0 6px !important;
+        display: table !important; /* Důležité: Zruší případný flex, který to rozbíjí */
+    }
+
+    /* PRVNÍ SLOUPEC (POZICE) - Oprava pozadí a šířky */
+    tbody td:first-child, thead th:first-child {
+        width: 120px !important;
+        min-width: 120px !important;
+        background: transparent !important; /* Odstraní to černé pozadí */
+        padding-left: 10px !important;
+        font-size: 11px !important;
+    }
+
+    /* OSTATNÍ BUŇKY (BUBLINY SE JMÉNY) */
+    tbody td {
+        width: 130px !important;
+        min-width: 130px !important;
+        padding: 8px 4px !important;
+        text-align: center !important;
+    }
+
+    /* HLAVIČKA - Časy (06:00 atd.) */
     thead th {
-        font-size: 8px !important;
-        font-weight: 700;
-        color: rgba(255,255,255,0.4) !important;
-        padding-bottom: 5px !important;
-    }
-
-    /* Zrušení všech stínů, které dělaly nápisy "špinavé" */
-    .posCol span, tbody td span {
-        text-shadow: none !important;
+        font-size: 10px !important;
+        padding: 10px 0 !important;
+        color: rgba(255,255,255,0.6) !important;
     }
 }
 
