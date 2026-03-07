@@ -16,14 +16,13 @@
 }
 
 /* 1. PRVNÍ SLOUPEC (NÁZEV POZICE) */
-#grid td:first-child {
-    width: 150px !important;
-    padding-left: 20px !important;
+#grid td:first-child, .posCol {
+    width: 140px !important;
+    padding-left: 15px !important;
     font-weight: 900 !important;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-radius: 12px 0 0 12px !important;
-    transition: all 0.3s ease;
+    background: transparent !important; /* TOTO ZAJISTÍ PRŮHLEDNOST */
+    border: none !important;
+    color: white !important;
 }
 
 /* 2. OSTATNÍ SLOUPCE (JMÉNA) */
