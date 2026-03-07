@@ -310,21 +310,31 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
     }
 }
 @media screen and (max-width: 480px) {
-    table { font-size: 11px !important; }
-    tbody td {
-        padding: 8px 2px !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 60px;
-    }
+    /* 1. Tady jsi měl 45px, což je moc málo pro ikonku i text - proto se to překrývá */
     tbody td:first-child, thead th:first-child {
-        width: 45px !important;
-        padding-left: 5px !important;
-        font-size: 10px !important;
+        width: 110px !important; /* Změněno ze 45px na 110px */
+        min-width: 110px !important;
+        padding-left: 8px !important;
+        font-size: 11px !important;
     }
-    table { border-spacing: 0 4px !important; }
-    thead th { font-size: 10px !important; padding: 10px 2px !important; }
+
+    /* 2. Tady jsi měl max-width: 60px, což je pro ty bubliny se jmény moc úzké */
+    tbody td {
+        padding: 8px 4px !important;
+        white-space: nowrap;
+        overflow: visible !important; /* Necháme bubliny vydechnout */
+        max-width: none !important;    /* Zrušíme omezení na 60px */
+    }
+
+    /* 3. Aby se tabulka nemačkala, musíme povolit posun do stran */
+    .container {
+        overflow-x: auto !important;
+        display: block !important;
+    }
+    
+    table {
+        min-width: 550px !important; /* Tabulka si udrží tvar a bude se posouvat prstem */
+    }
 }
 
 /* --- SJEDNOCENÝ DESIGN LIŠT (INFO A DOCHÁZKA) --- */
