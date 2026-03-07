@@ -405,6 +405,20 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
     background-position: right 10px center; /* Vycentrování šipky na výšku */
     background-size: 10px auto;
 }
+.worker-item {
+  background: rgba(255, 255, 255, 0.08);
+  margin-bottom: 6px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.worker-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(5px);
+}
 
 </style>
 </head>
@@ -653,22 +667,27 @@ if (dateEl) {
 /* POSITIONS */
 
 const POSITIONS = [
-"DP-L","DP-P","ZRC-L","ZRC-P","T-L","T-P",
-"AGR-LP","AGR-PP","AGR-PZ","AGR-LZ",
-"MOT-L","MOT-P","LEP-LP","LEP-PP","LEP-Z",
-"REPRO-L","REPRO-P","VYP1-L","VYP1-P",
-"VYP2-L","VYP2-P","PR-L","PR-P","ZAM-L","ZAM-P","VET","VET2","INST",
-"INST2","JINE","JINE2",
-
+    "DP-L", "DP-P", 
+    "ZRC-L", "ZRC-P", 
+    "T-L", "T-P", 
+    "AGR-LP", "AGR-PP", "AGR-PZ", "AGR-LZ", 
+    "MOT-L", "MOT-P", 
+    "LEP-LP", "LEP-PP", "LEP-Z", 
+    "REPRO-L", "REPRO-P", 
+    "VYP1-L", "VYP1-P", 
+    "VYP2-L", "VYP2-P", 
+    "PR-L", "PR-P", 
+    "ZAM-L", "ZAM-P", 
+    "VET", "VET2", "VET3",    // Seřazeno: VET3 je za VET2
+    "INST", "INST2", "INST3"  // Seřazeno: INST3 je za INST2
 ];
 
 /* DEFAULT ZAMČENÉ POZICE */
 
 const DEFAULT_LOCKED = new Set([
- "ZAM-L","ZAM-P",
- "VET","VET2",
- "INST","INST2",
- "JINE","JINE2"
+ "ZAM-L", "ZAM-P", 
+    "VET", "VET2", "VET3",    // Seřazeno: VET3 je za VET2
+    "INST", "INST2", "INST3"
 ]);
 
 POSITIONS.forEach(p => {
@@ -708,49 +727,131 @@ let shiftInfo = {
 
 /* WORKERS */
 
-async function loadWorkers(){
- const snap = await getDocs(collection(db,"employees"));
- workers=[];
+async function loadWorkers() {
+  const container = document.getElementById("attendanceList");
+  if (!container) return;
 
- snap.forEach(d=>{
-  const e=d.data();
-  const st = e.statusToday;
-
-  // ❌ FILTR: Tihle lidé se v náhradnících (reserves) vůbec neobjeví
-  const zakazane = ["sick", "vacation", "paragraf", "shitmaking", "loaned", "borrowed", "propujceny"];
+  const snap = await getDocs(collection(db, "employees"));
   
-  if(zakazane.includes(st)){
-    return; // Přeskočíme je
+  let moje = [];
+  let pujcene = [];
+  let temporaryWorkers = []; // Pomocné pole pro generátor
+
+  snap.forEach(d => {
+    const e = d.data();
+    const st = e.statusToday || "work";
+
+    const zakazane = ["sick", "vacation", "paragraf", "shitmaking", "loaned", "borrowed", "propujceny"];
+    if (zakazane.includes(st)) return;
+
+    const workerObj = { 
+      id: d.id, 
+      name: e.name, 
+      surname: e.surname || "", 
+      type: e.type || "kmenovy",
+      skills: e.skills || [], // Důležité pro generování!
+      status: st 
+    };
+
+    // ✅ TADY JE TA ZMĚNA: Přidáme ho do seznamu pro generátor
+    temporaryWorkers.push(workerObj);
+
+    if (e.type === "pujceny") {
+      pujcene.push(workerObj);
+    } else {
+      moje.push(workerObj);
+    }
+  });
+
+  // ✅ AKTUALIZACE GLOBÁLNÍ PROMĚNNÉ (aby generátor věděl, s kým pracovat)
+  workers = temporaryWorkers; 
+
+  const sortFn = (a, b) => a.surname.localeCompare(b.surname, 'cs');
+  moje.sort(sortFn);
+  pujcene.sort(sortFn);
+
+  let html = "";
+  html += `<div style="color:#22c55e; font-size:10px; font-weight:900; margin:15px 0 8px 5px; text-transform:uppercase;">Moji Zaměstnanci (${moje.length})</div>`;
+  moje.forEach(w => { html += renderAttendanceRow(w, "#22c55e"); });
+
+  if (pujcene.length > 0) {
+    html += `<div style="color:#3b82f6; font-size:10px; font-weight:900; margin:25px 0 8px 5px; text-transform:uppercase;">Půjčení / Výpomoc (${pujcene.length})</div>`;
+    pujcene.forEach(w => { html += renderAttendanceRow(w, "#3b82f6"); });
   }
 
-  // ✅ Jen skuteční pracovníci se statusem "work" (a případně tvůj parťák, pokud ho chceš v náhradnících)
-  if(st === "work"){
-    workers.push({
-      id:d.id,
-      name:e.name,
-      skills:e.skills || []
+  container.innerHTML = html;
+}
+
+async function loadAllWorkers() {
+  const snap = await getDocs(collection(db, "employees"));
+  allWorkersMap = {};
+  let emps = [];
+
+  snap.forEach(d => {
+    const e = d.data();
+    const workerData = {
+      id: d.id,
+      name: e.name,
+      surname: e.surname || "",
+      skills: e.skills || [],
+      status: e.statusToday || "work",
+      type: e.type || "kmenovy" // Důležité pro rozlišení
+    };
+    allWorkersMap[d.id] = workerData;
+    emps.push(workerData);
+  });
+
+  // Seřazení podle příjmení (stejně jako v employees.html)
+  emps.sort((a, b) => a.surname.localeCompare(b.surname, 'cs'));
+
+  const kmenovi = emps.filter(e => e.type !== "pujceny");
+  const pujceni = emps.filter(e => e.type === "pujceny");
+
+  renderWorkerList(kmenovi, pujceni);
+}
+function renderWorkerList(kmenovi, pujceni) {
+  const listDiv = document.getElementById("workerList"); // Zkontroluj si ID v HTML
+  if (!listDiv) return;
+
+  let html = "";
+
+  // 1. SEKCE MOJI (Zelená)
+  html += `
+    <div style="display:flex; align-items:center; gap:8px; margin:15px 0 8px 5px; color:#22c55e; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+      Moji Zaměstnanci (${kmenovi.length})
+    </div>`;
+  
+  kmenovi.forEach(e => {
+    html += `<div class="worker-item kmenovy" onclick="selectWorker('${e.id}')" style="border-left: 4px solid #22c55e;">
+               ${e.name} ${e.surname}
+             </div>`;
+  });
+
+  // 2. SEKCE PŮJČENÍ (Modrá)
+  if (pujceni.length > 0) {
+    html += `
+      <div style="display:flex; align-items:center; gap:8px; margin:25px 0 8px 5px; color:#3b82f6; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m7 16 3-3-3-3"></path><path d="M13 7h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-2"></path></svg>
+        Půjčení / Výpomoc (${pujceni.length})
+      </div>`;
+    
+    pujceni.forEach(e => {
+      html += `<div class="worker-item pujceny" onclick="selectWorker('${e.id}')" style="border-left: 4px solid #3b82f6; opacity:0.85;">
+                 ${e.name} ${e.surname}
+               </div>`;
     });
   }
- });
+
+  listDiv.innerHTML = html;
 }
-
-async function loadAllWorkers(){
-
- const snap = await getDocs(collection(db,"employees"));
- allWorkersMap={};
-
- snap.forEach(d=>{
-  const e=d.data();
-  allWorkersMap[d.id]={
-    id:d.id,
-    name:e.name,
-    skills:e.skills||[],
-    status:e.statusToday||"work"
-  };
- });
-
-}
-
+window.toggleAttendance = (show) => {
+    const modal = document.getElementById('attendanceModal');
+    if (modal) {
+        modal.style.display = show ? 'flex' : 'none';
+        if (show) loadAttendance(); // Tady voláme tvou novou rozdělenou funkci
+    }
+};
 /* BUILD */
 
 if (typeof historyStats === 'undefined') { var historyStats = {}; }
@@ -1237,66 +1338,100 @@ async function loadAttendance() {
 
     try {
         const snap = await getDocs(collection(db, "employees"));
-        list.innerHTML = "";
         let emps = [];
-        snap.forEach(d => emps.push({ id: d.id, ...d.data() }));
-
-        // Priority řazení: Parťák(1), Práce(2), Půjčení(3,4), Zbytek(5,6,7)
-     const prio = { 'shitmaking': 1, 'work': 2, 'borrowed': 3, 'loaned': 4, 'vacation': 5, 'paragraf': 6, 'sick': 7 };
-
-emps.sort((a, b) => {
-    // POZOR NA VELKÁ/MALÁ PÍSMENA (statusToday vs statusToday)
-    const vA = prio[a.statusToday] || 2; 
-    const vB = prio[b.statusToday] || 2;
-    
-    if (vA !== vB) return vA - vB;
-    return (a.name || "").localeCompare(b.name || "");
-});
-        emps.forEach(e => {
-            const status = e.statusToday || 'work';
-            const row = document.createElement("div");
-            row.className = "att-row";
-           row.innerHTML = `
-    <div class="att-name" style="color: white; font-weight: 800; font-size: 14px; flex: 1;">${e.name} ${e.surname || ''}</div>
-    <select class="status-select ${status}" 
-            style="background: #333; color: white; border-radius: 6px; padding: 5px; font-weight: bold; border: 1px solid rgba(255,255,255,0.1);"
-            onchange="this.className='status-select ' + this.value; updateStatus('${e.id}', this.value)">
-        <option value="work" ${status === 'work' ? 'selected' : ''}>V práci</option>
-        <option value="vacation" ${status === 'vacation' ? 'selected' : ''}>Dovolená</option>
-        <option value="paragraf" ${status === 'paragraf' ? 'selected' : ''}>Paragraf</option>
-        <option value="sick" ${status === 'sick' ? 'selected' : ''}>Nemoc</option>
-        <option value="shitmaking" ${status === 'shitmaking' ? 'selected' : ''}>Parťák</option>
-        <option value="borrowed" ${status === 'borrowed' ? 'selected' : ''}>Půjčený</option>
-        <option value="loaned" ${status === 'loaned' ? 'selected' : ''}>Propůjčený</option>
-    </select>`;
-            list.appendChild(row);
+        snap.forEach(d => {
+            const data = d.data();
+            emps.push({ id: d.id, ...data });
         });
-    } catch (e) { console.error(e); }
+
+        // 1. Definice priority rolí (nižší číslo = vyšší pozice)
+        const rolePrio = { 
+            'shitmaking': 1, 
+            'work': 2, 
+            'borrowed': 3, 
+            'loaned': 4, 
+            'vacation': 5, 
+            'paragraf': 6, 
+            'sick': 7 
+        };
+
+        // 2. HLAVNÍ ŘAZENÍ (Důkladné ošetření prázdných hodnot)
+        emps.sort((a, b) => {
+            // A) Typ (Moji vs Půjčení)
+            const typeA = (a.type === "pujceny") ? 1 : 0;
+            const typeB = (b.type === "pujceny") ? 1 : 0;
+            if (typeA !== typeB) return typeA - typeB;
+
+            // B) Role (Status)
+            const statA = a.statusToday || 'work';
+            const statB = b.statusToday || 'work';
+            const prioA = rolePrio[statA] || 2;
+            const prioB = rolePrio[statB] || 2;
+            if (prioA !== prioB) return prioA - prioB;
+
+            // C) Abeceda
+            return (a.name || "").localeCompare(b.name || "", 'cs');
+        });
+
+        // 3. ROZDĚLENÍ A VYKRESLENÍ
+        const moje = emps.filter(e => e.type !== "pujceny");
+        const pujcene = emps.filter(e => e.type === "pujceny");
+
+        let html = "";
+
+        if (moje.length > 0) {
+            html += `<div style="color:#22c55e; font-size:10px; font-weight:900; margin:15px 0 8px 5px; text-transform:uppercase; border-bottom: 1px solid rgba(34, 197, 94, 0.2); padding-bottom: 3px;">Moji Zaměstnanci (${moje.length})</div>`;
+            moje.forEach(e => { html += renderRowHTML(e, "#22c55e"); });
+        }
+
+        if (pujcene.length > 0) {
+            html += `<div style="color:#3b82f6; font-size:10px; font-weight:900; margin:25px 0 8px 5px; text-transform:uppercase; border-bottom: 1px solid rgba(59, 130, 246, 0.2); padding-bottom: 3px;">Půjčení / Výpomoc (${pujcene.length})</div>`;
+            pujcene.forEach(e => { html += renderRowHTML(e, "#3b82f6"); });
+        }
+
+        list.innerHTML = html || "<div style='color:white; padding:10px;'>Žádní zaměstnanci nenalezeni</div>";
+    } catch (e) { 
+        console.error("Chyba v loadAttendance:", e);
+        list.innerHTML = "<div style='color:red; padding:10px;'>Chyba při načítání dat</div>";
+    }
 }
 
-// Funkce pro rozbalení - OPRAVENÁ
-window.toggleAttendance = (show) => {
-    const modal = document.getElementById('attendanceModal');
-    if (modal) {
-        modal.style.display = show ? 'flex' : 'none';
-        // Pokud otevíráme, rovnou načteme aktuální data
-        if (show) loadAttendance();
-    }
-};
-
+// Ujisti se, že máš v kódu i tuto pomocnou funkci:
+function renderRowHTML(e, color) {
+    const status = e.statusToday || 'work';
+    return `
+    <div class="att-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); border-left:4px solid ${color}; background:rgba(255,255,255,0.02); margin-bottom:2px;">
+        <div class="att-name" style="color: white; font-weight: 800; font-size: 14px; flex: 1;">${e.name} ${e.surname || ''}</div>
+        <select class="status-select ${status}" 
+                style="background: #333; color: white; border-radius: 6px; padding: 5px; font-weight: bold; border: 1px solid rgba(255,255,255,0.1);"
+                onchange="this.className='status-select ' + this.value; updateStatus('${e.id}', this.value)">
+            <option value="work" ${status === 'work' ? 'selected' : ''}>V práci</option>
+            <option value="vacation" ${status === 'vacation' ? 'selected' : ''}>Dovolená</option>
+            <option value="paragraf" ${status === 'paragraf' ? 'selected' : ''}>Paragraf</option>
+            <option value="sick" ${status === 'sick' ? 'selected' : ''}>Nemoc</option>
+            <option value="shitmaking" ${status === 'shitmaking' ? 'selected' : ''}>Parťák</option>
+            <option value="borrowed" ${status === 'borrowed' ? 'selected' : ''}>Půjčený</option>
+            <option value="loaned" ${status === 'loaned' ? 'selected' : ''}>Propůjčený</option>
+        </select>
+    </div>`;
+}
 window.updateStatus = async (id, newStatus) => {
     try {
-        // Teď už updateDoc bude fungovat!
-        await updateDoc(doc(db, "employees", id), { statusToday: newStatus });
-        // Po uložení okamžitě znovu načteme a seřadíme
-        loadAttendance(); 
+        // 1. Aktualizace v databázi Firebase
+        const docRef = doc(db, "employees", id);
+        await updateDoc(docRef, { 
+            statusToday: newStatus 
+        });
+        
+        // 2. OKAMŽITÉ PŘERAZENÍ: Znovu zavoláme načtení, 
+        // které lidi seřadí podle tvých nových priorit (Moji/Půjčení/Role)
+        await loadAttendance(); 
+        
+        console.log(`Status aktualizován na: ${newStatus}`);
     } catch (err) {
-        console.error("Chyba při ukládání role:", err);
+        console.error("Chyba při ukládání statusu:", err);
     }
 };
-
-// Start
-setTimeout(loadAttendance, 1000);
 
 </script>
 </body>

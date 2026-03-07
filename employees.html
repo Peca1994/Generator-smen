@@ -515,22 +515,21 @@ const broadcastTextEl = document.getElementById("broadcastText");
 /* pozice */
 
 const POSITIONS = [
-["DP-L","DOORPROTECTOR L"],["DP-P","DOORPROTECTOR P"],
-["ZRC-L","ZRCÁTKA L"],["ZRC-P","ZRCÁTKA P"],
-["T-L","TĚSNĚNÍ L"],["T-P","TĚSNĚNÍ P"],
-["AGR-LP","AGREGÁT LP"],["AGR-PP","AGREGÁT PP"],
-["AGR-PZ","AGREGÁT PZ"],["AGR-LZ","AGREGÁT LZ"],
-["MOT-L","MOTORY L"],["MOT-P","MOTORY P"],
-["LEP-LP","LEPENÍ LP"],["LEP-PP","LEPENÍ PP"],
-["LEP-Z","LEPENÍ Z"],
-["REPRO-L","REPRÁKY L"],["REPRO-P","REPRÁKY P"],
-["VYP1-L","VÝPLNĚ 1 L"],["VYP1-P","VÝPLNĚ 1 P"],
-["VYP2-L","VÝPLNĚ 2 L"],["VYP2-P","VÝPLNĚ 2 P"],
-["PR-L","PŘITAHOVAČ L"],["PR-P","PŘITAHOVAČ P"],
-["ZAM-L","ZÁMKY L"],["ZAM-P","ZÁMKY P"],
-["VET","VĚTRAČKY"],["VET2","VĚTRAČKY 2"],["INST","INSTALACE"],["INST2","INSTALACE 2"],
-["JINE","JINÝ ÚSEK"],["JINE2","JINÝ ÚSEK 2"],
-
+    ["DP-L","DOORPROTECTOR L"],["DP-P","DOORPROTECTOR P"],
+    ["ZRC-L","ZRCÁTKA L"],["ZRC-P","ZRCÁTKA P"],
+    ["T-L","TĚSNĚNÍ L"],["T-P","TĚSNĚNÍ P"],
+    ["AGR-LP","AGREGÁT LP"],["AGR-PP","AGREGÁT PP"],
+    ["AGR-PZ","AGREGÁT PZ"],["AGR-LZ","AGREGÁT LZ"],
+    ["MOT-L","MOTORY L"],["MOT-P","MOTORY P"],
+    ["LEP-LP","LEPENÍ LP"],["LEP-PP","LEPENÍ PP"],
+    ["LEP-Z","LEPENÍ Z"],
+    ["REPRO-L","REPRÁKY L"],["REPRO-P","REPRÁKY P"],
+    ["VYP1-L","VÝPLNĚ 1 L"],["VYP1-P","VÝPLNĚ 1 P"],
+    ["VYP2-L","VÝPLNĚ 2 L"],["VYP2-P","VÝPLNĚ 2 P"],
+    ["PR-L","PŘITAHOVAČ L"],["PR-P","PŘITAHOVAČ P"],
+    ["ZAM-L","ZÁMKY L"],["ZAM-P","ZÁMKY P"],
+    ["VET","VĚTRAČKY"],["VET2","VĚTRAČKY 2"],["VET3","VĚTRAČKY 3"], // Přidané VET3
+    ["INST","INSTALACE"],["INST2","INSTALACE 2"],["INST3","INSTALACE 3"] // Přidané INST3
 ];
 
 POSITIONS.forEach(p => {
@@ -703,7 +702,7 @@ async function edit(id) {
     });
   }
 }
-
+window.edit = edit;
 // Ostatní funkce (Broadcast atd.)
 window.openBroadcast = async () => {
   const snap = await getDoc(doc(db, "config", "global"));

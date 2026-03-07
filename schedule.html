@@ -484,7 +484,21 @@ const offset = today.getTimezoneOffset() * 60000;
 const localDate = new Date(today.getTime() - offset).toISOString().split('T')[0];
 dateEl.value = localDate;
 
-const POSITIONS = ["DP-L","DP-P","ZRC-L","ZRC-P","T-L","T-P","AGR-LP","AGR-PP","AGR-PZ","AGR-LZ","MOT-L","MOT-P","LEP-LP","LEP-PP","LEP-Z","REPRO-L","REPRO-P","VYP1-L","VYP1-P","VYP2-L","VYP2-P","PR-L","PR-P","ZAM-L","ZAM-P","VET","VET2","INST","INST2","JINE","JINE2"];
+const POSITIONS = [
+    "DP-L", "DP-P", 
+    "ZRC-L", "ZRC-P", 
+    "T-L", "T-P", 
+    "AGR-LP", "AGR-PP", "AGR-PZ", "AGR-LZ", 
+    "MOT-L", "MOT-P", 
+    "LEP-LP", "LEP-PP", "LEP-Z", 
+    "REPRO-L", "REPRO-P", 
+    "VYP1-L", "VYP1-P", 
+    "VYP2-L", "VYP2-P", 
+    "PR-L", "PR-P", 
+    "ZAM-L", "ZAM-P", 
+    "VET", "VET2", "VET3",    // Seřazeno: VET3 je za VET2
+    "INST", "INST2", "INST3"  // Seřazeno: INST3 je za INST2
+];
 
 let workerMap = {}; 
 let phasesData = [];
