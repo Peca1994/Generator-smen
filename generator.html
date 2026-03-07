@@ -309,59 +309,82 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
     }
 }
 @media screen and (max-width: 480px) {
-    /* 1. Kontejner - Zrušíme scroll a roztáhneme ho na maximum */
+    /* 1. Kontejner - roztažení na maximum bez scrollu */
     .container, .app, .main {
         width: 100% !important;
         max-width: 100% !important;
-        padding: 2px !important;
-        margin: 5px 0 !important;
-        overflow-x: hidden !important; /* Zakáže posun do stran */
+        padding: 4px !important;
+        margin: 0 auto !important;
+        overflow-x: hidden !important;
     }
 
-    /* 2. Tabulka - Musí se vejít do šířky displeje */
+    /* 2. Tabulka - Pevné rozdělení na 5 sloupců */
     #grid, table {
         width: 100% !important;
-        min-width: 100% !important;
-        table-layout: fixed !important; /* Vynutí rozdělení místa mezi sloupce */
-        border-spacing: 0 4px !important; /* Menší mezery mezi řádky */
-    }
-
-    /* 3. První sloupec (Pozice) - Maximálně úzký */
-    tbody td:first-child, thead th:first-child {
-        width: 65px !important; /* Zmenšeno ze 120px */
-        padding: 5px 2px !important;
-        font-size: 9px !important;
+        table-layout: fixed !important; /* Vynutí přesné šířky */
+        border-spacing: 0 4px !important;
         background: transparent !important;
     }
 
-    /* Ikona zámku v prvním sloupci - zmenšení */
-    .posCol div {
-        width: 22px !important;
-        height: 22px !important;
-        margin-right: 4px !important;
-    }
-    .posCol svg { width: 14px; height: 14px; }
-
-    /* 4. Sloupce s časy a jmény - Extrémní zmenšení */
-    tbody td, thead th {
-        padding: 5px 1px !important;
-        font-size: 8px !important; /* Opravdu malé písmo */
-    }
-
-    /* 5. Bubliny se jmény - Musí být úzké a nízké */
-    tbody td span {
-        min-width: 100% !important; /* Roztáhne se na šířku sloupce */
+    /* 3. První sloupec (Pozice) - ÚZKÝ A PRŮHLEDNÝ */
+    tbody td:first-child, thead th:first-child {
+        width: 72px !important; /* Pevná šířka, aby nepodlézala pod jména */
         padding: 4px 2px !important;
-        font-size: 9px !important; /* Písmo jmen */
-        border-radius: 6px !important; /* Menší zaoblení */
-        letter-spacing: -0.2px; /* Sražené písmo */
-        display: block !important;
+        background: transparent !important; /* ODSTRANÍ TEN DIVNÝ FLEK */
+        border: none !important;
     }
 
-    /* Časy v hlavičce (06:00-08:00) */
+    /* Ikonka a nápis pozice (např. DP-L) */
+    .posCol {
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        background: transparent !important;
+    }
+    .posCol div {
+        width: 22px !important; height: 22px !important;
+        flex-shrink: 0;
+        background: rgba(0,0,0,0.3) !important;
+    }
+    .posCol svg { width: 12px; height: 12px; }
+    .posCol span {
+        font-size: 10px !important;
+        color: inherit !important;
+    }
+
+    /* 4. Sloupce se jmény - Rozdělení zbytku obrazovky */
+    tbody td:not(:first-child), thead th:not(:first-child) {
+        width: calc((100% - 72px) / 4) !important;
+        padding: 4px 1px !important;
+        background: transparent !important; /* Průhledné, aby barva byla jen na bublině */
+    }
+
+    /* 5. Bubliny se jmény (Badge) - Musí být kompaktní */
+    tbody td span {
+        display: block !important;
+        width: 96% !important;
+        margin: 0 auto !important;
+        padding: 5px 0 !important;
+        font-size: 9px !important; /* Velikost písma jmen */
+        font-weight: 900 !important;
+        border-radius: 6px !important;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis; /* Pokud je jméno moc dlouhé, udělá tečky */
+    }
+
+    /* 6. Časy v hlavičce (06:00 - 08:00 atd.) */
     thead th {
         font-size: 8px !important;
-        line-height: 1;
+        font-weight: 700;
+        color: rgba(255,255,255,0.4) !important;
+        padding-bottom: 5px !important;
+    }
+
+    /* Zrušení všech stínů, které dělaly nápisy "špinavé" */
+    .posCol span, tbody td span {
+        text-shadow: none !important;
     }
 }
 
