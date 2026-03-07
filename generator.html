@@ -310,30 +310,37 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
     }
 }
 @media screen and (max-width: 480px) {
-    /* 1. Tady jsi měl 45px, což je moc málo pro ikonku i text - proto se to překrývá */
-    tbody td:first-child, thead th:first-child {
-        width: 110px !important; /* Změněno ze 45px na 110px */
-        min-width: 110px !important;
-        padding-left: 8px !important;
-        font-size: 11px !important;
-    }
-
-    /* 2. Tady jsi měl max-width: 60px, což je pro ty bubliny se jmény moc úzké */
-    tbody td {
-        padding: 8px 4px !important;
-        white-space: nowrap;
-        overflow: visible !important; /* Necháme bubliny vydechnout */
-        max-width: none !important;    /* Zrušíme omezení na 60px */
-    }
-
-    /* 3. Aby se tabulka nemačkala, musíme povolit posun do stran */
+    /* 1. HLAVNÍ OPRAVA: Povolí posun tabulky do stran prstem */
     .container {
-        overflow-x: auto !important;
+        width: 100% !important;
+        margin: 10px 0 !important;
+        padding: 5px !important;
+        overflow-x: auto !important; /* Toto zapne scroll */
+        -webkit-overflow-scrolling: touch; /* Aby byl scroll na iPhone plynulý */
         display: block !important;
     }
-    
-    table {
-        min-width: 550px !important; /* Tabulka si udrží tvar a bude se posouvat prstem */
+
+    /* 2. ZAJISTÍ, ŽE TABULKA BUDE MÍT SVŮJ TVAR */
+    #grid, table {
+        width: auto !important; /* Tabulka se nebude mačkat do šířky displeje */
+        min-width: 600px !important; /* Vynutíme šířku, aby se tam vešly všechny 4 sloupce */
+        border-spacing: 0 6px !important;
+    }
+
+    /* 3. ROZUMNÁ ŠÍŘKA PRVNÍHO SLOUPCE */
+    tbody td:first-child, thead th:first-child {
+        width: 110px !important;
+        min-width: 110px !important;
+        position: sticky; /* VOLITELNÉ: První sloupec zůstane stát při posunu */
+        left: 0;
+        z-index: 10;
+        background: #020617 !important; /* Musí mít pozadí, aby přes něj nejezdil text */
+    }
+
+    /* 4. OSTATNÍ BUŇKY (Bubliny se jmény) */
+    tbody td {
+        padding: 8px 4px !important;
+        min-width: 100px !important; /* Aby bubliny měly svůj tvar */
     }
 }
 
