@@ -1415,6 +1415,7 @@ function renderRowHTML(e, color) {
         </select>
     </div>`;
 }
+const renderAttendanceRow = renderRowHTML;
 window.updateStatus = async (id, newStatus) => {
     try {
         // 1. Aktualizace v databázi Firebase
