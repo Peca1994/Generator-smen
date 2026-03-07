@@ -310,48 +310,59 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
     }
 }
 @media screen and (max-width: 480px) {
-    /* HLAVNÍ KONTEJNER - Povolí scroll prstem doleva/doprava */
-    .container {
+    /* 1. Kontejner - Zrušíme scroll a roztáhneme ho na maximum */
+    .container, .app, .main {
         width: 100% !important;
-        max-width: 100vw !important;
-        margin: 10px 0 !important;
-        padding: 5px !important;
-        overflow-x: auto !important; /* Zapne vodorovný posun */
-        display: block !important;
-        -webkit-overflow-scrolling: touch;
+        max-width: 100% !important;
+        padding: 2px !important;
+        margin: 5px 0 !important;
+        overflow-x: hidden !important; /* Zakáže posun do stran */
     }
 
-    /* TABULKA - Nesmí se mačkat, musí mít pevnou šířku pro scroll */
+    /* 2. Tabulka - Musí se vejít do šířky displeje */
     #grid, table {
-        width: 650px !important; /* Vynutíme šířku, aby se tam vešlo všech 5 sloupců */
-        min-width: 650px !important;
-        border-collapse: separate !important;
-        border-spacing: 0 6px !important;
-        display: table !important; /* Důležité: Zruší případný flex, který to rozbíjí */
+        width: 100% !important;
+        min-width: 100% !important;
+        table-layout: fixed !important; /* Vynutí rozdělení místa mezi sloupce */
+        border-spacing: 0 4px !important; /* Menší mezery mezi řádky */
     }
 
-    /* PRVNÍ SLOUPEC (POZICE) - Oprava pozadí a šířky */
+    /* 3. První sloupec (Pozice) - Maximálně úzký */
     tbody td:first-child, thead th:first-child {
-        width: 120px !important;
-        min-width: 120px !important;
-        background: transparent !important; /* Odstraní to černé pozadí */
-        padding-left: 10px !important;
-        font-size: 11px !important;
+        width: 65px !important; /* Zmenšeno ze 120px */
+        padding: 5px 2px !important;
+        font-size: 9px !important;
+        background: transparent !important;
     }
 
-    /* OSTATNÍ BUŇKY (BUBLINY SE JMÉNY) */
-    tbody td {
-        width: 130px !important;
-        min-width: 130px !important;
-        padding: 8px 4px !important;
-        text-align: center !important;
+    /* Ikona zámku v prvním sloupci - zmenšení */
+    .posCol div {
+        width: 22px !important;
+        height: 22px !important;
+        margin-right: 4px !important;
+    }
+    .posCol svg { width: 14px; height: 14px; }
+
+    /* 4. Sloupce s časy a jmény - Extrémní zmenšení */
+    tbody td, thead th {
+        padding: 5px 1px !important;
+        font-size: 8px !important; /* Opravdu malé písmo */
     }
 
-    /* HLAVIČKA - Časy (06:00 atd.) */
+    /* 5. Bubliny se jmény - Musí být úzké a nízké */
+    tbody td span {
+        min-width: 100% !important; /* Roztáhne se na šířku sloupce */
+        padding: 4px 2px !important;
+        font-size: 9px !important; /* Písmo jmen */
+        border-radius: 6px !important; /* Menší zaoblení */
+        letter-spacing: -0.2px; /* Sražené písmo */
+        display: block !important;
+    }
+
+    /* Časy v hlavičce (06:00-08:00) */
     thead th {
-        font-size: 10px !important;
-        padding: 10px 0 !important;
-        color: rgba(255,255,255,0.6) !important;
+        font-size: 8px !important;
+        line-height: 1;
     }
 }
 
