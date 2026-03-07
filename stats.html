@@ -96,14 +96,15 @@
 
 /* 3. HLAVNÍ KONTEJNER - BEZ OHRANIČENÍ A ROZMAZÁNÍ */
 .container, .app, main {
-    max-width: 420px;
-    margin: 20px auto !important;
-    padding: 16px;
-    background: rgba(0, 0, 0, 0.3) !important; /* Jemný závoj přes logo */
-    border: none !important;      /* SMAZÁNÍ HLAVNÍHO OHRANIČENÍ */
+    width: 100% !important;        /* Musí zabrat celou šířku */
+    max-width: 1400px !important;  /* Na PC se roztáhne, aby karty nebyly pod sebou */
+    margin: 0 auto !important;
+    padding: 16px !important;      /* TOTO vytvoří mezeru od krajů mobilu */
+    background: transparent !important;
+    border: none !important;
     box-shadow: none !important;
-    backdrop-filter: none !important; /* LOGO BUDE OSTRÉ */
-    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-sizing: border-box !important; /* Důležité, aby padding nerozšiřoval kontejner */
 }
 
 /* 4. ÚPLNÉ ZPRŮHLEDNĚNÍ VNITŘNÍCH PRVKŮ (Krabice v krabici) */

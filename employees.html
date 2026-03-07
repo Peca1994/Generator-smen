@@ -430,14 +430,16 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getAuth, onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  doc,
-  setDoc,
-  deleteDoc,
-  getDoc
+import { 
+    getFirestore, 
+    collection, 
+    getDocs, 
+    getDoc,      // TENTO TU CHYBĚL (pro funkci edit)
+    addDoc, 
+    deleteDoc, 
+    doc, 
+    updateDoc,   // TENTO TU CHYBĚL (pro funkci saveEmp)
+    setDoc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const app = initializeApp({
@@ -584,14 +586,31 @@ window.saveEmp = async () => {
     const typeEl = document.getElementById("empType");
     const typeValue = typeEl ? typeEl.value : "kmenovy";
 
-    await setDoc(doc(db, "employees", id), {
-      name: fName,
-      surname: lName,
-      email: document.getElementById("email").value.toLowerCase().trim(),
-      info: document.getElementById("info").value,
-      skills: skills,
-      type: typeValue
-    });
+    const docRef = doc(db, "employees", id);
+
+    if (editId) {
+        // POKUD UPRAVUJEME (editId existuje) -> použijeme updateDoc
+        // Tato funkce změní jen to, co pošleme, a roli admina v DB nechá netknutou
+        await updateDoc(docRef, {
+            name: fName,
+            surname: lName,
+            email: document.getElementById("email").value.toLowerCase().trim(),
+            info: document.getElementById("info").value,
+            skills: skills,
+            type: typeValue
+        });
+    } else {
+        // POKUD VYTVÁŘÍME NOVÉHO -> použijeme setDoc
+        await setDoc(docRef, {
+            name: fName,
+            surname: lName,
+            email: document.getElementById("email").value.toLowerCase().trim(),
+            info: document.getElementById("info").value,
+            skills: skills,
+            type: typeValue,
+            role: "user" // Novému člověku dáme automaticky roli user
+        });
+    }
 
     alert("Uloženo");
     modal.style.display = "none";
@@ -602,7 +621,7 @@ window.saveEmp = async () => {
   }
 };
 
-// 2. FUNKCE PRO MAZÁNÍ
+// 2. FUNKCE PRO MAZÁNÍ (Zůstává stejná)
 window.deleteEmp = async () => {
   if (!editId) return;
   if (!confirm("Opravdu chceš smazat záznam?")) return;

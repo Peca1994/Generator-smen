@@ -270,7 +270,10 @@ import {
     };
 
     const pFrom = document.getElementById("posFrom"); const pTo = document.getElementById("posTo");
-    positions.forEach(p => { pFrom.innerHTML += `<option value="${p}">${p}</option>`; pTo.innerHTML += `<option value="${p}">${p}</option>`; });
+    POSITIONS.forEach(p => { 
+    if (pFrom) pFrom.innerHTML += `<option value="${p}">${p}</option>`; 
+    if (pTo) pTo.innerHTML += `<option value="${p}">${p}</option>`; 
+});
 
     window.toggleParagrafOptions = () => {
         const type = document.getElementById("absType").value;
@@ -470,7 +473,17 @@ window.rejectMsg = async (msgId) => {
         alert("Chyba při zamítání: " + err.message);
     }
 };
+window.selectTopic = selectTopic;
+window.showTopics = showTopics;
+window.toggleParagrafOptions = toggleParagrafOptions;
+window.handleSend = handleSend; // Pro jistotu, kdyby se volalo z HTML
+
+// Pokud máš v kódu tyto funkce, přidej i je:
+if (typeof approveMsg !== 'undefined') window.approveMsg = approveMsg;
+if (typeof rejectMsg !== 'undefined') window.rejectMsg = rejectMsg;
+if (typeof deleteMsg !== 'undefined') window.deleteMsg = deleteMsg;
 window.showTopics();
+
 </script>
 </body>
 </html>
