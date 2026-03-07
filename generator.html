@@ -241,29 +241,42 @@ button {
     overflow-y: auto;
 }
 
-.lockRow { 
-    display: inline-block !important; /* DŮLEŽITÉ: Aby label fungoval jako plocha */
-    padding: 10px 15px !important; 
-    border-radius: 10px !important; 
-    cursor: pointer !important; 
-    font-weight: 800 !important; 
-    background-color: #22c55e !important; /* VÝCHOZÍ ZELENÁ */
-    color: white !important;
-    border: 1px solid rgba(255,255,255,0.2) !important;
-    text-align: center;
-    transition: 0.2s;
-    user-select: none;
+.lockRow {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 95px;
+    padding: 7px 12px;
+    margin: 4px;
+    border-radius: 20px !important; /* Oválný tvar jako v docházce */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    font-weight: 900 !important;
+    font-size: 11px !important;
+    letter-spacing: 0.8px;
+    
+    /* MODERNI SKLENĚNÝ EFEKT - NEONOVĚ ZELENÁ */
+    background: rgba(34, 197, 94, 0.05) !important; 
+    border: 1px solid rgba(34, 197, 94, 0.5) !important;
+    color: #22c55e !important; /* Tato barva je přesně ta zelená z tvé karty */
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.1);
 }
 
-/* Změna na ČERVENOU po kliknutí */
-.lockRow:has(input:checked) { 
-    background-color: #ef4444 !important; 
-    border-color: #b91c1c !important;
+/* VZHLED PŘI VYŘAZENÍ (Červená jako alarm v docházce) */
+.lockRow:has(input:checked) {
+    background: rgba(239, 68, 68, 0.08) !important;
+    border: 1px solid rgba(239, 68, 68, 0.6) !important;
+    color: #ef4444 !important; /* Neonově červená */
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
 }
 
+/* Efekt při najetí myší */
 .lockRow:hover {
-    filter: brightness(1.2);
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.1) !important;
 }
+
 
 .modal {
     position: fixed; inset: 0; background: rgba(0,0,0,0.8);
@@ -419,7 +432,47 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
   background: rgba(255, 255, 255, 0.15);
   transform: translateX(5px);
 }
+@media (max-width: 768px) {
+    .container {
+        overflow-x: auto; /* Umožní posun tabulky prstem doleva/doprava */
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    table {
+        min-width: 600px; /* Tabulka se nebude smršťovat pod tuto šířku */
+    }
 
+    .posCol {
+        min-width: 120px !important; /* Zmenšíme šířku prvního sloupce na mobilu */
+        padding: 8px 5px !important;
+        gap: 5px !important;
+    }
+
+    .posCol span {
+        font-size: 12px !important; /* Zmenšíme písmo názvu pozice */
+    }
+}
+.lockRow span {
+    border: none !important;      /* Smaže ten rámeček kolem písmen */
+    background: none !important;  /* Smaže pozadí přímo pod písmeny */
+    box-shadow: none !important;  /* Smaže jakoukoliv záři kolem textu */
+    text-shadow: none !important; /* Smaže ten černý stín pod textem */
+    color: inherit !important;    /* Text si vezme barvu od rodiče (zelená/červená) */
+    padding: 0 !important;        /* Odstraní vnitřní odsazení u textu */
+}
+
+/* 2. Doladění hlavního rámečku (bubliny) */
+.lockRow {
+    border-width: 1.5px !important; /* Trochu zvýrazníme ten hlavní vnější rámeček */
+    background: rgba(255, 255, 255, 0.05) !important; /* Jemné sjednocené pozadí */
+}
+
+/* 3. Oprava pro vyřazené (Červená) */
+.lockRow:has(input:checked) {
+    background: rgba(239, 68, 68, 0.1) !important;
+    border-color: rgba(239, 68, 68, 0.6) !important;
+    color: #ef4444 !important;
+}
 </style>
 </head>
 
@@ -691,15 +744,55 @@ const DEFAULT_LOCKED = new Set([
 ]);
 
 POSITIONS.forEach(p => {
-    const checked = DEFAULT_LOCKED.has(p) ? "checked" : "";
+    const isLocked = DEFAULT_LOCKED.has(p);
+    const checked = isLocked ? "checked" : "";
     
+    // Barvy pro styl "Badge" (průhledné pozadí, barevný text a okraj)
+    const color = isLocked ? "#ff4d4d" : "#2ecc71"; // Červená / Zelená
+    const bg = isLocked ? "rgba(255, 77, 77, 0.1)" : "rgba(46, 204, 113, 0.1)";
+    const border = isLocked ? "rgba(255, 77, 77, 0.4)" : "rgba(46, 204, 113, 0.4)";
+
     lockBox.innerHTML += `
-    <label class="lockRow">
-        <input type="checkbox" value="${p}" ${checked} style="display:none;">
+    <label class="lockRow" style="
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center;
+        min-width: 90px;
+        padding: 8px 12px; 
+        margin: 5px; 
+        border-radius: 12px; /* Zaoblení jako u statusů */
+        border: 1px solid ${border}; 
+        background: ${bg}; 
+        color: ${color}; 
+        font-weight: 800; 
+        font-size: 12px; 
+        cursor: pointer;
+        transition: 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    ">
+        <input type="checkbox" value="${p}" ${checked} style="display:none;" 
+               onchange="updateBadgeStyle(this)">
         <span>${p}</span>
     </label>
     `;
 });
+
+// Tato funkce zajistí, že se bublina po kliknutí přebarví
+window.updateBadgeStyle = (input) => {
+    const label = input.parentElement;
+    if (input.checked) {
+        // PŘEPNUTO NA VYŘAZENO (Červená)
+        label.style.color = "#ff4d4d";
+        label.style.background = "rgba(255, 77, 77, 0.1)";
+        label.style.borderColor = "rgba(255, 77, 77, 0.4)";
+    } else {
+        // PŘEPNUTO NA AKTIVNÍ (Zelená)
+        label.style.color = "#2ecc71";
+        label.style.background = "rgba(46, 204, 113, 0.1)";
+        label.style.borderColor = "rgba(46, 204, 113, 0.4)";
+    }
+};
 
 
 function lockedPositions(){
@@ -1055,7 +1148,7 @@ function render() {
   const locked = new Set(lockedPositions());
 
   // HLAVIČKA TABULKY
-  let html = `<thead><tr><th style="width: 160px; text-align: left; padding-left: 20px;">Pozice</th>`;
+  let html = `<thead><tr><th style="width: 130px; text-align: left; padding-left: 20px;">Pozice</th>`;
   L.forEach(x => html += `<th>${x}</th>`);
   html += "</tr></thead><tbody>";
 
@@ -1063,7 +1156,6 @@ function render() {
     const isLocked = locked.has(pos);
     const lockColor = isLocked ? '#f1c40f' : 'rgba(255,255,255,0.2)';
 
-    // KONTROLA AKTIVITY (Zda je v řádku aspoň jeden člověk)
     let isActive = false;
     for (let p = 0; p < 4; p++) {
         if (phases[p] && phases[p][pos]) {
@@ -1072,51 +1164,70 @@ function render() {
         }
     }
 
-    // Barvy pro řádek (Zelená pro aktivní, Žlutá pro zamknutý)
     const rowBg = isActive ? 'rgba(46, 204, 113, 0.08)' : 'rgba(255,255,255,0.03)';
     const posColor = isLocked ? '#f1c40f' : (isActive ? '#2ecc71' : 'white');
 
     const lockIcon = isLocked ? 
-        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>` : 
-        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>`;
+        `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>` : 
+        `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>`;
 
-    // VYKRESLENÍ ŘÁDKU
+    // VYKRESLENÍ ŘÁDKU - Oprava pro mobil (zmenšena min-width a mezery)
     html += `<tr class="${isLocked ? 'lockedRow' : ''}">
-    <td class="posCol" style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; min-width: 170px; background: ${rowBg} !important;">
-        <div onclick="toggleLock('${pos}')" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; background: rgba(0,0,0,0.4); border-radius: 8px; transition: 0.2s;">
+    <td class="posCol" style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; min-width: 130px; background: ${rowBg} !important;">
+        <div onclick="toggleLock('${pos}')" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: rgba(0,0,0,0.4); border-radius: 8px;">
             ${lockIcon}
         </div>
-        <span style="font-weight: 900; color: ${posColor}; font-size: 14px; letter-spacing: 0.5px;">${pos}</span>
+        <span style="font-weight: 900; color: ${posColor}; font-size: 13px; letter-spacing: 0.5px;">${pos}</span>
     </td>`;
 
     for (let p = 0; p < 4; p++) {
       const w = phases[p]?.[pos];
-      
-      // VÝCHOZÍ STYL BUŇKY
-      let cellStyle = `background: ${rowBg} !important;`;
       let displayName = w ? w.name : "—";
       let cls = "";
 
+      // DEFAUTNÍ BARVY PRO "BUBLINU" (jako v docházce)
+      let bColor = "#2ecc71"; // Zelená
+      let bBg = "rgba(46, 204, 113, 0.12)";
+      let bBorder = "rgba(46, 204, 113, 0.3)";
+
       if (w) {
-          // MODERNI ALARM: Statusy, které mají způsobit zčervenání pole
           const absence = ["sick", "vacation", "paragraf", "loaned", "propujceny", "shitmaking"];
-          
           if (absence.includes(w.status)) {
-              // 🔴 Tmavě červený skleněný efekt s jemnou září
-              cellStyle = `
-                background: rgba(220, 38, 38, 0.25) !important; 
-                box-shadow: inset 0 0 15px rgba(239, 68, 68, 0.2); 
-                border: 1px solid rgba(239, 68, 68, 0.5) !important;
-                color: #fca5a5 !important;
-              `;
+              // ČERVENÁ BUBLINA PRO ABSENCE
+              bColor = "#ff4d4d"; 
+              bBg = "rgba(255, 77, 77, 0.15)";
+              bBorder = "rgba(255, 77, 77, 0.4)";
               cls = "outWorker";
           }
+      } else {
+          // ŠEDÁ BUBLINA PRO PRÁZDNÉ POLE
+          bColor = "rgba(255,255,255,0.3)";
+          bBg = "rgba(255,255,255,0.05)";
+          bBorder = "rgba(255,255,255,0.1)";
       }
 
-      html += `<td class="slot ${cls}" onclick="pick(${p},'${pos}')" 
-               style="text-align: center; font-weight: 900; padding: 12px 5px; ${cellStyle} border-bottom: 1px solid rgba(255,255,255,0.05);">
-               ${displayName}
-               </td>`;
+      // BUŇKA S VNITŘNÍM SPANEM (Badge design)
+      html += `
+      <td class="slot ${cls}" onclick="pick(${p},'${pos}')" 
+          style="text-align: center; padding: 8px 4px; background: ${rowBg} !important; border-bottom: 1px solid rgba(255,255,255,0.05);">
+          
+          <span style="
+              display: inline-block;
+              min-width: 90px;
+              padding: 6px 8px;
+              border-radius: 12px;
+              font-size: 12px;
+              font-weight: 800;
+              color: ${bColor};
+              background: ${bBg};
+              border: 1px solid ${bBorder};
+              text-transform: uppercase;
+              transition: 0.2s;
+          ">
+              ${displayName}
+          </span>
+
+      </td>`;
     }
 
     html += "</tr>";
