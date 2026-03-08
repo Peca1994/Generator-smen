@@ -356,22 +356,23 @@ async function loadAndCalculateStats() {
             const phases = shift.phases || [];
 
             Object.entries(statusMap).forEach(([empId, status]) => {
-                if (myEmps[empId]) {
-                    // 1. POČÍTÁME PRÁCI
-                    const workStatuses = ["work", "shitmaking", "loaned", "borrowed"];
-                    if (workStatuses.includes(status)) {
-                        myEmps[empId].totalHours += 7.5;
-                    }
+    if (myEmps[empId]) {
+        // 1. POČÍTÁME PRÁCI (včetně shitmaking a loaned/borrowed)
+        const workStatuses = ["work", "shitmaking", "loaned"];
+        if (workStatuses.includes(status)) {
+            myEmps[empId].totalHours += 7.5;
+        }
 
-                    // 2. POČÍTÁME ABSENCI (Chybějící hodiny)
-                    // Přidej si sem statusy, které chceš sledovat jako absenci
-                    const absentStatuses = ["nemoc", "dovolena", "paragraf", "absence"];
-                    if (absentStatuses.includes(status)) {
-                        // Pokud v objektu ještě absentHours nemáme, vytvoříme je
-                        myEmps[empId].absentHours = (myEmps[empId].absentHours || 0) + 7.5;
-                    }
-                }
-            });
+        // 2. POČÍTÁME ABSENCI (Pouze paragrafy, dovolená a nemoc)
+        // POZOR: Názvy musí přesně odpovídat tvým CSS statusům (např. status-vacation -> vacation)
+        const absentStatuses = ["paragraf", "vacation", "sick"];
+        
+        if (absentStatuses.includes(status)) {
+            // Přičítáme 7.5h za každou směnu s tímto statusem
+            myEmps[empId].absentHours = (myEmps[empId].absentHours || 0) + 7.5;
+        }
+    }
+});
 
             phases.forEach(phase => {
                 Object.entries(phase).forEach(([pos, empId]) => {
