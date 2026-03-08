@@ -96,12 +96,33 @@
 }
 
 /* HLAVNÍ KONTEJNER - OPRAVA ŠÍŘKY */
-    .container {
-        width:85%;
-        max-width: 1300px;
-        margin: 20px auto;
-        padding: 10px;
+   .container {
+    display: block !important;
+    width: 90% !important; /* Toto vytvoří ty mezery u krajů na mobilu */
+    max-width: 1200px !important;
+    margin: 20px auto !important; /* Auto zajistí vycentrování */
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+/* 2. OPRAVA POZADÍ (Aby se nepletlo s šířkou) */
+.stats-card, .employee-stats-box { 
+    background: rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important; /* Karty uvnitř kontejneru už můžou být na 100% */
+}
+
+/* 3. OPRAVA PRO MOBIL (Pojistka) */
+@media screen and (max-width: 480px) {
+    body {
+        padding: 0 !important;
     }
+    .container {
+        width: 92% !important; /* Na mobilu o kousek širší, ale stále s mezerou */
+    }
+}
 
     /* KARTY A FORMULÁŘE */
     input, select {
@@ -182,19 +203,7 @@
     border-radius: 25px;
     padding: 12px;
 }
-@media (max-width: 480px) {
-    /* Toto vytvoří ty mezery u krajů (vzdušnost) */
-    .container, .app {
-        width: 92% !important; 
-        margin: 0 auto !important;
-    }
 
-    /* Toto zajistí, že se karty v mřížce nebudou prát o místo */
-    #employeeStatsList {
-        grid-template-columns: 1fr !important; /* Jedna karta na řádek */
-        gap: 10px !important;
-    }
-}
 </style>
 </head>
 
