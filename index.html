@@ -830,8 +830,35 @@ body {
     <img src="auto.png" alt="Silueta" style="width: 500px; height: auto; filter: grayscale(100%) brightness(1.2); margin-top: -45px; mix-blend-mode: screen;">
 </div>
 
-<div class="hero-container">
-    <h1 class="logo">Shift<b>Master</b></h1>
+<div class="hero-container" style="text-align: center; padding: 40px 0; margin-bottom: 10px;">
+    <h1 class="logo" style="
+        font-size: clamp(45px, 9vw, 75px); 
+        font-weight: 950; 
+        margin: 0; 
+        /* Klíč k dokonalému spojení: */
+        letter-spacing: -3.5px; 
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        display: inline-flex;
+        align-items: center;
+        /* Vypneme vyhlazování, které by mohlo dělat neplechu u spojů */
+        -webkit-font-smoothing: antialiased;
+    ">
+        <!-- SHIFT a MASTER jsou teď hned za sebou bez mezery v kódu -->
+        <span style="
+            background: linear-gradient(to bottom, #ffffff 25%, #cbd5e1 50%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding-right: 0;
+            margin-right: -1px;
+        ">Shift</span><span style="
+            background: linear-gradient(135deg, #ffffff 10%, #2ecc71 45%, #15803d 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(46, 204, 113, 0.4));
+        ">Master</span>
+    </h1>
 
     <div class="stack-box">
         <!-- Zde už nemusíš mít to pozadi.jpg, protože je teď součástí background-logo nahoře -->
