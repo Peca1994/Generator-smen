@@ -182,6 +182,19 @@
     border-radius: 25px;
     padding: 12px;
 }
+@media (max-width: 480px) {
+    /* Toto vytvoří ty mezery u krajů (vzdušnost) */
+    .container, .app {
+        width: 92% !important; 
+        margin: 0 auto !important;
+    }
+
+    /* Toto zajistí, že se karty v mřížce nebudou prát o místo */
+    #employeeStatsList {
+        grid-template-columns: 1fr !important; /* Jedna karta na řádek */
+        gap: 10px !important;
+    }
+}
 </style>
 </head>
 
