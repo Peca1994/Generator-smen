@@ -387,18 +387,24 @@ const isRejected = m.status === "rejected"; // PŘIDÁNO: Kontrola zamítnutí
             document.getElementById("chatBox").scrollTop = document.getElementById("chatBox").scrollHeight;
         });
     }
-const showSuccess = (btnId, originalText, originalBg = "#22c55e") => {
+const showBtnFeedback = (btnId, text, iconType = 'success') => {
     const btn = document.getElementById(btnId);
-    const oldText = btn.innerHTML;
-    const oldBg = btn.style.background;
+    if (!btn) return;
+    const originalContent = btn.innerHTML;
+    const originalBg = btn.style.background;
 
-    btn.innerText = "✓ Odesláno";
-    btn.style.background = "#15803d"; // Tmavší zelená pro potvrzení
-    btn.disabled = true; // Zabrání dvojitému kliknutí
+    const icons = {
+        success: `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="3" fill="none" style="margin-right:8px;"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+        error: `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="3" fill="none" style="margin-right:8px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`
+    };
+
+    btn.innerHTML = `<div style="display:flex; align-items:center; justify-content:center;">${icons[iconType]} ${text}</div>`;
+    btn.style.background = (iconType === 'error') ? "#b91c1c" : "#15803d"; 
+    btn.disabled = true;
 
     setTimeout(() => {
-        btn.innerHTML = originalText;
-        btn.style.background = oldBg;
+        btn.innerHTML = originalContent;
+        btn.style.background = originalBg;
         btn.disabled = false;
     }, 1500);
 };
@@ -406,7 +412,7 @@ const showSuccess = (btnId, originalText, originalBg = "#22c55e") => {
         const w = document.getElementById("workerSelect").value; const f = document.getElementById("posFrom").value;
         const t = document.getElementById("posTo").value; const t1 = document.getElementById("timeFrom").value, t2 = document.getElementById("timeTo").value;
         const d = document.getElementById("changeDate").value;
-        if(!w || !f || !t || !t1 || !t2 || !d) return alert("Vyplňte vše!");
+        if(!w || !f || !t || !t1 || !t2 || !d) return showBtnFeedback("submitChangeBtn", "Vyplňte vše!", "error");
        const msg = `<strong>${w}:</strong> ${f} ➔ ${t} (${t1}–${t2}) | ${new Date(d).toLocaleDateString('cs-CZ')}`;
     await addDoc(collection(db, "chat"), { text: msg, senderEmail: auth.currentUser.email, topic: "zmeny", createdAt: serverTimestamp() });
     
@@ -415,20 +421,20 @@ const showSuccess = (btnId, originalText, originalBg = "#22c55e") => {
     document.getElementById("posTo").value = "";
     
     // PŘIDÁNO: Vizuální potvrzení
-    showSuccess("submitChangeBtn", "Odeslat hlášení změny");
+    showBtnFeedback("submitChangeBtn", "Odesláno");
 };
 
     document.getElementById("submitAbsenceBtn").onclick = async () => {
         const w = document.getElementById("absWorkerSelect").value; const type = document.getElementById("absType").value;
         const reason = (type === "Paragraf") ? ` (${document.getElementById("absReason").value})` : "";
         const from = document.getElementById("absDateFrom").value; const to = document.getElementById("absDateTo").value;
-        if(!w || !from || !to) return alert("Vyplňte vše!");
+        if(!w || !from || !to) return showBtnFeedback("submitAbsenceBtn", "Vyplňte vše!", "error");
         const dF = new Date(from).toLocaleDateString('cs-CZ'); const dT = new Date(to).toLocaleDateString('cs-CZ');
         const range = (from === to) ? dF : `${dF} – ${dT}`;
        await addDoc(collection(db, "chat"), { text: `<strong>${w}:</strong> ${type}${reason} | ${range}`, senderEmail: auth.currentUser.email, topic: "absence", createdAt: serverTimestamp() });
     
     // PŘIDÁNO: Vizuální potvrzení
-    showSuccess("submitAbsenceBtn", "Odeslat žádost");
+    showBtnFeedback("submitAbsenceBtn", "Žádost poslána");
 };
 
     const handleSend = async () => {
@@ -447,30 +453,59 @@ const showSuccess = (btnId, originalText, originalBg = "#22c55e") => {
     } catch (err) {
         alert("Chyba při mazání: " + err.message);
     }
-};window.deleteMsg = async (msgId) => {
-    if (!confirm("Opravdu chcete tuto zprávu smazat?")) return;
+};
+window.approveMsg = async (msgId) => {
+    const el = document.querySelector(`#msg-${msgId} [onclick*="approveMsg"]`);
+    if (!el.dataset.confirm) {
+        el.dataset.confirm = "true";
+        el.style.transform = "scale(1.5)"; // Vizuální potvrzení "opravdu?"
+        setTimeout(() => { delete el.dataset.confirm; el.style.transform = "scale(1)"; }, 3000);
+        return;
+    }
+    try {
+        await updateDoc(doc(db, "chat", msgId), { status: "approved" });
+    } catch (err) { console.error(err); }
+};
+
+window.rejectMsg = async (msgId) => {
+    const el = document.querySelector(`#msg-${msgId} [onclick*="rejectMsg"]`);
+    if (!el.dataset.confirm) {
+        el.dataset.confirm = "true";
+        el.style.transform = "scale(1.5)";
+        setTimeout(() => { delete el.dataset.confirm; el.style.transform = "scale(1)"; }, 3000);
+        return;
+    }
+    try {
+        await updateDoc(doc(db, "chat", msgId), { status: "rejected" });
+    } catch (err) { console.error(err); }
+};
+
+window.deleteMsg = async (msgId) => {
+    // Najdeme tlačítko křížku pro konkrétní zprávu
+    const el = document.querySelector(`#msg-${msgId} [onclick*="deleteMsg"]`);
+    
+    // PRVNÍ KLIK: Tlačítko jen "vyskočí" jako potvrzení
+    if (!el.dataset.confirm) {
+        el.dataset.confirm = "true";
+        el.style.transform = "scale(1.8)"; // Zvětší se (vyskočí)
+        el.style.opacity = "1";            // Zvýrazní se průhlednost
+        
+        // Pokud do 3 sekund neklikneš podruhé, vrátí se zpět
+        setTimeout(() => { 
+            if (el.dataset.confirm) {
+                delete el.dataset.confirm; 
+                el.style.transform = "scale(1)"; 
+                el.style.opacity = "0.6"; 
+            }
+        }, 3000);
+        return;
+    }
+
+    // DRUHÝ KLIK: Proběhne smazání
     try {
         await deleteDoc(doc(db, "chat", msgId));
     } catch (err) {
-        alert("Chyba při mazání: " + err.message);
-    }
-};
-window.approveMsg = async (msgId) => {
-    if (!confirm("Označit tento požadavek jako schválený?")) return;
-    try {
-        const msgRef = doc(db, "chat", msgId);
-        await updateDoc(msgRef, { status: "approved" });
-    } catch (err) {
-        alert("Chyba při schvalování: " + err.message);
-    }
-};
-window.rejectMsg = async (msgId) => {
-    if (!confirm("Opravdu chcete tento požadavek ZAMÍTNOUT?")) return;
-    try {
-        const msgRef = doc(db, "chat", msgId);
-        await updateDoc(msgRef, { status: "rejected" });
-    } catch (err) {
-        alert("Chyba při zamítání: " + err.message);
+        console.error("Chyba při mazání:", err);
     }
 };
 window.selectTopic = selectTopic;

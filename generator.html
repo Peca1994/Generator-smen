@@ -72,6 +72,7 @@
 #grid tr.lockedRow td:first-child {
     color: #f1c40f !important;
 }
+
     /* IMPORT MODERNÍHO PÍSMA */
     @import url('https://fonts.googleapis.com');
 
@@ -309,36 +310,73 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
     }
 }
 @media screen and (max-width: 480px) {
-    /* 1. Kontejner - Zrušíme scroll a roztáhneme ho na maximum */
+    /* 1. Kontejner - beze změny */
     .container, .app, .main {
         width: 100% !important;
         max-width: 100% !important;
         padding: 2px !important;
         margin: 5px 0 !important;
-        overflow-x: hidden !important; /* Zakáže posun do stran */
+        overflow-x: hidden !important;
     }
 
-    /* 2. Tabulka - Musí se vejít do šířky displeje */
+    /* 2. Tabulka - přidáme reset pro kolize */
     #grid, table {
         width: 100% !important;
         min-width: 100% !important;
-        table-layout: fixed !important; /* Vynutí rozdělení místa mezi sloupce */
-        border-spacing: 0 4px !important; /* Menší mezery mezi řádky */
+        table-layout: fixed !important;
+        border-spacing: 2px !important; /* Přidána malá mezera mezi buňkami */
+        border-collapse: separate !important; /* Důležité pro mezery */
     }
 
-    /* 3. První sloupec (Pozice) - Maximálně úzký */
+    /* 3. První sloupec (Pozice) - OPRAVA VÝŠKY A POZADÍ */
     tbody td:first-child, thead th:first-child {
-        width: 65px !important; /* Zmenšeno ze 120px */
-        padding: 5px 2px !important;
+        width: 45px !important; /* Trochu užší, ať zbyde místo na jména */
+        padding: 0 !important; /* Vymažeme padding td */
         font-size: 9px !important;
         background: transparent !important;
+        vertical-align: middle !important;
     }
 
-    /* Ikona zámku v prvním sloupci - zmenšení */
+    /* Vnitřní div/span v prvním sloupci - musí vypadat jako ostatní */
+    tbody td:first-child div, 
+    tbody td:first-child span,
+    .posCol {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        height: 100% !important;
+        min-height: 28px !important; /* Sjednocení minimální výšky */
+        background: rgba(255, 255, 255, 0.05) !important; /* Jemné pozadí, aby nebylo průhledné */
+        border-radius: 6px !important;
+        margin: 2px 0 !important;
+    }
+
+    /* 4. Ostatní buňky - sjednocení */
+    tbody td, thead th {
+        padding: 0 !important; /* Reset paddingu buňky */
+        font-size: 8px !important;
+        vertical-align: middle !important;
+    }
+
+    /* 5. Bubliny se jmény - OPRAVA PŘETÉKÁNÍ */
+    tbody td span {
+        display: flex !important; /* Flex pro lepší centrování textu */
+        align-items: center;
+        justify-content: center;
+        width: calc(100% - 4px) !important; /* Malá rezerva, aby se nedotýkaly */
+        margin: 2px auto !important;
+        min-height: 28px !important; /* Stejná výška jako u prvního sloupce */
+        padding: 2px !important;
+        font-size: 9px !important;
+        border-radius: 6px !important;
+        box-sizing: border-box !important; /* Klíčové pro šířku */
+    }
+
+    /* Ikona zámku */
     .posCol div {
-        width: 22px !important;
-        height: 22px !important;
-        margin-right: 4px !important;
+        width: 18px !important;
+        height: 18px !important;
+        margin-right: 2px !important;
     }
     .posCol svg { width: 14px; height: 14px; }
 
@@ -365,8 +403,7 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
     }
 }
 
-/* --- SJEDNOCENÝ DESIGN LIŠT (INFO A DOCHÁZKA) --- */
-.info-section, .attendance-section {
+.nav-item, .info-section, .attendance-section {
     background: rgba(255, 255, 255, 0.08) !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
     border-radius: 15px !important;
@@ -491,6 +528,7 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
     border-color: rgba(239, 68, 68, 0.6) !important;
     color: #ef4444 !important;
 }
+
 </style>
 </head>
 
@@ -771,29 +809,29 @@ POSITIONS.forEach(p => {
     const border = isLocked ? "rgba(255, 77, 77, 0.4)" : "rgba(46, 204, 113, 0.4)";
 
     lockBox.innerHTML += `
-    <label class="lockRow" style="
-        display: inline-flex; 
-        align-items: center; 
-        justify-content: center;
-        min-width: 90px;
-        padding: 8px 12px; 
-        margin: 5px; 
-        border-radius: 12px; /* Zaoblení jako u statusů */
-        border: 1px solid ${border}; 
-        background: ${bg}; 
-        color: ${color}; 
-        font-weight: 800; 
-        font-size: 12px; 
-        cursor: pointer;
-        transition: 0.2s;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    ">
-        <input type="checkbox" value="${p}" ${checked} style="display:none;" 
-               onchange="updateBadgeStyle(this)">
-        <span>${p}</span>
-    </label>
-    `;
+<label class="lockRow" style="
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    width: 100px;           /* Sjednoť šířku prvního sloupce */
+    min-width: 100px;
+    height: 100%;           /* Musí vyplnit celou výšku řádku */
+    margin: 0;              /* SMAŽ MARGIN - ten to celou dobu rozbíjí */
+    padding: 10px;          /* Sjednoť padding */
+    box-sizing: border-box; /* ZÁSADNÍ: započítá border do výšky a šířky */
+    border-right: 1px solid rgba(255,255,255,0.1); 
+    background: ${bg}; 
+    color: ${color}; 
+    font-weight: 800; 
+    font-size: 12px; 
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+">
+    <input type="checkbox" value="${p}" ${checked} style="display:none;" onchange="updateBadgeStyle(this)">
+    <span>${p}</span>
+</label>
+`;
 });
 
 // Tato funkce zajistí, že se bublina po kliknutí přebarví

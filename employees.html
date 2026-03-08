@@ -454,7 +454,29 @@ apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
 
 const auth = getAuth(app);
 const db = getFirestore(app);
+const showBtnFeedback = (btnClass, text, iconType = 'success') => {
+    const btn = document.querySelector(btnClass);
+    if (!btn) return;
+    const originalContent = btn.innerHTML;
+    const originalBg = btn.style.background;
 
+    // Definice moderních ikon (Check pro úspěch, Alert pro chybu)
+    const icons = {
+        success: `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="3" fill="none" style="margin-right:8px;"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+        error: `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="3" fill="none" style="margin-right:8px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
+        delete: `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="3" fill="none" style="margin-right:8px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`
+    };
+
+    btn.innerHTML = `<div style="display:flex; align-items:center; justify-content:center;">${icons[iconType]} ${text}</div>`;
+    btn.style.background = (iconType === 'error') ? "#b91c1c" : (iconType === 'delete' ? "#4b5563" : "#15803d"); 
+    btn.disabled = true;
+
+    setTimeout(() => {
+        btn.innerHTML = originalContent;
+        btn.style.background = originalBg;
+        btn.disabled = false;
+    }, 2000);
+};
 const statusColors = {
     "V práci": "#ffffff",      // Bílá
     "Dovolená": "#ffc107",     // Žlutá/Oranžová
@@ -570,65 +592,61 @@ window.closeModal=()=> modal.style.display="none";
 /* SAVE */
 
 window.saveEmp = async () => {
-  try {
-    const fName = document.getElementById("fName").value;
-    const lName = document.getElementById("lName").value;
+    try {
+        const fName = document.getElementById("fName").value;
+        const lName = document.getElementById("lName").value;
+        if (!fName || !lName) {
+            showBtnFeedback(".save", "Chybí jméno!", "error");
+            return;
+        }
 
-    if (!fName || !lName) {
-      alert("Vyplň jméno a příjmení");
-      return;
-    }
+        const skills = [...document.getElementById("skillsBox").querySelectorAll("input:checked")].map(x => x.value);
+        const id = editId || (fName + "_" + lName).toLowerCase().replace(/\s+/g, "_");
+        const docRef = doc(db, "employees", id);
 
-    const skills = [...document.getElementById("skillsBox").querySelectorAll("input:checked")].map(x => x.value);
-    const id = editId || (fName + "_" + lName).toLowerCase().replace(/\s+/g, "_");
-
-    // Načtení typu (Kmenový/Půjčený)
-    const typeEl = document.getElementById("empType");
-    const typeValue = typeEl ? typeEl.value : "kmenovy";
-
-    const docRef = doc(db, "employees", id);
-
-    if (editId) {
-        // POKUD UPRAVUJEME (editId existuje) -> použijeme updateDoc
-        // Tato funkce změní jen to, co pošleme, a roli admina v DB nechá netknutou
-        await updateDoc(docRef, {
-            name: fName,
-            surname: lName,
-            email: document.getElementById("email").value.toLowerCase().trim(),
-            info: document.getElementById("info").value,
-            skills: skills,
-            type: typeValue
-        });
-    } else {
-        // POKUD VYTVÁŘÍME NOVÉHO -> použijeme setDoc
         await setDoc(docRef, {
             name: fName,
             surname: lName,
             email: document.getElementById("email").value.toLowerCase().trim(),
             info: document.getElementById("info").value,
             skills: skills,
-            type: typeValue,
-            role: "user" // Novému člověku dáme automaticky roli user
-        });
-    }
+            type: document.getElementById("empType")?.value || "kmenovy",
+            role: editId ? undefined : "user" // Role měníme jen u nových
+        }, { merge: true });
 
-    alert("Uloženo");
-    modal.style.display = "none";
-    load();
-  } catch (e) {
-    alert("CHYBA při ukládání: " + e.message);
-    console.error(e);
-  }
+        showBtnFeedback(".save", "Uloženo do systému");
+        setTimeout(() => { modal.style.display = "none"; load(); }, 1200);
+    } catch (e) {
+        showBtnFeedback(".save", "Chyba databáze", "error");
+    }
 };
 
-// 2. FUNKCE PRO MAZÁNÍ (Zůstává stejná)
 window.deleteEmp = async () => {
-  if (!editId) return;
-  if (!confirm("Opravdu chceš smazat záznam?")) return;
-  await deleteDoc(doc(db, "employees", editId));
-  alert("Smazáno");
-  modal.style.display = "none";
-  load();
+    if (!editId) return;
+    const delBtn = document.querySelector(".delete");
+
+    // První fáze - Potvrzení
+    if (!delBtn.dataset.confirm) {
+        delBtn.dataset.confirm = "true";
+        delBtn.innerHTML = `<div style="display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="3" fill="none" style="margin-right:8px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Opravdu smazat?</div>`;
+        delBtn.style.background = "#000";
+        
+        setTimeout(() => { 
+            delete delBtn.dataset.confirm;
+            delBtn.innerHTML = "Smazat ze systému";
+            delBtn.style.background = "#dc2626";
+        }, 4000);
+        return;
+    }
+
+    // Druhá fáze - Smazání
+    try {
+        await deleteDoc(doc(db, "employees", editId));
+        showBtnFeedback(".delete", "Odstraněno", "delete");
+        setTimeout(() => { modal.style.display = "none"; load(); }, 1200);
+    } catch (e) {
+        showBtnFeedback(".delete", "Chyba!", "error");
+    }
 };
 
 // 3. FUNKCE PRO NAČTENÍ SEZNAMU (ROZDĚLENÍ NA SEKCE)
