@@ -403,7 +403,8 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
     }
 }
 
-.nav-item, .info-section, .attendance-section {
+/* --- SJEDNOCENÝ DESIGN LIŠT (INFO A DOCHÁZKA) --- */
+.info-section, .attendance-section {
     background: rgba(255, 255, 255, 0.08) !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
     border-radius: 15px !important;
@@ -555,29 +556,29 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
      <button class="menuBtn" onclick="location.href='index.html'">Menu</button>
 </div>
 
-<div style="display: flex; flex-direction: column; align-items: center; gap: 25px; margin: 40px 0;">
-    <div style="display: flex; gap: 30px; justify-content: center;">
-        
-        <!-- INFORMACE -->
-        <div class="info-section" onclick="document.getElementById('infoBtn').click()" style="width: 140px; height: 140px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 18px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; transition: 0.3s;">
-            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-            <span style="color: white; font-size: 12px; font-weight: 900; letter-spacing: 0.5px; text-align: center; line-height: 1.3;">Informace<br>o směně</span>
-            <button id="infoBtn" style="display: none;"></button>
-        </div>
-
-        <!-- SEZNAM ZAMĚSTNANCŮ -->
-        <div class="attendance-section" onclick="toggleAttendance(true)" style="width: 140px; height: 140px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 18px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; transition: 0.3s;">
-            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="2.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path></svg>
-            <h3 style="color: white; font-size: 12px; font-weight: 900; letter-spacing: 0.5px; text-align: center; line-height: 1.3; margin: 0;">Seznam<br>zaměstnanců</h3>
-        </div>
+<div style="display: flex !important; flex-direction: row !important; justify-content: center !important; align-items: center !important; gap: 20px !important; margin: 40px auto !important; width: 100% !important; clear: both !important;">
+    
+    <!-- 1. KARTA -->
+    <div onclick="document.getElementById('infoBtn').click()" style="width: 140px; height: 140px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 18px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <span style="color: white; font-size: 12px; font-weight: 900; text-align: center; line-height: 1.3;">Informace<br>o směně</span>
+        <button id="infoBtn" style="display: none;"></button>
     </div>
 
-    <!-- OBSAZOVÁNÍ POZIC -->
-    <div class="nav-item" onclick="document.getElementById('lockModal').style.display='flex'" style="width: 140px; height: 140px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 18px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; transition: 0.3s;">
+    <!-- 2. KARTA -->
+    <div onclick="toggleAttendance(true)" style="width: 140px; height: 140px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 18px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="2.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path></svg>
+        <span style="color: white; font-size: 12px; font-weight: 900; text-align: center; line-height: 1.3;">Seznam<br>zaměstnanců</span>
+    </div>
+
+    <!-- 3. KARTA -->
+    <div onclick="document.getElementById('lockModal').style.display='flex'" style="width: 140px; height: 140px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 18px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
         <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-        <span style="color: white; font-size: 12px; font-weight: 900; letter-spacing: 0.5px; text-align: center; line-height: 1.3;">Obsazování<br>pozic</span>
+        <span style="color: white; font-size: 12px; font-weight: 900; text-align: center; line-height: 1.3;">Obsazování<br>pozic</span>
     </div>
+
 </div>
+
 </div>
 
   </div>
