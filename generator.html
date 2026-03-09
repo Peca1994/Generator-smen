@@ -1273,9 +1273,9 @@ function render() {
     const lockIcon = isLocked ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="4" style="margin-right: 2px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>` : '';
 
     // ŘÁDEK - Minimální výška a šířka
-    html += `<tr style="height: 12px;">
-    <td onclick="toggleLock('${pos}')" style="cursor: pointer; width: 55px; padding: 2px; background: ${rowBg} !important; border-right: 1px solid rgba(255,255,255,0.05); text-align: center;">
-        <span style="font-weight: 900; color: ${posColor}; font-size: 9px; display: flex; align-items: center; justify-content: center;">${lockIcon}${pos}</span>
+   html += `<tr style="height: 18px !important;">
+    <td onclick="toggleLock('${pos}')" style="cursor: pointer; width: 55px; padding: 0; height: 18px; background: ${rowBg} !important; border-right: 1px solid rgba(255,255,255,0.05); text-align: center;">
+        <span style="font-weight: 900; color: ${posColor}; font-size: 8px; display: flex; align-items: center; justify-content: center; height: 18px;">${lockIcon}${pos}</span>
     </td>`;
 
     for (let p = 0; p < 4; p++) {
@@ -1289,26 +1289,24 @@ function render() {
           bColor = "rgba(255,255,255,0.2)"; bBg = "transparent"; bBorder = "transparent";
       }
 
-      // BUŇKA - Totální minimalizace (písmo 9px, padding 1px)
-      html += `
-<td class="slot" onclick="pick(${p},'${pos}')" 
-    style="padding: 2px 1px; background: ${rowBg} !important; height: 30px;">
-    <span style="
-        display: block;
-        width: 62px;
-        margin: 0 auto;
-        padding: 2px 0; /* Minimální padding nahoře/dole */
-        border-radius: 4px;
-        font-size: 9px;
-        font-weight: 800;
-        color: ${bColor};
-        background: ${bBg};
-        border: 1px solid ${bBorder};
-        text-transform: uppercase;
-    ">
-        ${displayName}
-    </span>
-</td>`;
+    html += `
+      <td class="slot" onclick="pick(${p},'${pos}')" 
+          style="padding: 1px; background: ${rowBg} !important; height: 18px;">
+          <span style="
+              display: block;
+              width: 62px;
+              margin: 0 auto;
+              padding: 0;          /* Nulový padding pro minimální výšku */
+              line-height: 14px;   /* Fixní výška textového pole */
+              border-radius: 3px;
+              font-size: 9px;
+              font-weight: 800;
+              color: ${bColor};
+              background: ${bBg};
+              border: 1px solid ${bBorder};
+              text-transform: uppercase;
+          ">${displayName}</span>
+      </td>`;
     }
     html += "</tr>";
   });
