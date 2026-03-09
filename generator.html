@@ -21,39 +21,39 @@
     table-layout: fixed !important; 
     border-collapse: separate !important;
     border-spacing: 0 1px !important; 
-    margin-top: 20px !important;
+    margin-top: 10px !important;
 }
 
-/* SJEDNOCENÍ MINIMÁLNÍ VÝŠKY */
+/* SJEDNOCENÍ VÝŠKY */
 #grid td {
-    height: 12px !important;        /* Agresivně nízký řádek */
-    line-height: 12px !important;   /* Text přesně ve výšce řádku */
+    height: 14px !important; 
+    line-height: 14px !important;
     padding: 0 2px !important;
     vertical-align: middle !important;
 }
 
-/* 1. PRVNÍ SLOUPEC (NÁZEV POZICE) */
+/* 1. PRVNÍ SLOUPEC (NÁZEV POZICE) - ZMĚNĚNO NA LEVO */
 #grid td:first-child, .posCol {
-    width: 70px !important;
-    min-width: 70px !important;
+    width: 80px !important;       /* Mírně rozšířeno pro text vlevo */
+    min-width: 80px !important;
+    padding-left: 8px !important;  /* Odsazení od kraje pro lepší čitelnost */
     font-size: 10px !important;
     font-weight: 900 !important;
     background: transparent !important;
     border: none !important;
     color: white !important;
-    text-align: center !important;
+    text-align: left !important;   /* ZAROVNÁNÍ DOLEVA */
 }
 
 /* 2. OSTATNÍ SLOUPCE (JMÉNA) */
 #grid td:not(:first-child) {
     text-align: center !important;
-    font-size: 9px !important;      /* Velmi malé písmo pro jména */
+    font-size: 9px !important;
     color: white !important;
-    /* Tady se děje to kouzlo: */
     text-transform: lowercase !important; 
 }
 
-/* VYNUCENÍ PRVNÍHO VELKÉHO PÍSMENE */
+/* První písmeno velké */
 #grid td:not(:first-child)::first-letter {
     text-transform: uppercase !important;
 }
@@ -62,35 +62,24 @@
     border-radius: 0 12px 12px 0 !important;
 }
 
-/* --- ZVÝRAZNĚNÍ AKTIVNÍHO ŘÁDKU (ZELENÁ) --- */
+/* --- ZVÝRAZNĚNÍ AKTIVNÍHO ŘÁDKU --- */
 #grid tr:has(.active-pos) td {
-    background: rgba(46, 204, 113, 0.08) !important;
-    border-color: rgba(46, 204, 113, 0.2) !important;
+    background: rgba(46, 204, 113, 0.12) !important; /* Trochu sytější zelená pro kontrast */
+    border-color: rgba(46, 204, 113, 0.3) !important;
 }
 
 #grid td.active-pos {
     color: #2ecc71 !important;
-    text-shadow: 0 0 12px rgba(46, 204, 113, 0.4);
+    text-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
 }
 
-/* --- ZVÝRAZNĚNÍ NEAKTIVNÍHO ŘÁDKU (ŠEDÁ) --- */
-#grid td.inactive-pos {
-    color: rgba(255, 255, 255, 0.15) !important;
-}
-
-/* --- ODSTRANĚNÍ ZÁMKŮ --- */
-#grid button {
-    display: none !important;
-}
-
-/* Speciální úprava pro zamknutý řádek */
+/* --- ZBYTEK STYLŮ --- */
+#grid td.inactive-pos { color: rgba(255, 255, 255, 0.15) !important; }
+#grid button { display: none !important; }
 #grid tr.lockedRow td {
     background: rgba(241, 196, 15, 0.1) !important;
-    border-color: rgba(241, 196, 15, 0.3) !important;
 }
-#grid tr.lockedRow td:first-child {
-    color: #f1c40f !important;
-}
+#grid tr.lockedRow td:first-child { color: #f1c40f !important; }
 
     /* IMPORT MODERNÍHO PÍSMA */
     @import url('https://fonts.googleapis.com');
