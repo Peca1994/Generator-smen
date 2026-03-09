@@ -1259,93 +1259,44 @@ function render() {
   const L = phaseLabels();
   const locked = new Set(lockedPositions());
 
-  // HLAVIČKA TABULKY - Opravena šířka a přidán prázdný sloupec pro zarovnání
-  let html = `<thead>
-    <tr>
-      <th style="width: 75px; min-width: 75px; text-align: center; font-size: 10px; padding: 5px 2px;">Pozice</th>`;
-  L.forEach(x => {
-    html += `<th style="font-size: 9px; padding: 5px 2px; text-align: center;">${x}</th>`;
-  });
+  // HLAVIČKA - Extrémně kompaktní
+  let html = `<thead><tr><th style="width: 55px; font-size: 9px; padding: 2px; text-align: center;">Pozice</th>`;
+  L.forEach(x => html += `<th style="font-size: 8px; padding: 2px; text-align: center;">${x}</th>`);
   html += "</tr></thead><tbody>";
 
   POSITIONS.forEach(pos => {
     const isLocked = locked.has(pos);
     const lockColor = isLocked ? '#f1c40f' : 'rgba(255,255,255,0.2)';
-
     let isActive = false;
-    for (let p = 0; p < 4; p++) {
-        if (phases[p] && phases[p][pos]) {
-            isActive = true;
-            break;
-        }
-    }
+    for (let p = 0; p < 4; p++) { if (phases[p] && phases[p][pos]) { isActive = true; break; } }
 
     const rowBg = isActive ? 'rgba(46, 204, 113, 0.08)' : 'rgba(255,255,255,0.03)';
     const posColor = isLocked ? '#f1c40f' : (isActive ? '#2ecc71' : 'white');
+    const lockIcon = isLocked ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="4" style="margin-right: 2px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>` : '';
 
-    // MODERNI IKONA (zmenšená pro úsporu místa)
-    const lockSymbol = isLocked ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="3" style="margin-right: 4px; vertical-align: middle;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>` : '';
-
-    // PRVNÍ SLOUPEC (Pozice + Zámek v jednom)
-    html += `<tr class="${isLocked ? 'lockedRow' : ''}">
-    <td class="posCol" 
-        onclick="toggleLock('${pos}')" 
-        style="
-            cursor: pointer; 
-            padding: 8px 2px; 
-            width: 75px; 
-            min-width: 75px; 
-            background: ${rowBg} !important;
-            border-right: 1px solid rgba(255,255,255,0.05);
-            text-align: center;
-        ">
-        <span style="
-            font-weight: 900; 
-            color: ${posColor}; 
-            font-size: 10px; 
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        ">
-            ${lockSymbol}${pos}
-        </span>
+    // ŘÁDEK - Minimální výška a šířka
+    html += `<tr style="height: 28px;">
+    <td onclick="toggleLock('${pos}')" style="cursor: pointer; width: 55px; padding: 2px; background: ${rowBg} !important; border-right: 1px solid rgba(255,255,255,0.05); text-align: center;">
+        <span style="font-weight: 900; color: ${posColor}; font-size: 9px; display: flex; align-items: center; justify-content: center;">${lockIcon}${pos}</span>
     </td>`;
 
     for (let p = 0; p < 4; p++) {
       const w = phases[p]?.[pos];
       let displayName = w ? w.name : "—";
-      let cls = "";
-
       let bColor = "#2ecc71", bBg = "rgba(46, 204, 113, 0.12)", bBorder = "rgba(46, 204, 113, 0.3)";
 
-      if (w) {
-          const absence = ["sick", "vacation", "paragraf", "loaned", "propujceny", "shitmaking"];
-          if (absence.includes(w.status)) {
-              bColor = "#ff4d4d"; bBg = "rgba(255, 77, 77, 0.15)"; bBorder = "rgba(255, 77, 77, 0.4)";
-              cls = "outWorker";
-          }
-      } else {
-          bColor = "rgba(255,255,255,0.2)"; bBg = "rgba(255,255,255,0.05)"; bBorder = "rgba(255,255,255,0.1)";
+      if (w && ["sick", "vacation", "paragraf", "loaned", "propujceny", "shitmaking"].includes(w.status)) {
+          bColor = "#ff4d4d"; bBg = "rgba(255, 77, 77, 0.15)"; bBorder = "rgba(255, 77, 77, 0.4)";
+      } else if (!w) {
+          bColor = "rgba(255,255,255,0.2)"; bBg = "transparent"; bBorder = "transparent";
       }
 
-      // BUŇKA SE JMÉNEM (Badge design)
+      // BUŇKA - Totální minimalizace (písmo 9px, padding 1px)
       html += `
-      <td class="slot ${cls}" onclick="pick(${p},'${pos}')" 
-          style="text-align: center; padding: 4px 2px; background: ${rowBg} !important; border-bottom: 1px solid rgba(255,255,255,0.05);">
-          <span style="
-              display: inline-block;
-              min-width: 65px;
-              padding: 5px 2px;
-              border-radius: 6px;
-              font-size: 10px;
-              font-weight: 800;
-              color: ${bColor};
-              background: ${bBg};
-              border: 1px solid ${bBorder};
-              text-transform: uppercase;
-              white-space: nowrap;
-          ">${displayName}</span>
+      <td onclick="pick(${p},'${pos}')" style="padding: 1px; background: ${rowBg} !important; border-bottom: 1px solid rgba(255,255,255,0.03);">
+          <span style="display: block; width: 62px; margin: 0 auto; padding: 3px 0; border-radius: 4px; font-size: 9px; font-weight: 800; color: ${bColor}; background: ${bBg}; border: 1px solid ${bBorder}; text-transform: uppercase;">
+              ${displayName}
+          </span>
       </td>`;
     }
     html += "</tr>";
@@ -1353,12 +1304,11 @@ function render() {
 
   html += "</tbody>";
   gridEl.innerHTML = html;
-
-  // NÁHRADNÍCI (Zmenšeno pro mobil)
+  
+  // NÁHRADNÍCI - Kompaktní verze pod tabulkou
   reservesBoxEl.innerHTML = phaseReserves.map((arr, i) =>
-    `<div class="resBox" style="background: rgba(255,255,255,0.05); padding: 6px 10px; border-radius: 8px; margin-bottom: 4px; color: white; display: flex; align-items: center; gap: 10px;">
-      <b style="color: #f1c40f; font-weight: 900; font-size: 11px;">Fáze ${i + 1}:</b>
-      <span style="font-weight: 700; font-size: 11px;">${arr.map(w => w.name).join(", ") || "Nikdo"}</span>
+    `<div style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; margin-bottom: 2px; font-size: 10px; color: white;">
+      <b style="color: #f1c40f;">F${i + 1}:</b> ${arr.map(w => w.name).join(", ") || "—"}
     </div>`).join("");
 }
 
