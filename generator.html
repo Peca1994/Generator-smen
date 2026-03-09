@@ -16,11 +16,27 @@
 }
 
 /* 1. PRVNÍ SLOUPEC (NÁZEV POZICE) */
+#grid {
+    width: 100% !important;
+    table-layout: fixed !important; 
+    border-collapse: separate !important;
+    border-spacing: 0 1px !important; 
+    margin-top: 20px !important;
+}
+
+/* SJEDNOCENÍ MINIMÁLNÍ VÝŠKY */
+#grid td {
+    height: 12px !important;        /* Agresivně nízký řádek */
+    line-height: 12px !important;   /* Text přesně ve výšce řádku */
+    padding: 0 2px !important;
+    vertical-align: middle !important;
+}
+
+/* 1. PRVNÍ SLOUPEC (NÁZEV POZICE) */
 #grid td:first-child, .posCol {
     width: 70px !important;
     min-width: 70px !important;
-    padding: 0 4px !important;    /* ZMĚNA: nulový vertikální padding */
-    line-height: 1.2 !important;   /* ZMĚNA: kontrola výšky řádku */
+    font-size: 10px !important;
     font-weight: 900 !important;
     background: transparent !important;
     border: none !important;
@@ -31,10 +47,15 @@
 /* 2. OSTATNÍ SLOUPCE (JMÉNA) */
 #grid td:not(:first-child) {
     text-align: center !important;
-    padding: 0 2px !important;     /* ZMĚNA: z 2px 2px na 0 2px (nulová výška paddingu) */
-    line-height: 1.2 !important;   /* ZMĚNA: text jmen nebude zbytečně vysoký */
-    font-size: 10px !important;
+    font-size: 9px !important;      /* Velmi malé písmo pro jména */
     color: white !important;
+    /* Tady se děje to kouzlo: */
+    text-transform: lowercase !important; 
+}
+
+/* VYNUCENÍ PRVNÍHO VELKÉHO PÍSMENE */
+#grid td:not(:first-child)::first-letter {
+    text-transform: uppercase !important;
 }
 
 #grid td:last-child {
