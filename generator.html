@@ -7,72 +7,72 @@
 <title>Generátor směny</title>
 
 <style>
-#grid {
+ #grid {
     width: 100% !important;
     table-layout: fixed !important; 
     border-collapse: separate !important;
-    border-spacing: 0 8px !important; /* Mezera mezi řádky */
+    border-spacing: 0 8px !important;
     margin-top: 20px !important;
 }
 
-/* 1. SJEDNOCENÝ STYL PRO VŠECHNY BUŇKY (Pozice i Jména) */
-#grid td {
+/* 1. PRVNÍ SLOUPEC (NÁZEV POZICE) */
+#grid td:first-child, .posCol {
+    width: 140px !important;
+    padding-left: 15px !important;
+    font-weight: 900 !important;
+    background: transparent !important; /* TOTO ZAJISTÍ PRŮHLEDNOST */
+    border: none !important;
+    color: white !important;
+}
+
+/* 2. OSTATNÍ SLOUPCE (JMÉNA) */
+#grid td:not(:first-child) {
     text-align: center !important;
     padding: 14px 5px !important;
     font-weight: 800 !important;
     color: white !important;
-    /* Všechny buňky teď mají stejné tmavé pozadí */
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 0 !important; /* Reset pro vnitřní buňky */
+    background: rgba(255, 255, 255, 0.02) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* 2. ÚPRAVA PRO PRVNÍ BUŇKU (POZICE) */
-#grid td:first-child, .posCol {
-    width: 100px !important; /* Upravená šířka pro 5 sloupců */
-    padding-left: 15px !important;
-    text-align: left !important;
-    border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 12px 0 0 12px !important; /* Zaoblení vlevo */
-    font-weight: 900 !important;
-}
-
-/* 3. ÚPRAVA PRO POSLEDNÍ BUŇKU */
 #grid td:last-child {
-    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 0 12px 12px 0 !important; /* Zaoblení vpravo */
+    border-radius: 0 12px 12px 0 !important;
 }
 
 /* --- ZVÝRAZNĚNÍ AKTIVNÍHO ŘÁDKU (ZELENÁ) --- */
+/* Pokud má první buňka třídu 'active-pos', celý řádek zezelená */
 #grid tr:has(.active-pos) td {
-    background: rgba(46, 204, 113, 0.15) !important; /* Silnější zelená pro sjednocený řádek */
-    border-color: rgba(46, 204, 113, 0.3) !important;
+    background: rgba(46, 204, 113, 0.08) !important; /* Jemné zelené svícení */
+    border-color: rgba(46, 204, 113, 0.2) !important;
 }
 
+/* Barva textu pozice v aktivním řádku */
 #grid td.active-pos {
     color: #2ecc71 !important; /* Škoda zelená */
     text-shadow: 0 0 12px rgba(46, 204, 113, 0.4);
 }
 
 /* --- ZVÝRAZNĚNÍ NEAKTIVNÍHO ŘÁDKU (ŠEDÁ) --- */
+/* Pokud má první buňka třídu 'inactive-pos', řádek zhasne */
 #grid td.inactive-pos {
-    color: rgba(255, 255, 255, 0.15) !important;
+    color: rgba(255, 255, 255, 0.15) !important; /* Utlumená šedá */
 }
 
-/* --- ODSTRANĚNÍ ZÁMKŮ A ZAMKNUTÝ ŘÁDEK --- */
+/* --- ODSTRANĚNÍ ZÁMKŮ (Už nejsou potřeba) --- */
 #grid button {
     display: none !important;
 }
 
+/* Speciální úprava pro zamknutý řádek (pokud ho stále používáš v JS) */
 #grid tr.lockedRow td {
     background: rgba(241, 196, 15, 0.1) !important;
     border-color: rgba(241, 196, 15, 0.3) !important;
 }
-
 #grid tr.lockedRow td:first-child {
     color: #f1c40f !important;
 }
+
     /* IMPORT MODERNÍHO PÍSMA */
     @import url('https://fonts.googleapis.com');
 
@@ -660,7 +660,7 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
     </div>
 </div>
 
-<table id="grid" style="width: 100%; color: white; border-collapse: collapse; table-layout: fixed; font-size: 13px;"></table>
+<!-- PLOVOUCÍ OKNO (MODÁL) -->
 <div id="attendanceModal" class="att-modal" style="display: none;">
     <div class="att-modal-content" style="background: #1a1a1a; border: 1px solid rgba(255,255,255,0.1);">
         <h3 style="color: white; margin-bottom: 20px; text-align: center; font-weight: 900; letter-spacing: 1px;">DNEŠNÍ DOCHÁZKA</h3>
@@ -691,29 +691,33 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
   </div>
 <div style="width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding: 0 20px;">
     
-    <!-- GENERUJ (Oranžová) -->
-    <button id="genBtn" class="genBtn" onclick="generateShift()" style="width: 100%; padding: 22px; background: #e67e22; color: white; border: none; border-radius: 10px; font-weight: 900; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 0.5px;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
-        Generovat směnu
-    </button>
+    <!-- 1. BLOK TLAČÍTEK (Vždy nahoře) -->
+    <div id="controls" style="display: flex; flex-direction: column; gap: 12px;">
+        <!-- GENERUJ (Oranžová) -->
+        <button id="genBtn" class="genBtn" onclick="generateShift()" style="width: 100%; padding: 22px; background: #e67e22; color: white; border: none; border-radius: 10px; font-weight: 900; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
+            Generovat směnu
+        </button>
 
-    <!-- NAČÍST (Modrá) -->
-    <button id="loadBtn" class="loadBtn" onclick="loadShift()" style="width: 100%; padding: 22px; background: #2980b9; color: white; border: none; border-radius: 10px; font-weight: 900; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 0.5px;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Načíst uloženou směnu
-    </button>
+        <!-- NAČÍST (Modrá) -->
+        <button id="loadBtn" class="loadBtn" onclick="loadShift()" style="width: 100%; padding: 22px; background: #2980b9; color: white; border: none; border-radius: 10px; font-weight: 900; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Načíst uloženou směnu
+        </button>
 
-    <!-- TENTO BLOK JE TEĎ "NEVIDITELNÝ", DOKUD SE NEVYPLNÍ -->
-    <div id="outputWrapper" style="display: block; width: 100%; height: auto;">
-        <table id="grid" style="width: 100%; color: white; border-collapse: collapse;"></table>
-        <div id="reservesBox" style="color: white;"></div>
+        <!-- ULOŽIT (Zelená) - Přesunuto sem nahoru -->
+        <button id="saveBtn" class="saveBtn" onclick="saveShift()" style="width: 100%; padding: 22px; background: #27ae60; color: white; border: none; border-radius: 10px; font-weight: 900; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            Uložit aktuální směnu
+        </button>
     </div>
 
-    <!-- ZAČÁTEK ZELENÉHO TLAČÍTKA -->
-    <button id="saveBtn" class="saveBtn" onclick="saveShift()" style="width: 100%; padding: 22px; background: #27ae60; color: white; border: none; border-radius: 10px; font-weight: 900; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 0.5px; margin-top: 0px;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-        Uložit aktuální směnu
-    </button>
+    <!-- 2. BLOK VÝSLEDKU (Bude se roztahovat pod tlačítky) -->
+    <div id="outputWrapper" style="display: block; width: 100%; margin-top: 10px;">
+        <table id="grid" style="width: 100%; color: white; border-collapse: collapse;"></table>
+        <div id="reservesBox" style="color: white; margin-top: 10px;"></div>
+    </div>
+
 </div>
 </div>
 
@@ -1260,7 +1264,7 @@ function render() {
   L.forEach(x => html += `<th>${x}</th>`);
   html += "</tr></thead><tbody>";
 
-  POSITIONS.forEach(pos => {
+POSITIONS.forEach(pos => {
     const isLocked = locked.has(pos);
     const lockColor = isLocked ? '#f1c40f' : 'rgba(255,255,255,0.2)';
 
@@ -1275,17 +1279,31 @@ function render() {
     const rowBg = isActive ? 'rgba(46, 204, 113, 0.08)' : 'rgba(255,255,255,0.03)';
     const posColor = isLocked ? '#f1c40f' : (isActive ? '#2ecc71' : 'white');
 
-    const lockIcon = isLocked ? 
-        `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>` : 
-        `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>`;
+    // TADY BYLA TA CHYBA - DEFINICE PROMĚNNÉ lockSymbol:
+    const lockSymbol = isLocked ? `<span style="margin-right: 5px;">🔒</span>` : '';
 
-    // VYKRESLENÍ ŘÁDKU - Oprava pro mobil (zmenšena min-width a mezery)
+    // VYKRESLENÍ ŘÁDKU - Opraveno (Zámek odstraněn, klikací je celá buňka)
     html += `<tr class="${isLocked ? 'lockedRow' : ''}">
-    <td class="posCol" style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; min-width: 130px; background: ${rowBg} !important;">
-        <div onclick="toggleLock('${pos}')" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: rgba(0,0,0,0.4); border-radius: 8px;">
-            ${lockIcon}
-        </div>
-        <span style="font-weight: 900; color: ${posColor}; font-size: 13px; letter-spacing: 0.5px;">${pos}</span>
+    <td class="posCol" 
+        onclick="toggleLock('${pos}')" 
+        style="
+            cursor: pointer; 
+            padding: 10px 8px; 
+            min-width: 85px; 
+            background: ${rowBg} !important;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+        ">
+        <span style="
+            font-weight: 900; 
+            color: ${posColor}; 
+            font-size: 11px; 
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            display: block;
+        ">
+            ${lockSymbol}${pos}
+        </span>
     </td>`;
 
     for (let p = 0; p < 4; p++) {
