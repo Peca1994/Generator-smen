@@ -859,33 +859,32 @@ POSITIONS.forEach(p => {
     const isLocked = DEFAULT_LOCKED.has(p);
     const checked = isLocked ? "checked" : "";
     
-    // Barvy pro styl "Badge" (průhledné pozadí, barevný text a okraj)
-    const color = isLocked ? "#ff4d4d" : "#2ecc71"; // Červená / Zelená
-    const bg = isLocked ? "rgba(255, 77, 77, 0.1)" : "rgba(46, 204, 113, 0.1)";
-    const border = isLocked ? "rgba(255, 77, 77, 0.4)" : "rgba(46, 204, 113, 0.4)";
+    // Barvy zůstávají, jen jsem je zjemnil
+    const color = isLocked ? "#ff4d4d" : "#2ecc71";
+    const bg = isLocked ? "rgba(255, 77, 77, 0.05)" : "rgba(46, 204, 113, 0.05)";
 
     lockBox.innerHTML += `
 <label class="lockRow" style="
     display: flex; 
     align-items: center; 
     justify-content: center;
-    width: 100px;           /* Sjednoť šířku prvního sloupce */
-    min-width: 100px;
-    height: 100%;           /* Musí vyplnit celou výšku řádku */
-    margin: 0;              /* SMAŽ MARGIN - ten to celou dobu rozbíjí */
-    padding: 10px;          /* Sjednoť padding */
-    box-sizing: border-box; /* ZÁSADNÍ: započítá border do výšky a šířky */
-    border-right: 1px solid rgba(255,255,255,0.1); 
+    width: 65px;            /* Zmenšeno ze 100px - klíčová změna */
+    min-width: 65px;
+    height: 35px;           /* Fixní výška, aby řádky lícovaly */
+    margin: 0;              
+    padding: 2px;           /* Minimální padding */
+    box-sizing: border-box; 
+    border-bottom: 1px solid rgba(255,255,255,0.05); 
     background: ${bg}; 
     color: ${color}; 
-    font-weight: 800; 
-    font-size: 12px; 
+    font-weight: 900; 
+    font-size: 10px;        /* Menší písmo */
     cursor: pointer;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    text-align: center;
 ">
     <input type="checkbox" value="${p}" ${checked} style="display:none;" onchange="updateBadgeStyle(this)">
-    <span>${p}</span>
+    <span style="line-height: 1.1;">${p}</span>
 </label>
 `;
 });
