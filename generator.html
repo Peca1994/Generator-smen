@@ -17,23 +17,23 @@
 
 /* 1. PRVNÍ SLOUPEC (NÁZEV POZICE) */
 #grid td:first-child, .posCol {
-    width: 140px !important;
-    padding-left: 15px !important;
+    width: 70px !important;       /* Zmenšeno ze 140px */
+    min-width: 70px !important;
+    padding-left: 4px !important;  /* Zmenšeno z 15px */
+    padding-right: 4px !important;
     font-weight: 900 !important;
-    background: transparent !important; /* TOTO ZAJISTÍ PRŮHLEDNOST */
+    background: transparent !important;
     border: none !important;
     color: white !important;
+    text-align: center !important; /* Vycentruje název pozice */
 }
 
 /* 2. OSTATNÍ SLOUPCE (JMÉNA) */
 #grid td:not(:first-child) {
     text-align: center !important;
-    padding: 14px 5px !important;
-    font-weight: 800 !important;
+    padding: 2px 2px !important; /* Změň 14px na 2px */
+    font-size: 10px !important;
     color: white !important;
-    background: rgba(255, 255, 255, 0.02) !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 #grid td:last-child {
