@@ -223,8 +223,13 @@
     justify-content: space-between; 
     padding: 12px 25px; 
     background: rgba(0,0,0,0.1); 
-    width: 100%;        /* Roztáhnout na maximum */
-    margin: 0 !important;  /* Zruší těch 299px, co tam máš teď */
+    /* --- TOTO PŘIDEJ --- */
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
     box-sizing: border-box;
 ">
   
