@@ -7,82 +7,65 @@
 <title>Generátor směny</title>
 
 <style>
-#grid {
-    width: 100% !important;
-    table-layout: fixed !important; 
-    border-collapse: collapse !important;
-    margin-top: 10px !important;
-}
-
-/* 1. PRVNÍ SLOUPEC (POZICE) - TVOJE FUNKČNÍ ŠÍŘKA */
 #grid td:first-child, .posCol {
     width: 140px !important;       
     text-align: left !important;
     padding-left: 10px !important;
     font-size: 11px !important;
     font-weight: 900 !important;
-    color: white !important;
     white-space: nowrap !important;
+    color: #4CAF50 !important; /* Výchozí zelená pro text */
 }
 
-/* 2. OSTATNÍ SLOUPCE (JMÉNA) - ROVNOMĚRNÉ ROZDĚLENÍ */
+/* 2. LOGIKA PRO ZAMČENÉ ŘÁDKY (ČERVENÁ) */
+/* Pokud SVG ikona zámku obsahuje žlutou barvu (#f1c40f), přebarvíme celý text v buňce na červenou */
+#grid td:first-child:has(svg[stroke="#f1c40f"]),
+#grid td:first-child:has(svg[stroke="#f1c40f"]) span {
+    color: #ff4d4d !important;
+}
+
+/* 3. OSTATNÍ SLOUPCE (JMÉNA) */
 #grid td:not(:first-child) {
     width: auto !important;
     text-align: center !important;
     font-size: 10px !important;
     color: white !important;
-    
-    /* OPRAVA VELKÝCH PÍSMEN (Terka efekt) */
     text-transform: lowercase !important;
 }
 
-/* První písmeno velké */
 #grid td:not(:first-child)::first-letter {
     text-transform: uppercase !important;
 }
 
-/* 3. VÝŠKA ŘÁDKŮ - TVOJE FUNKČNÍ VÝŠKA */
+/* 4. VÝŠKA ŘÁDKŮ A ČISTOTA */
 #grid tr, #grid td {
     height: 18px !important;        
     line-height: 18px !important;
     padding: 0 !important;
     border-bottom: 1px solid rgba(255,255,255,0.05) !important;
 }
+
+/* Zajištění, aby span uvnitř buňky poslechl barvu, kterou mu nastavíme výše */
 #grid td span {
-    display: inline !important;    /* ZMĚNA: z block na inline, aby to nerozhazovalo sloupce */
+    display: inline !important;
     font-size: 10px !important;
-    color: white !important;
+    color: inherit !important; /* Přebírá barvu od rodičovské buňky */
 }
-/* 4. FIX PRO VNITŘNÍ PRVKY (TLAČÍTKA/SPANY) - aby jména nebyla velká */
+
+/* 5. FIX PRO VNITŘNÍ PRVKY */
 #grid td button, #grid td span {
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
     margin: 0 !important;
     font-size: inherit !important;
-    text-transform: inherit !important; /* Přebere lowercase od buňky */
-    color: inherit !important;
+    text-transform: inherit !important;
 }
 
-/* 5. ODSTRANĚNÍ SYSTÉMOVÝCH TLAČÍTEK (Zámky apod.) */
+/* Skrytí tlačítek, pokud nejsou určena pro jména */
 #grid button:not([class*="name"]) {
     display: none !important; 
 }
-
-/* --- ZVÝRAZNĚNÍ AKTIVNÍHO ŘÁDKU (ZELENÁ) --- */
-#grid tr:has(.active-pos) td {
-    background: rgba(46, 204, 113, 0.15) !important;
-}
-
-#grid td.active-pos {
-    color: #2ecc71 !important;
-}
-
-/* Úprava pro neaktivní/prázdné řádky */
-#grid td.inactive-pos {
-    color: rgba(255, 255, 255, 0.2) !important;
-}
-
     /* IMPORT MODERNÍHO PÍSMA */
     @import url('https://fonts.googleapis.com');
 
