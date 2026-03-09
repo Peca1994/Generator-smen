@@ -536,6 +536,28 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
     border-color: rgba(239, 68, 68, 0.6) !important;
     color: #ef4444 !important;
 }
+#error-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Barvy ladící k oranžovým tlačítkům nebo decentní červená */
+    background: rgba(255, 255, 255, 0.1); 
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    
+    /* Designové prvky */
+    padding: 15px 25px;
+    border-radius: 12px; /* Stejné jako u tlačítek nahoře */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px); /* Moderní efekt průhlednosti */
+    
+    /* Rozvržení */
+    margin: 20px auto;
+    width: fit-content;
+    font-family: sans-serif;
+    font-weight: 500;
+}
 
 </style>
 </head>
@@ -704,7 +726,19 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
             Uložit aktuální směnu
         </button>
     </div>
-
+<div id="error-message" style="display: none; width: 100%; padding: 16px 20px; background: #e74c3c; color: white; border-radius: 12px; font-family: sans-serif; font-weight: 600; font-size: 15px; margin-top: 20px; box-sizing: border-box; align-items: center; gap: 15px; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3); border: 1px solid rgba(255,255,255,0.1);">
+    
+    <!-- Moderní ikona vykřičníku v kroužku -->
+    <div style="display: flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; background: rgba(255,255,255,0.2); border-radius: 50%; font-size: 16px; font-weight: 900;">!</div>
+    
+    <!-- Text hlášky -->
+    <span style="flex-grow: 1;">Nelze obsadit všechny pozice — málo lidí / skillů</span>
+    
+    <!-- Moderní zavírací tlačítko -->
+    <div onclick="this.parentElement.style.display='none'" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 8px; transition: 0.2s; background: rgba(0,0,0,0.1);" onmouseover="this.style.background='rgba(0,0,0,0.2)'" onmouseout="this.style.background='rgba(0,0,0,0.1)'">
+        <span style="font-size: 18px; line-height: 1;">✕</span>
+    </div>
+</div>
     <!-- 2. BLOK VÝSLEDKU (Bude se roztahovat pod tlačítky) -->
     <div id="outputWrapper" style="display: block; width: 100%; margin-top: 10px;">
         <table id="grid" style="width: 100%; color: white; border-collapse: collapse;"></table>
@@ -1148,35 +1182,72 @@ function runSmartAttempt(orderedPos, map) {
 
 /* GENERATE */
 
-genBtn.onclick = async ()=>{
+const style = document.createElement('style');
+style.innerHTML = `
+  @keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+  }
+  .btn-error-shake { animation: shake 0.4s ease-in-out; }
+`;
+document.head.appendChild(style);
 
- loadingEl.style.display="flex";
+genBtn.onclick = async () => {
+  loadingEl.style.display = "flex";
+  
+  // Uložíme si původní stav, abychom ho mohli vrátit
+  const originalContent = genBtn.innerHTML;
+  const originalBg = "#e67e22"; // Vaše původní oranžová
 
- await loadWorkers();
+  // Reset případné chyby z minula
+  genBtn.style.setProperty("background", originalBg, "important");
+  genBtn.classList.remove("btn-error-shake");
 
- const act = activePositions();   // ← TOHLE CHYBÍ
+  await loadWorkers();
+  const act = activePositions();
+  phases = [];
+  phaseReserves = [];
+  lastPosByWorker = {};
 
- phases = [];
- phaseReserves = [];
- lastPosByWorker = {};
+  for (let i = 0; i < 4; i++) {
+    const res = buildPhase(act);
 
- for(let i=0;i<4;i++){
+    if (!res) {
+      // --- CHYBOVÝ STAV ---
+      loadingEl.style.display = "none";
+      
+      // Zčervenání + moderní SVG vykřičník + animace zatřesení
+      genBtn.style.setProperty("background", "#e74c3c", "important");
+      genBtn.classList.add("btn-error-shake");
+      
+      genBtn.innerHTML = `
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <span style="font-weight: 800; letter-spacing: 0.3px;">Nelze obsadit všechny pozice — málo lidí / skillů</span>
+      `;
 
-   const res = buildPhase(act);
+      // Po 3 sekundách vše vrátíme do normálu
+      setTimeout(() => {
+        genBtn.style.setProperty("background", originalBg, "important");
+        genBtn.innerHTML = originalContent;
+        genBtn.classList.remove("btn-error-shake");
+      }, 3000);
 
-   if(!res){
-     alert("❌ Nelze obsadit všechny pozice — málo lidí / skillů");
-     loadingEl.style.display="none";
-     return;
-   }
+      return;
+    }
 
-   phases.push(res.assign);
-   phaseReserves.push(res.reserves);
- }
+    phases.push(res.assign);
+    phaseReserves.push(res.reserves);
+  }
 
- render();
-
- loadingEl.style.display="none";
+  render();
+  loadingEl.style.display = "none";
 };
 
 
