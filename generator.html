@@ -1270,40 +1270,13 @@ function render() {
 
     const rowBg = isActive ? 'rgba(46, 204, 113, 0.08)' : 'rgba(255,255,255,0.03)';
     const posColor = isLocked ? '#f1c40f' : (isActive ? '#2ecc71' : 'white');
-    const lockIcon = isLocked ? 
-    `<div style="flex: 0 0 14px; display: flex; align-items: center; justify-content: center;">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="3">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-        </svg>
-    </div>` : 
-    `<div style="flex: 0 0 14px;"></div>`; // Prázdné místo pro nezamčené, aby text neuhýbal doleva
+    const lockIcon = isLocked ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="4" style="margin-right: 2px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>` : '';
 
-// VYKRESLENÍ ŘÁDKU - Extrémně nízký (height: 30px)
-html += `<tr style="height: 30px !important;">
-<td class="posCol" 
-    onclick="toggleLock('${pos}')" 
-    style="
-        cursor: pointer; 
-        padding: 0 4px; /* Skoro žádný padding na výšku */
-        width: 70px; 
-        min-width: 70px; 
-        background: ${rowBg} !important;
-        border-right: 1px solid rgba(255,255,255,0.05);
-    ">
-    <div style="
-        display: flex; 
-        align-items: center; 
-        justify-content: flex-start; /* Zarovnáme doleva pro lícování zámků */
-        gap: 4px;
-        height: 30px;
-    ">
-        ${lockIcon}
-        <span style="font-weight: 900; color: ${posColor}; font-size: 9px; text-transform: uppercase; white-space: nowrap; overflow: hidden;">
-            ${pos}
-        </span>
-    </div>
-</td>`;
+    // ŘÁDEK - Minimální výška a šířka
+    html += `<tr style="height: 28px;">
+    <td onclick="toggleLock('${pos}')" style="cursor: pointer; width: 55px; padding: 2px; background: ${rowBg} !important; border-right: 1px solid rgba(255,255,255,0.05); text-align: center;">
+        <span style="font-weight: 900; color: ${posColor}; font-size: 9px; display: flex; align-items: center; justify-content: center;">${lockIcon}${pos}</span>
+    </td>`;
 
     for (let p = 0; p < 4; p++) {
       const w = phases[p]?.[pos];
@@ -1317,7 +1290,7 @@ html += `<tr style="height: 30px !important;">
       }
 
       // BUŇKA - Totální minimalizace (písmo 9px, padding 1px)
-     html += `
+      html += `
 <td class="slot" onclick="pick(${p},'${pos}')" 
     style="padding: 2px 1px; background: ${rowBg} !important; height: 30px;">
     <span style="
