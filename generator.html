@@ -1280,7 +1280,8 @@ POSITIONS.forEach(pos => {
     const posColor = isLocked ? '#f1c40f' : (isActive ? '#2ecc71' : 'white');
 
     // TADY BYLA TA CHYBA - DEFINICE PROMĚNNÉ lockSymbol:
-    const lockSymbol = isLocked ? `<span style="margin-right: 5px;">🔒</span>` : '';
+    const lockSymbol = isLocked ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="3" style="margin-right: 6px; vertical-align: middle;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>` : 
+    '';
 
     // VYKRESLENÍ ŘÁDKU - Opraveno (Zámek odstraněn, klikací je celá buňka)
     html += `<tr class="${isLocked ? 'lockedRow' : ''}">
@@ -1333,27 +1334,26 @@ POSITIONS.forEach(pos => {
       }
 
       // BUŇKA S VNITŘNÍM SPANEM (Badge design)
-      html += `
-      <td class="slot ${cls}" onclick="pick(${p},'${pos}')" 
-          style="text-align: center; padding: 8px 4px; background: ${rowBg} !important; border-bottom: 1px solid rgba(255,255,255,0.05);">
-          
-          <span style="
-              display: inline-block;
-              min-width: 90px;
-              padding: 6px 8px;
-              border-radius: 12px;
-              font-size: 12px;
-              font-weight: 800;
-              color: ${bColor};
-              background: ${bBg};
-              border: 1px solid ${bBorder};
-              text-transform: uppercase;
-              transition: 0.2s;
-          ">
-              ${displayName}
-          </span>
-
-      </td>`;
+     html += `
+<td class="slot ${cls}" onclick="pick(${p},'${pos}')" 
+    style="text-align: center; padding: 4px 2px; background: ${rowBg} !important;">
+    
+    <span style="
+        display: inline-block;
+        min-width: 65px;      /* Zmenšeno z 90px */
+        padding: 4px 2px;    /* Zmenšeno z 6x8px */
+        border-radius: 6px;  /* Menší rohy */
+        font-size: 10px;     /* Menší písmo */
+        font-weight: 800;
+        color: ${bColor};
+        background: ${bBg};
+        border: 1px solid ${bBorder};
+        text-transform: uppercase;
+        white-space: nowrap; /* Jméno se nesmí zalomit */
+    ">
+        ${displayName}
+    </span>
+</td>`;
     }
 
     html += "</tr>";
