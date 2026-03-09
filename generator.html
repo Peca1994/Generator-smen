@@ -7,40 +7,64 @@
 <title>Generátor směny</title>
 
 <style>
-#grid, #grid tr, #grid td, #grid td * {
-    height: 14px !important;      /* Vynutí nízkou výšku na všechno */
-    line-height: 14px !important;  /* Zruší vertikální mezery */
-    padding: 0 !important;         /* Odstraní veškerý padding */
-    margin: 0 !important;          /* Odstraní veškerý margin */
-    vertical-align: middle !important;
+#grid {
+    width: 100% !important;
+    table-layout: fixed !important; 
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    margin-top: 10px !important;
 }
 
-/* 2. OPRAVA VELKÝCH PÍSMEN (I PRO VNITŘNÍ PRVKY) */
-#grid td:not(:first-child), 
-#grid td:not(:first-child) * {
+/* 2. EXTRÉMNÍ ZMENŠENÍ VÝŠKY ŘÁDKŮ */
+#grid tr, #grid td {
+    height: 14px !important;       /* Výška celého řádku */
+    padding: 0 !important;         /* Odstraní mezery kolem jmen */
+    line-height: 14px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+}
+
+/* 3. OPRAVA JMEN (Zacílení na text uvnitř buněk) */
+#grid td:not(:first-child) {
+    text-align: center !important;
     font-size: 10px !important;
-    text-transform: lowercase !important; /* Všechno na malá */
-    display: inline-block !important;      /* Nutné pro zafungování first-letter */
+    /* Toto vynutí malá písmena na všechno uvnitř */
+    text-transform: lowercase !important; 
 }
 
-/* 3. PRVNÍ PÍSMENO VELKÉ */
-#grid td:not(:first-child)::first-letter,
-#grid td:not(:first-child) *::first-letter {
+/* Udělá první písmeno jména velké */
+#grid td:not(:first-child)::first-letter {
     text-transform: uppercase !important;
 }
 
-/* 4. PRVNÍ SLOUPEC DOLEVA */
+/* 4. ÚPRAVA PRVNÍHO SLOUPCE (POZICE) - DOLEVA */
 #grid td:first-child, .posCol {
+    width: 70px !important;
     text-align: left !important;
-    padding-left: 5px !important;
-    width: 65px !important;
+    padding-left: 10px !important;
+    font-size: 10px !important;
     font-weight: 900 !important;
+    color: white !important;
 }
 
-/* 5. ZRUŠENÍ MEZER MEZI ŘÁDKY */
-#grid {
-    border-spacing: 0 !important;
-    border-collapse: collapse !important;
+/* 5. DŮLEŽITÉ: Zmenšení tlačítek, pokud jsou jména v nich */
+#grid td button, #grid td span {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+    line-height: 1 !important;
+    font-size: inherit !important;
+    text-transform: inherit !important; /* Přebere lowercase od rodiče */
+    color: inherit !important;
+}
+
+/* --- ZVÝRAZNĚNÍ AKTIVNÍHO ŘÁDKU --- */
+#grid tr:has(.active-pos) td {
+    background: rgba(46, 204, 113, 0.12) !important;
+}
+#grid td.active-pos {
+    color: #2ecc71 !important;
 }
 
     /* IMPORT MODERNÍHO PÍSMA */
