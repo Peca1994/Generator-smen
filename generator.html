@@ -11,60 +11,76 @@
     width: 100% !important;
     table-layout: fixed !important; 
     border-collapse: collapse !important;
-    border-spacing: 0 !important;
     margin-top: 10px !important;
 }
 
-/* 2. EXTRÉMNÍ ZMENŠENÍ VÝŠKY ŘÁDKŮ */
-#grid tr, #grid td {
-    height: 14px !important;       /* Výška celého řádku */
-    padding: 0 !important;         /* Odstraní mezery kolem jmen */
-    line-height: 14px !important;
-    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+/* 1. PRVNÍ SLOUPEC (POZICE) - TVOJE FUNKČNÍ ŠÍŘKA */
+#grid td:first-child, .posCol {
+    width: 140px !important;       
+    text-align: left !important;
+    padding-left: 10px !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+    color: white !important;
+    white-space: nowrap !important;
 }
 
-/* 3. OPRAVA JMEN (Zacílení na text uvnitř buněk) */
+/* 2. OSTATNÍ SLOUPCE (JMÉNA) - ROVNOMĚRNÉ ROZDĚLENÍ */
 #grid td:not(:first-child) {
+    width: auto !important;
     text-align: center !important;
     font-size: 10px !important;
-    /* Toto vynutí malá písmena na všechno uvnitř */
-    text-transform: lowercase !important; 
+    color: white !important;
+    
+    /* OPRAVA VELKÝCH PÍSMEN (Terka efekt) */
+    text-transform: lowercase !important;
 }
 
-/* Udělá první písmeno jména velké */
+/* První písmeno velké */
 #grid td:not(:first-child)::first-letter {
     text-transform: uppercase !important;
 }
 
-/* 4. ÚPRAVA PRVNÍHO SLOUPCE (POZICE) - DOLEVA */
-#grid td:first-child, .posCol {
-    width: 70px !important;
-    text-align: left !important;
-    padding-left: 10px !important;
+/* 3. VÝŠKA ŘÁDKŮ - TVOJE FUNKČNÍ VÝŠKA */
+#grid tr, #grid td {
+    height: 18px !important;        
+    line-height: 18px !important;
+    padding: 0 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+}
+#grid td span {
+    display: inline !important;    /* ZMĚNA: z block na inline, aby to nerozhazovalo sloupce */
     font-size: 10px !important;
-    font-weight: 900 !important;
     color: white !important;
 }
-
-/* 5. DŮLEŽITÉ: Zmenšení tlačítek, pokud jsou jména v nich */
+/* 4. FIX PRO VNITŘNÍ PRVKY (TLAČÍTKA/SPANY) - aby jména nebyla velká */
 #grid td button, #grid td span {
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
     margin: 0 !important;
-    height: auto !important;
-    line-height: 1 !important;
     font-size: inherit !important;
-    text-transform: inherit !important; /* Přebere lowercase od rodiče */
+    text-transform: inherit !important; /* Přebere lowercase od buňky */
     color: inherit !important;
 }
 
-/* --- ZVÝRAZNĚNÍ AKTIVNÍHO ŘÁDKU --- */
-#grid tr:has(.active-pos) td {
-    background: rgba(46, 204, 113, 0.12) !important;
+/* 5. ODSTRANĚNÍ SYSTÉMOVÝCH TLAČÍTEK (Zámky apod.) */
+#grid button:not([class*="name"]) {
+    display: none !important; 
 }
+
+/* --- ZVÝRAZNĚNÍ AKTIVNÍHO ŘÁDKU (ZELENÁ) --- */
+#grid tr:has(.active-pos) td {
+    background: rgba(46, 204, 113, 0.15) !important;
+}
+
 #grid td.active-pos {
     color: #2ecc71 !important;
+}
+
+/* Úprava pro neaktivní/prázdné řádky */
+#grid td.inactive-pos {
+    color: rgba(255, 255, 255, 0.2) !important;
 }
 
     /* IMPORT MODERNÍHO PÍSMA */
