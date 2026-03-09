@@ -217,11 +217,10 @@
     <img src="auto.png" alt="Silueta" style="width: 450px; height: auto; filter: brightness(0) invert(1); margin-top: -30px;">
 </div>
 
-<div class="topbar" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 25px; background: rgba(0,0,0,0.1);">
+<div class="topbar" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 25px; background: rgba(0,0,0,0.1); width: 100%; box-sizing: border-box;">
   
   <div class="topTitle" style="display: flex; align-items: center; gap: 14px;">
-    
-    <!-- IKONA: Žlutý/Jantarový gradient přesně podle karty Statistiky v indexu -->
+    <!-- IKONA -->
     <div style="
         background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); 
         border-radius: 12px; 
@@ -238,7 +237,7 @@
       </svg>
     </div>
 
-    <!-- NÁZEV: Moderní Škoda ZELENÝ gradient (bílá -> zelená) -->
+    <!-- NÁZEV -->
     <span style="
       font-size: 24px; 
       font-weight: 900; 
@@ -249,13 +248,15 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       display: inline-block;
-      transform: translateZ(0);
     ">
       Statistiky
     </span>
   </div>
 
-  <button class="menuBtn" onclick="location.href='index.html'" style="padding: 8px 20px; border-radius: 10px; cursor: pointer;">Menu</button>
+  <!-- TLAČÍTKO - teď poletí úplně doprava -->
+  <button class="menuBtn" onclick="location.href='index.html'" style="padding: 8px 20px; border-radius: 10px; cursor: pointer; margin-left: auto;">
+    Menu
+  </button>
 </div>
 <div class="container" style="width: 92%; max-width: 1250px; margin: 0 auto; padding: 10px 0;">
 <div class="filter-panel" style="display: grid !important; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important; gap: 12px !important; margin-bottom: 30px !important; width: 100% !important;">
