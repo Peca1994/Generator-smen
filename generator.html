@@ -7,79 +7,41 @@
 <title>Generátor směny</title>
 
 <style>
- #grid {
-    width: 100% !important;
-    table-layout: fixed !important; 
-    border-collapse: separate !important;
-    border-spacing: 0 1px !important; /* ZMĚNA: z 8px na 1px pro těsný rozestup řádků */
-    margin-top: 20px !important;
-}
-
-/* 1. PRVNÍ SLOUPEC (NÁZEV POZICE) */
-#grid {
-    width: 100% !important;
-    table-layout: fixed !important; 
-    border-collapse: separate !important;
-    border-spacing: 0 1px !important; 
-    margin-top: 10px !important;
-}
-
-/* SJEDNOCENÍ VÝŠKY */
-#grid td {
-    height: 14px !important; 
-    line-height: 14px !important;
-    padding: 0 2px !important;
+#grid, #grid tr, #grid td, #grid td * {
+    height: 14px !important;      /* Vynutí nízkou výšku na všechno */
+    line-height: 14px !important;  /* Zruší vertikální mezery */
+    padding: 0 !important;         /* Odstraní veškerý padding */
+    margin: 0 !important;          /* Odstraní veškerý margin */
     vertical-align: middle !important;
 }
 
-/* 1. PRVNÍ SLOUPEC (NÁZEV POZICE) - ZMĚNĚNO NA LEVO */
-#grid td:first-child, .posCol {
-    width: 80px !important;       /* Mírně rozšířeno pro text vlevo */
-    min-width: 80px !important;
-    padding-left: 8px !important;  /* Odsazení od kraje pro lepší čitelnost */
+/* 2. OPRAVA VELKÝCH PÍSMEN (I PRO VNITŘNÍ PRVKY) */
+#grid td:not(:first-child), 
+#grid td:not(:first-child) * {
     font-size: 10px !important;
-    font-weight: 900 !important;
-    background: transparent !important;
-    border: none !important;
-    color: white !important;
-    text-align: left !important;   /* ZAROVNÁNÍ DOLEVA */
+    text-transform: lowercase !important; /* Všechno na malá */
+    display: inline-block !important;      /* Nutné pro zafungování first-letter */
 }
 
-/* 2. OSTATNÍ SLOUPCE (JMÉNA) */
-#grid td:not(:first-child) {
-    text-align: center !important;
-    font-size: 9px !important;
-    color: white !important;
-    text-transform: lowercase !important; 
-}
-
-/* První písmeno velké */
-#grid td:not(:first-child)::first-letter {
+/* 3. PRVNÍ PÍSMENO VELKÉ */
+#grid td:not(:first-child)::first-letter,
+#grid td:not(:first-child) *::first-letter {
     text-transform: uppercase !important;
 }
 
-#grid td:last-child {
-    border-radius: 0 12px 12px 0 !important;
+/* 4. PRVNÍ SLOUPEC DOLEVA */
+#grid td:first-child, .posCol {
+    text-align: left !important;
+    padding-left: 5px !important;
+    width: 65px !important;
+    font-weight: 900 !important;
 }
 
-/* --- ZVÝRAZNĚNÍ AKTIVNÍHO ŘÁDKU --- */
-#grid tr:has(.active-pos) td {
-    background: rgba(46, 204, 113, 0.12) !important; /* Trochu sytější zelená pro kontrast */
-    border-color: rgba(46, 204, 113, 0.3) !important;
+/* 5. ZRUŠENÍ MEZER MEZI ŘÁDKY */
+#grid {
+    border-spacing: 0 !important;
+    border-collapse: collapse !important;
 }
-
-#grid td.active-pos {
-    color: #2ecc71 !important;
-    text-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
-}
-
-/* --- ZBYTEK STYLŮ --- */
-#grid td.inactive-pos { color: rgba(255, 255, 255, 0.15) !important; }
-#grid button { display: none !important; }
-#grid tr.lockedRow td {
-    background: rgba(241, 196, 15, 0.1) !important;
-}
-#grid tr.lockedRow td:first-child { color: #f1c40f !important; }
 
     /* IMPORT MODERNÍHO PÍSMA */
     @import url('https://fonts.googleapis.com');
