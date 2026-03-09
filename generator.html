@@ -11,27 +11,28 @@
     width: 100% !important;
     table-layout: fixed !important; 
     border-collapse: separate !important;
-    border-spacing: 0 8px !important;
+    border-spacing: 0 1px !important; /* ZMĚNA: z 8px na 1px pro těsný rozestup řádků */
     margin-top: 20px !important;
 }
 
 /* 1. PRVNÍ SLOUPEC (NÁZEV POZICE) */
 #grid td:first-child, .posCol {
-    width: 70px !important;       /* Zmenšeno ze 140px */
+    width: 70px !important;
     min-width: 70px !important;
-    padding-left: 4px !important;  /* Zmenšeno z 15px */
-    padding-right: 4px !important;
+    padding: 0 4px !important;    /* ZMĚNA: nulový vertikální padding */
+    line-height: 1.2 !important;   /* ZMĚNA: kontrola výšky řádku */
     font-weight: 900 !important;
     background: transparent !important;
     border: none !important;
     color: white !important;
-    text-align: center !important; /* Vycentruje název pozice */
+    text-align: center !important;
 }
 
 /* 2. OSTATNÍ SLOUPCE (JMÉNA) */
 #grid td:not(:first-child) {
     text-align: center !important;
-    padding: 2px 2px !important; /* Změň 14px na 2px */
+    padding: 0 2px !important;     /* ZMĚNA: z 2px 2px na 0 2px (nulová výška paddingu) */
+    line-height: 1.2 !important;   /* ZMĚNA: text jmen nebude zbytečně vysoký */
     font-size: 10px !important;
     color: white !important;
 }
@@ -41,30 +42,27 @@
 }
 
 /* --- ZVÝRAZNĚNÍ AKTIVNÍHO ŘÁDKU (ZELENÁ) --- */
-/* Pokud má první buňka třídu 'active-pos', celý řádek zezelená */
 #grid tr:has(.active-pos) td {
-    background: rgba(46, 204, 113, 0.08) !important; /* Jemné zelené svícení */
+    background: rgba(46, 204, 113, 0.08) !important;
     border-color: rgba(46, 204, 113, 0.2) !important;
 }
 
-/* Barva textu pozice v aktivním řádku */
 #grid td.active-pos {
-    color: #2ecc71 !important; /* Škoda zelená */
+    color: #2ecc71 !important;
     text-shadow: 0 0 12px rgba(46, 204, 113, 0.4);
 }
 
 /* --- ZVÝRAZNĚNÍ NEAKTIVNÍHO ŘÁDKU (ŠEDÁ) --- */
-/* Pokud má první buňka třídu 'inactive-pos', řádek zhasne */
 #grid td.inactive-pos {
-    color: rgba(255, 255, 255, 0.15) !important; /* Utlumená šedá */
+    color: rgba(255, 255, 255, 0.15) !important;
 }
 
-/* --- ODSTRANĚNÍ ZÁMKŮ (Už nejsou potřeba) --- */
+/* --- ODSTRANĚNÍ ZÁMKŮ --- */
 #grid button {
     display: none !important;
 }
 
-/* Speciální úprava pro zamknutý řádek (pokud ho stále používáš v JS) */
+/* Speciální úprava pro zamknutý řádek */
 #grid tr.lockedRow td {
     background: rgba(241, 196, 15, 0.1) !important;
     border-color: rgba(241, 196, 15, 0.3) !important;
