@@ -7,82 +7,72 @@
 <title>Generátor směny</title>
 
 <style>
- #grid {
+#grid {
     width: 100% !important;
     table-layout: fixed !important; 
     border-collapse: separate !important;
-    border-spacing: 0 8px !important;
+    border-spacing: 0 8px !important; /* Mezera mezi řádky */
     margin-top: 20px !important;
 }
 
-/* 1. OPRAVA: PRVNÍ SLOUPEC (NÁZEV POZICE) */
-/* Odstranil jsem .posCol, aby to neovlivňovalo ostatní buňky */
-#grid td:first-child {
-    width: 100px !important; /* Trochu jsem ubral, aby zbylo místo na jména */
-    padding-left: 10px !important;
-    font-weight: 900 !important;
-    background: transparent !important; 
-    border: none !important;
-    color: white !important;
-    text-align: left !important;
-}
-
-/* 2. OSTATNÍ SLOUPCE (JMÉNA / KARTY) */
-/* Tohle zajistí, že jména BUDE VIDĚT a nebudou průhledná */
-#grid td:not(:first-child) {
+/* 1. SJEDNOCENÝ STYL PRO VŠECHNY BUŇKY (Pozice i Jména) */
+#grid td {
     text-align: center !important;
     padding: 14px 5px !important;
     font-weight: 800 !important;
     color: white !important;
-    /* Zvýšil jsem viditelnost pozadí karet na 0.15, aby byly vidět */
-    background: rgba(255, 255, 255, 0.1) !important; 
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    /* Všechny buňky teď mají stejné tmavé pozadí */
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 0 !important; /* Reset pro vnitřní buňky */
 }
 
-/* Zaoblení krajů karet */
-#grid td:nth-child(2) {
-    border-radius: 12px 0 0 12px !important;
+/* 2. ÚPRAVA PRO PRVNÍ BUŇKU (POZICE) */
+#grid td:first-child, .posCol {
+    width: 100px !important; /* Upravená šířka pro 5 sloupců */
+    padding-left: 15px !important;
+    text-align: left !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px 0 0 12px !important; /* Zaoblení vlevo */
+    font-weight: 900 !important;
 }
 
+/* 3. ÚPRAVA PRO POSLEDNÍ BUŇKU */
 #grid td:last-child {
-    border-radius: 0 12px 12px 0 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 0 12px 12px 0 !important; /* Zaoblení vpravo */
 }
 
 /* --- ZVÝRAZNĚNÍ AKTIVNÍHO ŘÁDKU (ZELENÁ) --- */
-/* Pokud má první buňka třídu 'active-pos', celý řádek zezelená */
 #grid tr:has(.active-pos) td {
-    background: rgba(46, 204, 113, 0.08) !important; /* Jemné zelené svícení */
-    border-color: rgba(46, 204, 113, 0.2) !important;
+    background: rgba(46, 204, 113, 0.15) !important; /* Silnější zelená pro sjednocený řádek */
+    border-color: rgba(46, 204, 113, 0.3) !important;
 }
 
-/* Barva textu pozice v aktivním řádku */
 #grid td.active-pos {
     color: #2ecc71 !important; /* Škoda zelená */
     text-shadow: 0 0 12px rgba(46, 204, 113, 0.4);
 }
 
 /* --- ZVÝRAZNĚNÍ NEAKTIVNÍHO ŘÁDKU (ŠEDÁ) --- */
-/* Pokud má první buňka třídu 'inactive-pos', řádek zhasne */
 #grid td.inactive-pos {
-    color: rgba(255, 255, 255, 0.15) !important; /* Utlumená šedá */
+    color: rgba(255, 255, 255, 0.15) !important;
 }
 
-/* --- ODSTRANĚNÍ ZÁMKŮ (Už nejsou potřeba) --- */
+/* --- ODSTRANĚNÍ ZÁMKŮ A ZAMKNUTÝ ŘÁDEK --- */
 #grid button {
     display: none !important;
 }
 
-/* Speciální úprava pro zamknutý řádek (pokud ho stále používáš v JS) */
 #grid tr.lockedRow td {
     background: rgba(241, 196, 15, 0.1) !important;
     border-color: rgba(241, 196, 15, 0.3) !important;
 }
+
 #grid tr.lockedRow td:first-child {
     color: #f1c40f !important;
 }
-
     /* IMPORT MODERNÍHO PÍSMA */
     @import url('https://fonts.googleapis.com');
 
