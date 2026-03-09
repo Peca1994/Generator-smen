@@ -859,32 +859,33 @@ POSITIONS.forEach(p => {
     const isLocked = DEFAULT_LOCKED.has(p);
     const checked = isLocked ? "checked" : "";
     
-    // Barvy zůstávají, jen jsem je zjemnil
-    const color = isLocked ? "#ff4d4d" : "#2ecc71";
-    const bg = isLocked ? "rgba(255, 77, 77, 0.05)" : "rgba(46, 204, 113, 0.05)";
+    // Barvy pro styl "Badge" (průhledné pozadí, barevný text a okraj)
+    const color = isLocked ? "#ff4d4d" : "#2ecc71"; // Červená / Zelená
+    const bg = isLocked ? "rgba(255, 77, 77, 0.1)" : "rgba(46, 204, 113, 0.1)";
+    const border = isLocked ? "rgba(255, 77, 77, 0.4)" : "rgba(46, 204, 113, 0.4)";
 
     lockBox.innerHTML += `
 <label class="lockRow" style="
     display: flex; 
     align-items: center; 
     justify-content: center;
-    width: 65px;            /* Zmenšeno ze 100px - klíčová změna */
-    min-width: 65px;
-    height: 35px;           /* Fixní výška, aby řádky lícovaly */
-    margin: 0;              
-    padding: 2px;           /* Minimální padding */
-    box-sizing: border-box; 
-    border-bottom: 1px solid rgba(255,255,255,0.05); 
+    width: 100px;           /* Sjednoť šířku prvního sloupce */
+    min-width: 100px;
+    height: 100%;           /* Musí vyplnit celou výšku řádku */
+    margin: 0;              /* SMAŽ MARGIN - ten to celou dobu rozbíjí */
+    padding: 10px;          /* Sjednoť padding */
+    box-sizing: border-box; /* ZÁSADNÍ: započítá border do výšky a šířky */
+    border-right: 1px solid rgba(255,255,255,0.1); 
     background: ${bg}; 
     color: ${color}; 
-    font-weight: 900; 
-    font-size: 10px;        /* Menší písmo */
+    font-weight: 800; 
+    font-size: 12px; 
     cursor: pointer;
     text-transform: uppercase;
-    text-align: center;
+    letter-spacing: 0.5px;
 ">
     <input type="checkbox" value="${p}" ${checked} style="display:none;" onchange="updateBadgeStyle(this)">
-    <span style="line-height: 1.1;">${p}</span>
+    <span>${p}</span>
 </label>
 `;
 });
@@ -1258,12 +1259,16 @@ function render() {
   const L = phaseLabels();
   const locked = new Set(lockedPositions());
 
-  // HLAVIČKA TABULKY
-  let html = `<thead><tr><th style="width: 130px; text-align: left; padding-left: 20px;">Pozice</th>`;
-  L.forEach(x => html += `<th>${x}</th>`);
+  // HLAVIČKA TABULKY - Opravena šířka a přidán prázdný sloupec pro zarovnání
+  let html = `<thead>
+    <tr>
+      <th style="width: 75px; min-width: 75px; text-align: center; font-size: 10px; padding: 5px 2px;">Pozice</th>`;
+  L.forEach(x => {
+    html += `<th style="font-size: 9px; padding: 5px 2px; text-align: center;">${x}</th>`;
+  });
   html += "</tr></thead><tbody>";
 
-POSITIONS.forEach(pos => {
+  POSITIONS.forEach(pos => {
     const isLocked = locked.has(pos);
     const lockColor = isLocked ? '#f1c40f' : 'rgba(255,255,255,0.2)';
 
@@ -1277,66 +1282,83 @@ POSITIONS.forEach(pos => {
 
     const rowBg = isActive ? 'rgba(46, 204, 113, 0.08)' : 'rgba(255,255,255,0.03)';
     const posColor = isLocked ? '#f1c40f' : (isActive ? '#2ecc71' : 'white');
-    const lockSymbol = isLocked ? `<span style="margin-right: 3px;">🔒</span>` : '';
 
-    // ZAČÁTEK ŘÁDKU - Tady vkládáme tvůj "lockBox" jako první sloupec
-    html += `<tr class="${isLocked ? 'lockedRow' : ''}" style="display: table-row;">
-    <td class="posCol" onclick="toggleLock('${pos}')" 
+    // MODERNI IKONA (zmenšená pro úsporu místa)
+    const lockSymbol = isLocked ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="3" style="margin-right: 4px; vertical-align: middle;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>` : '';
+
+    // PRVNÍ SLOUPEC (Pozice + Zámek v jednom)
+    html += `<tr class="${isLocked ? 'lockedRow' : ''}">
+    <td class="posCol" 
+        onclick="toggleLock('${pos}')" 
         style="
             cursor: pointer; 
-            padding: 6px 2px; 
-            width: 60px;          /* Fixní šířka pro mobil */
-            min-width: 60px;
-            background: ${isLocked ? 'rgba(241, 196, 15, 0.1)' : rowBg} !important;
-            border-right: 1px solid rgba(255,255,255,0.1);
+            padding: 8px 2px; 
+            width: 75px; 
+            min-width: 75px; 
+            background: ${rowBg} !important;
+            border-right: 1px solid rgba(255,255,255,0.05);
             text-align: center;
-            vertical-align: middle;
         ">
-        <span style="font-weight: 900; color: ${posColor}; font-size: 10px; text-transform: uppercase;">
+        <span style="
+            font-weight: 900; 
+            color: ${posColor}; 
+            font-size: 10px; 
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        ">
             ${lockSymbol}${pos}
         </span>
     </td>`;
 
-    // SLOUUPCE SE JMÉNY (4 fáze)
     for (let p = 0; p < 4; p++) {
-        const w = phases[p]?.[pos];
-        let displayName = w ? w.name : "—";
-        let bColor = "#2ecc71", bBg = "rgba(46, 204, 113, 0.12)", bBorder = "rgba(46, 204, 113, 0.3)";
+      const w = phases[p]?.[pos];
+      let displayName = w ? w.name : "—";
+      let cls = "";
 
-        if (w && ["sick", "vacation", "paragraf", "loaned", "propujceny", "shitmaking"].includes(w.status)) {
-            bColor = "#ff4d4d"; bBg = "rgba(255, 77, 77, 0.15)"; bBorder = "rgba(255, 77, 77, 0.4)";
-        } else if (!w) {
-            bColor = "rgba(255,255,255,0.2)"; bBg = "transparent"; bBorder = "transparent";
-        }
+      let bColor = "#2ecc71", bBg = "rgba(46, 204, 113, 0.12)", bBorder = "rgba(46, 204, 113, 0.3)";
 
-        html += `
-        <td class="slot" onclick="pick(${p},'${pos}')" 
-            style="text-align: center; padding: 4px 2px; background: ${rowBg} !important; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <span style="
-                display: inline-block;
-                min-width: 65px;      /* Zmenšeno pro mobil */
-                padding: 5px 2px;
-                border-radius: 6px;
-                font-size: 10px;
-                font-weight: 800;
-                color: ${bColor};
-                background: ${bBg};
-                border: 1px solid ${bBorder};
-                text-transform: uppercase;
-            ">${displayName}</span>
-        </td>`;
+      if (w) {
+          const absence = ["sick", "vacation", "paragraf", "loaned", "propujceny", "shitmaking"];
+          if (absence.includes(w.status)) {
+              bColor = "#ff4d4d"; bBg = "rgba(255, 77, 77, 0.15)"; bBorder = "rgba(255, 77, 77, 0.4)";
+              cls = "outWorker";
+          }
+      } else {
+          bColor = "rgba(255,255,255,0.2)"; bBg = "rgba(255,255,255,0.05)"; bBorder = "rgba(255,255,255,0.1)";
+      }
+
+      // BUŇKA SE JMÉNEM (Badge design)
+      html += `
+      <td class="slot ${cls}" onclick="pick(${p},'${pos}')" 
+          style="text-align: center; padding: 4px 2px; background: ${rowBg} !important; border-bottom: 1px solid rgba(255,255,255,0.05);">
+          <span style="
+              display: inline-block;
+              min-width: 65px;
+              padding: 5px 2px;
+              border-radius: 6px;
+              font-size: 10px;
+              font-weight: 800;
+              color: ${bColor};
+              background: ${bBg};
+              border: 1px solid ${bBorder};
+              text-transform: uppercase;
+              white-space: nowrap;
+          ">${displayName}</span>
+      </td>`;
     }
     html += "</tr>";
-});
+  });
 
   html += "</tbody>";
   gridEl.innerHTML = html;
 
-  // NÁHRADNÍCI
+  // NÁHRADNÍCI (Zmenšeno pro mobil)
   reservesBoxEl.innerHTML = phaseReserves.map((arr, i) =>
-    `<div class="resBox" style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 5px; color: white;">
-      <b style="color: #f1c40f; font-weight: 900;">Fáze ${i + 1}</b><br>
-      <span style="font-weight: 800; font-size: 13px;">${arr.map(w => w.name).join(", ") || "Nikdo"}</span>
+    `<div class="resBox" style="background: rgba(255,255,255,0.05); padding: 6px 10px; border-radius: 8px; margin-bottom: 4px; color: white; display: flex; align-items: center; gap: 10px;">
+      <b style="color: #f1c40f; font-weight: 900; font-size: 11px;">Fáze ${i + 1}:</b>
+      <span style="font-weight: 700; font-size: 11px;">${arr.map(w => w.name).join(", ") || "Nikdo"}</span>
     </div>`).join("");
 }
 
