@@ -217,20 +217,23 @@
     <img src="auto.png" alt="Silueta" style="width: 450px; height: auto; filter: brightness(0) invert(1); margin-top: -30px;">
 </div>
 
- <div class="topbar" style="
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between; 
-    padding: 12px 25px; 
-    background: rgba(0,0,0,0.1); 
-    /* --- TOTO PŘIDEJ --- */
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
-    box-sizing: border-box;
+<div class="topbar" style="
+    display: flex !important; 
+    align-items: center !important; 
+    justify-content: space-between !important; 
+    padding: 0 25px !important; 
+    background: rgba(0,0,0,0.2) !important; 
+    
+    /* TOHLE JE KLÍČ K ROZTAŽENÍ */
+    position: fixed !important; 
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    
+    height: 65px !important;
+    z-index: 9999 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
 ">
   
   <div class="topTitle" style="display: flex; align-items: center; gap: 14px;">
@@ -249,9 +252,13 @@
     </span>
   </div>
 
-  <button class="menuBtn" onclick="location.href='index.html'" style="padding: 8px 20px; border-radius: 10px; cursor: pointer;">
+  <button class="menuBtn" onclick="location.href='index.html'" style="margin-right: 0;">
     Menu
   </button>
+</div>
+
+<!-- TENTO DIV TAM DEJ, ABY TI LIŠTA NEZAKRYLA ZAČÁTEK STRÁNKY -->
+<div style="height: 70px;"></div>
 </div>
 <div class="container" style="width: 92%; max-width: 1250px; margin: 0 auto; padding: 10px 0;">
 <div class="filter-panel" style="display: grid !important; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important; gap: 12px !important; margin-bottom: 30px !important; width: 100% !important;">
