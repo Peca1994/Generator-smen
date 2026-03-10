@@ -1259,51 +1259,50 @@ genBtn.onclick = async () => {
 
 /* LOAD */
 
-loadBtn.onclick = async ()=>{
+loadBtn.onclick = async () => {
+  loadingEl.style.display = "flex";
 
- loadingEl.style.display="flex";
+  await loadWorkers(); 
 
- await loadWorkers();      // pro generátor
- await loadAllWorkers();   // pro load směny
+  const id = dateEl.value + "_" + shiftEl.value;
+  const snap = await getDoc(doc(db, "shifts", id));
 
- const id=dateEl.value+"_"+shiftEl.value;
- const snap=await getDoc(doc(db,"shifts",id));
+  if (!snap.exists()) {
+    alert("Směna neexistuje");
+    loadingEl.style.display = "none";
+    return;
+  }
 
- if(!snap.exists()){
-  alert("Směna neexistuje");
-  loadingEl.style.display="none";
-  return;
- }
+  const data = snap.data();
+  shiftInfo = data.info || { sk:{start:"",end:""}, fa:{start:"",end:""}, za:{start:"",end:""} };
 
- const data=snap.data();
-// ✅ načti info o směně (popup data)
-shiftInfo = data.info || {
- sk:{start:"",end:""},
- fa:{start:"",end:""},
- za:{start:"",end:""}
-};
- // 🔷 mapujeme z ALL workers — ne jen work
- phases = data.phases.map(ph=>{
-  const o={};
-  Object.entries(ph).forEach(([pos,wid])=>{
-   o[pos] = allWorkersMap[wid] || {
-     id:wid,
-     name:"NEZNÁMÝ",
-     skills:[],
-     status:"missing"
-   };
+  phases = data.phases.map(ph => {
+    const o = {};
+    Object.entries(ph).forEach(([pos, wid]) => {
+      if (allWorkersMap && allWorkersMap[wid]) {
+        // ✅ Použijeme objekt z mapy (který už má jen křestní jméno)
+        o[pos] = allWorkersMap[wid];
+      } else {
+        // Pokud nenajdeme v mapě, zkusíme "ořezat" ID, pokud obsahuje podtržítko
+        let displayName = wid ? wid.split('_')[0] : "NEZNÁMÝ";
+        o[pos] = {
+          id: wid,
+          name: displayName.charAt(0).toUpperCase() + displayName.slice(1), // První velké písmeno
+          skills: [],
+          status: "missing"
+        };
+      }
+    });
+    return o;
   });
-  return o;
- });
 
- // reserves jen z aktuálních WORK workers
- phaseReserves = phases.map(ph=>{
-  const used=new Set(Object.values(ph).filter(Boolean).map(w=>w.id));
-  return workers.filter(w=>!used.has(w.id));
- });
+  phaseReserves = phases.map(ph => {
+    const used = new Set(Object.values(ph).filter(Boolean).map(w => w.id));
+    return workers.filter(w => !used.has(w.id));
+  });
 
- render();
- loadingEl.style.display="none";
+  render();
+  loadingEl.style.display = "none";
 };
 
 
