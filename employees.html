@@ -627,35 +627,56 @@ window.closeModal=()=> modal.style.display="none";
 
 /* SAVE */
 
-window.saveEmp = async () => {
+const saveEmp = async () => {
+    console.log("KLIKNUTO: Spouštím ukládání...");
     try {
-        const fName = document.getElementById("fName").value;
-        const lName = document.getElementById("lName").value;
-        if (!fName || !lName) {
-            showBtnFeedback(".save", "Chybí jméno!", "error");
+        const fname = document.getElementById("fName")?.value || "";
+        const lname = document.getElementById("lName")?.value || "";
+        const email = document.getElementById("email")?.value || "";
+        const info = document.getElementById("info")?.value || "";
+        const empType = document.getElementById("empType")?.value || "kmenovy";
+        
+        if (!fname || !lname) {
+            showBtnFeedback("save", "Chybí jméno!", "error");
             return;
         }
 
-        const skills = [...document.getElementById("skillsBox").querySelectorAll("input:checked")].map(x => x.value);
-        const id = editId || (fName + "_" + lName).toLowerCase().replace(/\s+/g, "_");
+        let skills = [];
+        const sBox = document.getElementById("skillsBox");
+        if (sBox) {
+            skills = [...sBox.querySelectorAll("input:checked")].map(x => x.value);
+        }
+
+        const id = editId || (fname + "_" + lname).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s/g, "");
         const docRef = doc(db, "employees", id);
 
-        await setDoc(docRef, {
-            name: fName,
-            surname: lName,
-            email: document.getElementById("email").value.toLowerCase().trim(),
-            info: document.getElementById("info").value,
+        const empData = {
+            name: fname,
+            surname: lname,
+            email: email.toLowerCase().trim(),
+            info: info,
             skills: skills,
-            type: document.getElementById("empType")?.value || "kmenovy",
-            role: editId ? undefined : "user" // Role měníme jen u nových
-        }, { merge: true });
+            type: empType
+        };
 
-        showBtnFeedback(".save", "Uloženo do systému");
-        setTimeout(() => { modal.style.display = "none"; load(); }, 1200);
+        if (!editId) { empData.role = "user"; }
+
+        await setDoc(docRef, empData, { merge: true });
+        
+        showBtnFeedback("save", "Uloženo do systému");
+        setTimeout(() => { 
+            document.getElementById("modal").style.display = "none"; 
+            if (typeof load === "function") load(); 
+        }, 1200);
+
     } catch (e) {
-        showBtnFeedback(".save", "Chyba databáze", "error");
+        console.error("Chyba Firebase:", e);
+        showBtnFeedback("save", "Chyba databáze", "error");
     }
 };
+
+// ZÁSADNÍ OPRAVA: Ruční propojení funkce s oknem prohlížeče
+window.saveEmp = saveEmp;
 
 window.deleteEmp = async () => {
     if (!editId) return;

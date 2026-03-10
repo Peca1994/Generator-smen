@@ -807,7 +807,7 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, updateDoc, setDoc, getDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, updateDoc, setDoc, getDoc, addDoc, deleteDoc,onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const app = initializeApp({
  apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
@@ -961,83 +961,89 @@ async function loadWorkers() {
   const container = document.getElementById("attendanceList");
   if (!container) return;
 
-  const snap = await getDocs(collection(db, "employees"));
-  
-  let moje = [];
-  let pujcene = [];
-  let temporaryWorkers = []; // Pomocné pole pro generátor
+  return new Promise((resolve) => {
+    let firstLoad = true;
 
-  snap.forEach(d => {
-    const e = d.data();
-    const st = e.statusToday || "work";
+    // Sledujeme změny ve Firebase v reálném čase (i bez klikání na uložit)
+    onSnapshot(collection(db, "employees"), (snap) => {
+      let moje = [];
+      let pujcene = [];
+      let temporaryWorkers = [];
 
-    const zakazane = ["sick", "vacation", "paragraf", "shitmaking", "loaned", "borrowed", "propujceny"];
-    if (zakazane.includes(st)) return;
+      snap.forEach(d => {
+        const e = d.data();
+        const st = e.statusToday || "work";
+        
+        // Seznam stavů, které nepatří do práce
+        const zakazane = ["sick", "vacation", "paragraf", "shitmaking", "loaned", "borrowed", "propujceny"];
+        if (zakazane.includes(st)) return;
 
-    const workerObj = { 
-      id: d.id, 
-      name: e.name, 
-      surname: e.surname || "", 
-      type: e.type || "kmenovy",
-      skills: e.skills || [], // Důležité pro generování!
-      status: st 
-    };
+        const workerObj = { 
+          id: d.id, 
+          name: e.name, 
+          surname: e.surname || "", 
+          type: e.type || "kmenovy",
+          skills: e.skills || [],
+          status: st 
+        };
 
-    // ✅ TADY JE TA ZMĚNA: Přidáme ho do seznamu pro generátor
-    temporaryWorkers.push(workerObj);
+        temporaryWorkers.push(workerObj);
+        if (e.type === "pujceny") {
+          pujcene.push(workerObj);
+        } else {
+          moje.push(workerObj);
+        }
+      });
 
-    if (e.type === "pujceny") {
-      pujcene.push(workerObj);
-    } else {
-      moje.push(workerObj);
-    }
+      // 1. Aktualizace globálního seznamu zaměstnanců
+      workers = temporaryWorkers; 
+
+      // 2. Seřazení a vykreslení levého seznamu (Docházka)
+      const sortFn = (a, b) => a.surname.localeCompare(b.surname, 'cs');
+      moje.sort(sortFn); 
+      pujcene.sort(sortFn);
+      
+      let html = "";
+      html += `<div style="color:#22c55e; font-size:10px; font-weight:900; margin:15px 0 8px 5px; text-transform:uppercase;">Moji Zaměstnanci (${moje.length})</div>`;
+      moje.forEach(w => { html += renderAttendanceRow(w, "#22c55e"); });
+      
+      if (pujcene.length > 0) {
+        html += `<div style="color:#3b82f6; font-size:10px; font-weight:900; margin:25px 0 8px 5px; text-transform:uppercase;">Půjčení / Výpomoc (${pujcene.length})</div>`;
+        pujcene.forEach(w => { html += renderAttendanceRow(w, "#3b82f6"); });
+      }
+      container.innerHTML = html;
+
+      // 3. ŽIVÁ AKTUALIZACE ROZPISU A NÁHRADNÍKŮ
+      if (!firstLoad) {
+          console.log("Kliknutí v okně detekováno. Přepočítávám náhradníky...");
+          
+          // Zjistíme ID všech lidí, kteří už v rozpisu někde figurují (aby nebyli v náhradnících)
+          const workingIds = new Set();
+          if (typeof phases !== 'undefined') {
+              phases.forEach(p => {
+                  if (p) Object.values(p).forEach(w => { if (w && w.id) workingIds.add(w.id); });
+              });
+          }
+
+          // Pokud existuje pole phaseReserves, naplníme ho všemi lidmi, kteří zrovna nepracují
+          if (typeof phaseReserves !== 'undefined') {
+              for (let i = 0; i < 4; i++) {
+                  phaseReserves[i] = workers.filter(w => !workingIds.has(w.id));
+              }
+          }
+
+          // Vykreslíme celou tabulku i žluté boxy náhradníků znovu
+          if (typeof render === "function") {
+              render(); 
+          }
+      }
+
+      if (firstLoad) {
+        firstLoad = false;
+        resolve();
+      }
+    });
   });
-
-  // ✅ AKTUALIZACE GLOBÁLNÍ PROMĚNNÉ (aby generátor věděl, s kým pracovat)
-  workers = temporaryWorkers; 
-
-  const sortFn = (a, b) => a.surname.localeCompare(b.surname, 'cs');
-  moje.sort(sortFn);
-  pujcene.sort(sortFn);
-
-  let html = "";
-  html += `<div style="color:#22c55e; font-size:10px; font-weight:900; margin:15px 0 8px 5px; text-transform:uppercase;">Moji Zaměstnanci (${moje.length})</div>`;
-  moje.forEach(w => { html += renderAttendanceRow(w, "#22c55e"); });
-
-  if (pujcene.length > 0) {
-    html += `<div style="color:#3b82f6; font-size:10px; font-weight:900; margin:25px 0 8px 5px; text-transform:uppercase;">Půjčení / Výpomoc (${pujcene.length})</div>`;
-    pujcene.forEach(w => { html += renderAttendanceRow(w, "#3b82f6"); });
-  }
-
-  container.innerHTML = html;
-}
-
-async function loadAllWorkers() {
-  const snap = await getDocs(collection(db, "employees"));
-  allWorkersMap = {};
-  let emps = [];
-
-  snap.forEach(d => {
-    const e = d.data();
-    const workerData = {
-      id: d.id,
-      name: e.name,
-      surname: e.surname || "",
-      skills: e.skills || [],
-      status: e.statusToday || "work",
-      type: e.type || "kmenovy" // Důležité pro rozlišení
-    };
-    allWorkersMap[d.id] = workerData;
-    emps.push(workerData);
-  });
-
-  // Seřazení podle příjmení (stejně jako v employees.html)
-  emps.sort((a, b) => a.surname.localeCompare(b.surname, 'cs'));
-
-  const kmenovi = emps.filter(e => e.type !== "pujceny");
-  const pujceni = emps.filter(e => e.type === "pujceny");
-
-  renderWorkerList(kmenovi, pujceni);
 }
 function renderWorkerList(kmenovi, pujceni) {
   const listDiv = document.getElementById("workerList"); // Zkontroluj si ID v HTML
