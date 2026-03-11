@@ -1262,7 +1262,7 @@ genBtn.onclick = async () => {
 loadBtn.onclick = async () => {
   loadingEl.style.display = "flex";
 
-  await loadWorkers(); 
+  await loadWorkers(); // Načte aktuální seznam lidí (workers) a vytvoří allWorkersMap
 
   const id = dateEl.value + "_" + shiftEl.value;
   const snap = await getDoc(doc(db, "shifts", id));
@@ -1274,36 +1274,97 @@ loadBtn.onclick = async () => {
   }
 
   const data = snap.data();
+  // Načtení informací o směně (časy)
   shiftInfo = data.info || { sk:{start:"",end:""}, fa:{start:"",end:""}, za:{start:"",end:""} };
 
+  // Načtení fází a spárování lidí se skilly přes allWorkersMap
   phases = data.phases.map(ph => {
     const o = {};
     Object.entries(ph).forEach(([pos, wid]) => {
-      if (allWorkersMap && allWorkersMap[wid]) {
-        // ✅ Použijeme objekt z mapy (který už má jen křestní jméno)
+      if (wid && allWorkersMap && allWorkersMap[wid]) {
+        // ✅ Máme ho v mapě, získáme i skilly
         o[pos] = allWorkersMap[wid];
-      } else {
-        // Pokud nenajdeme v mapě, zkusíme "ořezat" ID, pokud obsahuje podtržítko
-        let displayName = wid ? wid.split('_')[0] : "NEZNÁMÝ";
+      } else if (wid) {
+        // Nouzovka, pokud ho mapa nezná
+        let displayName = wid.split('_')[0];
         o[pos] = {
           id: wid,
-          name: displayName.charAt(0).toUpperCase() + displayName.slice(1), // První velké písmeno
+          name: displayName.charAt(0).toUpperCase() + displayName.slice(1),
           skills: [],
-          status: "missing"
+          status: "work"
         };
+      } else {
+        o[pos] = null;
       }
     });
     return o;
   });
 
+  // Výpočet náhradníků pro každou fázi (všichni kromě těch, co už v té fázi jsou)
   phaseReserves = phases.map(ph => {
-    const used = new Set(Object.values(ph).filter(Boolean).map(w => w.id));
-    return workers.filter(w => !used.has(w.id));
+    const usedIds = new Set(Object.values(ph).filter(w => w).map(w => w.id));
+    return workers.filter(w => !usedIds.has(w.id));
   });
 
   render();
   loadingEl.style.display = "none";
 };
+
+// --- 2. FUNKCE PRO VYNDÁNÍ ČLOVĚKA Z POZICE (Oprava Terky) ---
+window.removeWorker = () => {
+  const cur = phases[pickPhaseIndex][pickPosition];
+
+  if (cur) {
+    const zakazane = ["sick", "vacation", "paragraf", "shitmaking", "loaned", "borrowed", "propujceny"];
+    
+    // ✅ KLÍČOVÁ ČÁST: Najdeme v databázi 'workers' plnohodnotný objekt se skilly
+    const realWorker = workers.find(w => w.id === cur.id) || cur;
+
+    if (!zakazane.includes(realWorker.status)) {
+      // Pokud v náhradnících ještě není, přidáme ho tam se všemi skilly
+      const isAlreadyThere = phaseReserves[pickPhaseIndex].some(w => w.id === realWorker.id);
+      if (!isAlreadyThere) {
+        phaseReserves[pickPhaseIndex].push(realWorker);
+        // Seřadíme abecedně
+        phaseReserves[pickPhaseIndex].sort((a, b) => a.name.localeCompare(b.name));
+      }
+    }
+  }
+
+  phases[pickPhaseIndex][pickPosition] = null;
+  window.closePick(); 
+  render();
+};
+
+// --- 3. FUNKCE PRO ZAVŘENÍ OKNA VÝBĚRU ---
+window.closePick = () => {
+  if (typeof pickModal !== 'undefined') pickModal.style.display = "none";
+  else {
+    const modal = document.getElementById('pickModal');
+    if (modal) modal.style.display = "none";
+  }
+};
+
+// --- 4. TLAČÍTKO INFORMACE O SMĚNĚ (Vracíme funkčnost) ---
+infoBtn.onclick = () => {
+  // Pokud shiftInfo neexistuje, vytvoříme prázdné, aby kód nespadl
+  if (!shiftInfo) {
+    shiftInfo = { sk:{start:"",end:""}, fa:{start:"",end:""}, za:{start:"",end:""} };
+  }
+
+  // Naplnění inputů v modalu
+  if (document.getElementById('skStart')) {
+    skStart.value = shiftInfo.sk?.start || "";
+    skEnd.value   = shiftInfo.sk?.end   || "";
+    faStart.value = shiftInfo.fa?.start || "";
+    faEnd.value   = shiftInfo.fa?.end   || "";
+    zaStart.value = shiftInfo.za?.start || "";
+    zaEnd.value   = shiftInfo.za?.end   || "";
+  }
+
+  infoModal.style.display = "flex";
+};
+
 
 
 /* RENDER */
@@ -1433,34 +1494,39 @@ window.swapWorker=(wid)=>{
  closePick(); render();
 };
 
-window.removeWorker=()=>{
- const cur = phases[pickPhaseIndex][pickPosition];
-
- // --- OPRAVA: Vyprázdnění pozice ---
- if(cur) {
-    const zakazane = ["sick", "vacation", "paragraf", "shitmaking", "loaned", "borrowed", "propujceny"];
-    
-    // Do náhradníků ho vrátíme jen pokud je zdravý/v práci
-    if (!zakazane.includes(cur.status)) {
-        phaseReserves[pickPhaseIndex].push(cur);
-    }
- }
-
- phases[pickPhaseIndex][pickPosition] = null;
- closePick(); render();
+window.closePick = () => {
+  const pickModal = document.getElementById('pickModal'); // Ujisti se, že ID souhlasí s tvým HTML
+  if (pickModal) pickModal.style.display = "none";
 };
 
-window.closePick=()=> pickModal.style.display="none";
+window.removeWorker = () => {
+  const cur = phases[pickPhaseIndex][pickPosition];
 
-infoBtn.onclick = ()=>{
- skStart.value = shiftInfo.sk.start;
- skEnd.value   = shiftInfo.sk.end;
- faStart.value = shiftInfo.fa.start;
- faEnd.value   = shiftInfo.fa.end;
- zaStart.value = shiftInfo.za.start;
- zaEnd.value   = shiftInfo.za.end;
+  if (cur) {
+    const zakazane = ["sick", "vacation", "paragraf", "shitmaking", "loaned", "borrowed", "propujceny"];
+    
+    // --- KLÍČOVÁ OPRAVA: Dohledání skutečného pracovníka se skilly ---
+    const realWorker = workers.find(w => w.id === cur.id) || 
+                       workers.find(w => w.name === cur.name) || 
+                       cur;
 
- infoModal.style.display="flex";
+    if (!zakazane.includes(realWorker.status)) {
+        // Zkontrolujeme, jestli už v náhradnících náhodou není
+        const isAlreadyThere = phaseReserves[pickPhaseIndex].some(w => w.id === realWorker.id);
+        
+        if (!isAlreadyThere) {
+            phaseReserves[pickPhaseIndex].push(realWorker);
+        }
+    }
+  }
+
+  phases[pickPhaseIndex][pickPosition] = null;
+  
+  // Zavřeme okno a překreslíme
+  if (typeof closePick === "function") closePick();
+  else if (document.getElementById('pickModal')) document.getElementById('pickModal').style.display = "none";
+  
+  render();
 };
 
 window.closeInfo = () => {
