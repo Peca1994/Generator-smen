@@ -444,16 +444,19 @@ tbody td {
         <input id="nameFilter" placeholder="např. Jan" style="padding: 5px;">
     </div>
 
-    <div class="card" id="shiftInfoBox" style="display:none">
-      <h3 style="color:#22c55e; margin:0 0 10px 0;">ℹ️ Info o směně</h3>
-      <div id="infoDetails"></div>
-    </div>
+  <!-- Pod koncem filterCard divu -->
+</div> 
 
-    <div class="card">
-        <div class="table-wrapper">
-            <table id="grid"></table>
-        </div>
+<div id="shiftInfoBox" style="display:none; margin: 15px 0; background: rgba(0, 0, 0, 0.2); border-bottom: 1px solid rgba(34, 197, 94, 0.4); padding: 10px 0;">
+    <div id="infoDetails" style="display: flex; justify-content: space-around; align-items: center; max-width: 1200px; margin: 0 auto;">
+        <!-- Tady se vykreslí ty 3 sekce -->
     </div>
+</div>
+</div>
+
+<div class="card">
+    <div class="table-wrapper">
+        <table id="grid"></table>
     <div class="disclaimer">
         © 2026 ShiftMaster | Neoficiální nástroj. Logo ŠKODA je majetkem ŠKODA AUTO a.s.
     </div>
@@ -589,23 +592,62 @@ init();
 async function loadShift(){
     if(!dateEl.value) return;
     const id = `${dateEl.value}_${shiftEl.value}`;
-    console.log("Hledám ID dokumentu:", id);
 
     try {
         const snap = await getDoc(doc(db, "shifts", id));
         if(!snap.exists()){
-            gridEl.innerHTML = `<tr><td colspan="5" style="padding:20px; opacity:0.5;">Rozpis pro ${dateEl.value} nenalezen.</td></tr>`;
-            phasesData = [];
+            gridEl.innerHTML = "<tr><td>Rozpis nenalezen.</td></tr>";
+            // Schováme kartu, pokud rozpis neexistuje
+            document.getElementById('shiftInfoBox').style.display = 'none';
             return;
         }
-        phasesData = snap.data().phases || [];
+
+        const data = snap.data();
+        const details = document.getElementById('infoDetails');
+        const box = document.getElementById('shiftInfoBox');
+
+        // OPRAVA: Ve Firebase máš "info", ne "lineInfo"
+        if (data.info) {
+    const details = document.getElementById('infoDetails');
+    const box = document.getElementById('shiftInfoBox');
+    
+    // Šablona pro jednu sekci (aby se kód neopakoval)
+    const createSection = (label, start, end) => `
+        <div style="flex: 1; text-align: center; border-right: 1px solid rgba(255,255,255,0.05);">
+            <div style="font-size: 0.7rem; color: #22c55e; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">${label}</div>
+            <div style="display: flex; justify-content: center; gap: 20px; align-items: center;">
+                <div>
+                    <span style="display: block; font-size: 0.55rem; color: #888; text-transform: uppercase;">Začátek</span>
+                    <span style="font-size: 1.2rem; color: #fff; font-weight: 700;">${start}</span>
+                </div>
+                <div style="color: rgba(255,255,255,0.2); font-size: 1.2rem;">|</div>
+                <div>
+                    <span style="display: block; font-size: 0.55rem; color: #888; text-transform: uppercase;">Konec</span>
+                    <span style="font-size: 1.2rem; color: #fff; font-weight: 700;">${end}</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+    details.innerHTML = `
+        ${createSection('Scala / Kamiq', data.info.sk.start, data.info.sk.end)}
+        ${createSection('Fabia', data.info.fa.start, data.info.fa.end)}
+        <div style="flex: 1; text-align: center;"> <!-- Poslední nemá border-right -->
+            ${createSection('Zásobník', data.info.za.start, data.info.za.end)}
+        </div>
+    `;
+    
+    box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+
+        phasesData = data.phases || [];
         render();
     } catch (e) { 
-        console.error("Chyba Firebase:", e);
-        gridEl.innerHTML = "<tr><td>Chyba spojení s databází.</td></tr>";
+        console.error(e);
     }
 }
-
 function render(){
     const filter = nameFilterEl.value.toLowerCase().trim();
     const s = shiftEl.value;
@@ -717,6 +759,7 @@ nameFilterEl.addEventListener("input", render);
         window.addEventListener('load', setShiftAutomatically);
     }
 })();
+
 </script>
 </body>
 </html>
