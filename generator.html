@@ -1086,23 +1086,35 @@ if (typeof historyStats === 'undefined') { var historyStats = {}; }
 if (typeof lastPosByWorker === 'undefined') { var lastPosByWorker = {}; }
 
 function buildPhase(act) {
-  if (!act || !workers || workers.length < act.length) return null;
+  // --- TADY JE TA KLÍČOVÁ ZMĚNA ---
+  // Vyfiltrujeme POUZE lidi, kteří mají status 'work' (v práci)
+  // Tím zajistíme, že generátor nikoho jiného nepoužije
+  const activeWorkers = workers.filter(w => {
+    // Pokud status chybí, předpokládáme 'work', jinak kontrolujeme shodu
+    const s = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
+    return s === 'work';
+  });
+
+  // Nyní v celé funkci místo 'workers' používáme 'activeWorkers'
+  if (!act || !activeWorkers || activeWorkers.length < act.length) return null;
 
   const map = {};
   act.forEach(pos => {
-    map[pos] = workers.filter(w => w.skills && w.skills.includes(pos));
+    // I tady filtrujeme z activeWorkers
+    map[pos] = activeWorkers.filter(w => w.skills && w.skills.includes(pos));
   });
+
   const orderedPos = [...act].sort((a, b) => map[a].length - map[b].length);
 
   let bestResult = null;
   let minScore = Infinity;
 
   const getBasePos = (p) => (p && p.includes('-')) ? p.split('-')[0] : (p || "");
-
   const currentPhaseIdx = phases.length; 
 
-  // Zvýšeno na 1000 pokusů pro maximální šanci najít ideální rotaci
   for (let i = 0; i < 600; i++) {
+    // Tady předpokládám, že runSmartAttempt interně používá seznam z 'map', 
+    // který jsme už vyčistili výše, takže je to v pořádku.
     const attempt = runSmartAttempt(orderedPos, map);
     if (!attempt) continue;
 
@@ -1111,28 +1123,24 @@ function buildPhase(act) {
       const wId = attempt[pos].id;
       const currentBase = getBasePos(pos);
       
-      // 1. ZÁKAZ OPAKOVÁNÍ HNED PO SOBĚ (1-2, 2-3, 3-4)
       const lastPos = lastPosByWorker[wId];
       if (lastPos) {
-        if (lastPos === pos) currentScore += 50000; // Extrémní trest
+        if (lastPos === pos) currentScore += 50000; 
         else if (getBasePos(lastPos) === currentBase) currentScore += 20000;
       }
 
-      // 2. ZÁKAZ SKÁKÁNÍ OB JEDNU FÁZI (1-3, 2-4)
       if (currentPhaseIdx >= 2) {
         const phaseBack2 = phases[currentPhaseIdx - 2];
         const posBack2 = Object.keys(phaseBack2).find(p => phaseBack2[p].id === wId);
         
         if (posBack2) {
            if (posBack2 === pos) {
-             currentScore += 30000; // Obrovský trest za návrat na stejnou židli
+             currentScore += 30000; 
            } else if (getBasePos(posBack2) === currentBase) {
-             currentScore += 15000; // Velký trest za stejný typ operace
+             currentScore += 15000; 
            }
         }
       }
-      
-      // 3. DROBNÁ PENALIZACE ZA CELÝ DEN (historie 1-4 atd.)
       currentScore += (historyStats[wId + "_" + pos] || 0) * 100;
     }
 
@@ -1140,7 +1148,6 @@ function buildPhase(act) {
       minScore = currentScore;
       bestResult = attempt;
     }
-    // Pokud najdeme řešení se skóre 0 (nikdo neopakuje nic), končíme hned
     if (minScore === 0) break;
   }
 
@@ -1151,7 +1158,12 @@ function buildPhase(act) {
       lastPosByWorker[wId] = p;
     }
     const usedIds = new Set(Object.values(bestResult).map(w => w.id));
-    return { assign: bestResult, reserves: workers.filter(w => !usedIds.has(w.id)) };
+    
+    // Návrat náhradníků (reserves) také jen z aktivních pracovníků!
+    return { 
+        assign: bestResult, 
+        reserves: activeWorkers.filter(w => !usedIds.has(w.id)) 
+    };
   }
   return null;
 }
@@ -1385,6 +1397,16 @@ function render() {
   L.forEach(x => html += `<th style="font-size: 8px; padding: 2px; text-align: center;">${x}</th>`);
   html += "</tr></thead><tbody>";
 
+  // Sestavíme si seznam lidí, kteří už jsou v této směně obsazení (pro každou fázi p)
+  const busyInPhase = [new Set(), new Set(), new Set(), new Set()];
+  for (let p = 0; p < 4; p++) {
+    if (phases[p]) {
+      Object.values(phases[p]).forEach(worker => {
+        if (worker && worker.id) busyInPhase[p].add(worker.id);
+      });
+    }
+  }
+
   POSITIONS.forEach(pos => {
     const isLocked = locked.has(pos);
     const lockColor = isLocked ? '#f1c40f' : 'rgba(255,255,255,0.2)';
@@ -1395,65 +1417,44 @@ function render() {
     const posColor = isLocked ? '#f1c40f' : (isActive ? '#2ecc71' : 'white');
     const lockIcon = isLocked ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="${lockColor}" stroke-width="4" style="margin-right: 2px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>` : '';
 
-   html += `<tr style="height: 18px !important;">
-    <td onclick="toggleLock('${pos}')" style="cursor: pointer; width: 55px; padding: 0; height: 18px; background: ${rowBg} !important; border-right: 1px solid rgba(255,255,255,0.05); text-align: center;">
-        <span style="font-weight: 900; color: ${posColor}; font-size: 8px; display: flex; align-items: center; justify-content: center; height: 18px;">${lockIcon}${pos}</span>
-    </td>`;
+    html += `<tr style="height: 18px !important;">
+      <td onclick="toggleLock('${pos}')" style="cursor: pointer; width: 55px; padding: 0; height: 18px; background: ${rowBg} !important; border-right: 1px solid rgba(255,255,255,0.05); text-align: center;">
+          <span style="font-weight: 900; color: ${posColor}; font-size: 8px; display: flex; align-items: center; justify-content: center; height: 18px;">${lockIcon}${pos}</span>
+      </td>`;
 
     for (let p = 0; p < 4; p++) {
-      const w = phases[p]?.[pos];
-      
-      let currentStatus = 'work';
-      if (w && allWorkersMap && allWorkersMap[w.id]) {
-          currentStatus = allWorkersMap[w.id].statusToday || allWorkersMap[w.id].status || 'work';
-      } else if (w) {
-          currentStatus = w.statusToday || w.status || 'work';
-      }
-      
-      const alertStatuses = ["sick", "vacation", "paragraf", "loaned", "propujceny", "shitmaking", "Nemoc", "Dovolená", "Paragraf", "Propůjčený", "Parťák"];
-      const isAlert = w && alertStatuses.includes(currentStatus);
+     const w = phases[p]?.[pos];
+let currentStatus = 'work';
 
-      let displayName = w ? w.name : "—";
-      
-      // Výchozí barvy pro prázdnou buňku nebo běžného pracovníka
+if (w && allWorkersMap && allWorkersMap[w.id]) {
+    // Získáme status, převedeme na malá písmena a ořežeme mezery
+    currentStatus = (allWorkersMap[w.id].statusToday || allWorkersMap[w.id].status || 'work').toString().toLowerCase().trim();
+} else if (w) {
+    currentStatus = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
+}
+
+// TADY JE TA ZMĚNA: Každý, kdo NENÍ 'work', bude ALERT (červený)
+const isAlert = w && currentStatus !== 'work';
+
+let displayName = w ? w.name : "—";
       let tdColor = "white";
-      let tdBg = rowBg; // Použije barvu řádku (světle zelená/šedá)
+      let tdBg = rowBg;
       let tdWeight = "400";
 
       if (isAlert) {
-          // SYTĚ ČERVENÁ PRO CELOU BUŇKU
           tdColor = "#ffffff"; 
           tdBg = "#ef4444 !important"; 
           tdWeight = "800";
       } else if (w) {
-          // Standardní barva pro obsazenou buňku (zelená)
           tdColor = "#2ecc71";
           tdWeight = "800";
       } else {
-          // Prázdná buňka
           tdColor = "rgba(255,255,255,0.2)";
       }
 
-      // TADY JE TA ZMĚNA: Styl je přímo v <td> a text je jen čistý text
       html += `
         <td class="slot" onclick="pick(${p},'${pos}')" 
-            style="
-                padding: 0; 
-                background: ${tdBg}; 
-                height: 18px; 
-                width: 62px; 
-                text-align: center; 
-                vertical-align: middle;
-                border: 0.5px solid rgba(255,255,255,0.05);
-                color: ${tdColor};
-                font-size: 9px;
-                font-weight: ${tdWeight};
-                text-transform: uppercase;
-                cursor: pointer;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            ">
+            style="padding: 0; background: ${tdBg}; height: 18px; width: 62px; text-align: center; vertical-align: middle; border: 0.5px solid rgba(255,255,255,0.05); color: ${tdColor}; font-size: 9px; font-weight: ${tdWeight}; text-transform: uppercase; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
             ${displayName}
         </td>`;
     }
@@ -1463,16 +1464,28 @@ function render() {
   html += "</tbody>";
   gridEl.innerHTML = html;
   
-  // NÁHRADNÍCI - Aby i dole svítili červeně
-  reservesBoxEl.innerHTML = phaseReserves.map((arr, i) =>
-    `<div style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; margin-bottom: 2px; font-size: 10px; color: white;">
-      <b style="color: #f1c40f;">F${i + 1}:</b> ${arr.map(w => {
-          const s = w.statusToday || w.status || 'work';
-          const alertS = ["sick", "vacation", "paragraf", "loaned", "propujceny", "shitmaking", "Nemoc", "Dovolená", "Paragraf", "Propůjčený", "Parťák"];
-          const isA = alertS.includes(s);
-          return `<span style="color: ${isA ? '#ff4d4d' : 'inherit'}; font-weight: ${isA ? 'bold' : 'normal'};">${w.name}${isA ? '⚠️' : ''}</span>`;
-      }).join(", ") || "—"}
-    </div>`).join("");
+  // --- NÁHRADNÍCI (Opravená logika) ---
+  // Místo nespolehlivých reservesData projdeme přímo allWorkersMap
+  reservesBoxEl.innerHTML = [0, 1, 2, 3].map(p => {
+    const availableAtWork = Object.values(allWorkersMap || {}).filter(worker => {
+      if (!worker || !worker.name) return false;
+      
+      const s = (worker.statusToday || worker.status || 'work').toString().toLowerCase().trim();
+      
+      // PODMÍNKA 1: Musí mít status 'work' (tady projdou všichni, i externisté)
+      const isWorking = (s === 'work');
+      
+      // PODMÍNKA 2: Nesmí už být obsazen v této konkrétní fázi p
+      const isNotBusy = !busyInPhase[p].has(worker.id);
+
+      return isWorking && isNotBusy;
+    });
+
+    return `
+    <div style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; margin-bottom: 2px; font-size: 10px; color: white;">
+      <b style="color: #f1c40f;">F${p + 1}:</b> ${availableAtWork.map(w => `<span>${w.name}</span>`).join(", ") || "—"}
+    </div>`;
+  }).join("");
 }
 /* LOCK TOGGLE */
 
