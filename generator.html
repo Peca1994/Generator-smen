@@ -1015,18 +1015,37 @@ async function loadWorkers() {
       }
       container.innerHTML = html;
 
-      if (!firstLoad) {
+       if (!firstLoad) {
+          // 1. Zjistíme, kdo je právě teď obsazený v TABULCE (napříč všemi 4 fázemi)
           const workingIds = new Set();
           if (typeof phases !== 'undefined') {
               phases.forEach(p => {
-                  if (p) Object.values(p).forEach(w => { if (w && w.id) workingIds.add(w.id); });
+                  if (p) Object.values(p).forEach(w => { 
+                      if (w && w.id) workingIds.add(w.id); 
+                  });
               });
           }
+
           if (typeof phaseReserves !== 'undefined') {
               for (let i = 0; i < 4; i++) {
-                  phaseReserves[i] = workers.filter(w => !workingIds.has(w.id));
+                  // 2. OPRAVA: Náhradníci musí být lidé z 'workers' (které mají skilly!),
+                  // kteří NEJSOU v tabulce v této fázi 'i' a mají status 'work'
+                  
+                  const busyInThisPhase = new Set();
+                  if (phases[i]) {
+                      Object.values(phases[i]).forEach(w => { 
+                          if (w && w.id) busyInThisPhase.add(w.id); 
+                      });
+                  }
+
+                  phaseReserves[i] = workers.filter(w => {
+                      const isNotBusyHere = !busyInThisPhase.has(w.id);
+                      const s = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
+                      return isNotBusyHere && s === 'work';
+                  });
               }
           }
+
           if (typeof render === "function") { render(); }
       }
 
@@ -1499,42 +1518,58 @@ window.toggleLock=(pos)=>{
 
 let pickPhaseIndex,pickPosition;
 
-window.pick=(phase,pos)=>{
- pickPhaseIndex=phase;
- pickPosition=pos;
- const list=phaseReserves[phase].filter(w=>w.skills.includes(pos));
- pickTitle.innerText="Pozice "+pos;
- pickList.innerHTML=
- list.map(w=>`<button class="pickBtn" onclick="swapWorker('${w.id}')">${w.name}</button>`).join("")
- + `<button class="pickBtn removeBtn" onclick="removeWorker()">Vyprázdnit</button>`;
- pickModal.style.display="flex";
+window.pick = (phase, pos) => {
+  pickPhaseIndex = phase;
+  pickPosition = pos;
+
+  // TADY JE TA ZMĚNA: Filtrujeme náhradníky tak, aby zůstali jen ti se statusem 'work'
+  const list = phaseReserves[phase].filter(w => {
+    // 1. Musí mít skill pro danou pozici
+    const hasSkill = w.skills && w.skills.includes(pos);
+    
+    // 2. Musí mít status 'work' (tady je ta klíčová kontrola)
+    // Pokud status chybí, počítáme s tím, že je v práci (default 'work')
+    const s = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
+    const isWorking = (s === 'work');
+    
+    return hasSkill && isWorking;
+  });
+
+  pickTitle.innerText = "Pozice " + pos;
+  pickList.innerHTML =
+    list.map(w => `<button class="pickBtn" onclick="swapWorker('${w.id}')">${w.name}</button>`).join("")
+    + `<button class="pickBtn removeBtn" onclick="removeWorker()">Vyprázdnit</button>`;
+  pickModal.style.display = "flex";
 };
 
 window.swapWorker = (wid) => {
-  // Najdeme nového pracovníka v hlavní databázi (včetně jeho skillů)
-  const newWorker = workers.find(x => x.id === wid);
+  // 1. Najdeme nového pracovníka - VŽDY prioritně z allWorkersMap, tam jsou skilly!
+  const newWorker = allWorkersMap[wid] || workers.find(x => x.id === wid);
   const cur = phases[pickPhaseIndex][pickPosition];
 
   // VRÁCENÍ PŮVODNÍHO PRACOVNÍKA DO NÁHRADNÍKŮ
   if (cur) {
-    const zakazane = ["sick", "vacation", "paragraf", "shitmaking", "loaned", "borrowed", "propujceny"];
-    
-    // Zkusíme najít originál v mapě nebo v poli workers podle ID
+    // 2. Najdeme originál se skilly (opět prioritně v mapě)
     const realOldWorker = allWorkersMap[cur.id] || workers.find(w => w.id === cur.id) || cur;
+    
+    // Získáme aktuální status
+    const s = (realOldWorker.statusToday || realOldWorker.status || 'work').toString().toLowerCase().trim();
 
-    if (!zakazane.includes(realOldWorker.status)) {
+    // 3. Vracíme do náhradníků pouze ty, co mají status 'work'
+    if (s === 'work') {
         const isAlreadyThere = phaseReserves[pickPhaseIndex].some(w => w.id === realOldWorker.id);
         if (!isAlreadyThere) {
-            phaseReserves[pickPhaseIndex].push(realOldWorker); // Vracíme verzi se SKILLY
-            phaseReserves[pickPhaseIndex].sort((a, b) => (a.surname || "").localeCompare(b.surname || "", 'cs'));
+            // Uložíme tam čistý objekt z mapy, který ty skilly URČITĚ má
+            phaseReserves[pickPhaseIndex].push(realOldWorker);
+            phaseReserves[pickPhaseIndex].sort((a, b) => (a.name || "").localeCompare(b.name || "", 'cs'));
         }
     }
   }
 
-  // Přiřadíme nového pracovníka (který má skilly) do rozpisu
+  // Přiřadíme nového pracovníka do rozpisu (tady už má skilly z allWorkersMap)
   phases[pickPhaseIndex][pickPosition] = newWorker;
   
-  // Odstraníme ho z náhradníků pro tuto fázi
+  // Odstraníme ho z náhradníků
   phaseReserves[pickPhaseIndex] = phaseReserves[pickPhaseIndex].filter(x => x.id !== wid);
   
   closePick(); 
