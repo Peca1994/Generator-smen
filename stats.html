@@ -382,36 +382,33 @@ async function loadAndCalculateStats() {
         empsSnap.forEach(d => {
             const data = d.data();
             if (data.type !== "pujceny") {
-                
-                // --- FILTR NEŽÁDOUCÍCH POZIC ---
                 const allSkills = data.skills || [];
                 const validSkills = allSkills.filter(skill => {
-                    const s = skill.toUpperCase(); // Pro jistotu, aby to bralo i malá písmena
-                    
-                    // Definice zákazů:
-                    const isVetraky = s.startsWith("VET");
-                    const isInstalace = s.startsWith("INST");
-                    const isZamky = (s === "ZAM-L" || s === "ZAM-P");
-
-                    // Pokud je to něco z toho, vrátíme FALSE (vyřadit)
-                    return !(isVetraky || isInstalace || isZamky);
+                    const s = skill.toUpperCase();
+                    return !(s.startsWith("VET") || s.startsWith("INST") || s === "ZAM-L" || s === "ZAM-P");
                 });
 
                 myEmps[d.id] = {
                     name: `${data.name} ${data.surname || ""}`,
                     totalHours: 0,
+                    absentHours: 0,
                     positions: {},
-                    skillsCount: validSkills.length // Počítáme jen ty naše pozice
+                    skillsCount: validSkills.length
                 };
             }
         });
 
-        // 2. Výpočet s dynamickým filtrem
-       shiftsSnap.forEach(doc => {
-            const shift = doc.data();
-            if (!shift.date) return;
+        // --- POJISTKA PROTI DUPLICITÁM NAPŘÍČ DOKUMENTY ---
+        // Budeme si ukládat: { empId: [ "2026-03-13", "2026-03-14" ] }
+        const globalProcessedDates = {};
 
-            const year = shift.date.split('-')[0];
+        // 2. Výpočet ze směn
+        shiftsSnap.forEach(doc => {
+            const shift = doc.data();
+            const fullDate = shift.date; // Např. "2026-03-13"
+            if (!fullDate) return;
+
+            const year = fullDate.split('-')[0];
             availableYears.add(year);
 
             if (currentPeriod !== 'all' && year !== currentPeriod) return;
@@ -419,43 +416,57 @@ async function loadAndCalculateStats() {
             const statusMap = shift.statusSnapshot || {};
             const phases = shift.phases || [];
 
+            // Definice statusů
+            const workStatuses = ["work", "shitmaking", "loaned", "borrowed"];
+            const absentStatuses = ["paragraf", "vacation", "sick"];
+
+            // A) ZPRACOVÁNÍ STATUSŮ (Absence a ruční statusy mají prioritu)
             Object.entries(statusMap).forEach(([empId, status]) => {
-    if (myEmps[empId]) {
-        // 1. POČÍTÁME PRÁCI (včetně shitmaking a loaned/borrowed)
-        const workStatuses = ["work", "shitmaking", "loaned"];
-        if (workStatuses.includes(status)) {
-            myEmps[empId].totalHours += 7.5;
-        }
+                if (myEmps[empId]) {
+                    // Inicializace pole pro datumy u daného člověka
+                    if (!globalProcessedDates[empId]) globalProcessedDates[empId] = new Set();
 
-        // 2. POČÍTÁME ABSENCI (Pouze paragrafy, dovolená a nemoc)
-        // POZOR: Názvy musí přesně odpovídat tvým CSS statusům (např. status-vacation -> vacation)
-        const absentStatuses = ["paragraf", "vacation", "sick"];
-        
-        if (absentStatuses.includes(status)) {
-            // Přičítáme 7.5h za každou směnu s tímto statusem
-            myEmps[empId].absentHours = (myEmps[empId].absentHours || 0) + 7.5;
-        }
-    }
-});
+                    // Pokud jsme tento den pro tohoto člověka ještě NIC nezapočítali
+                    if (!globalProcessedDates[empId].has(fullDate)) {
+                        const s = (status || "").toLowerCase();
 
+                        if (workStatuses.includes(s)) {
+                            myEmps[empId].totalHours += 7.5;
+                            globalProcessedDates[empId].add(fullDate);
+                        } 
+                        else if (absentStatuses.includes(s)) {
+                            myEmps[empId].absentHours += 7.5;
+                            globalProcessedDates[empId].add(fullDate);
+                        }
+                    }
+                }
+            });
+
+            // B) ZPRACOVÁNÍ PHASES (Pokud člověk nemá status, ale je na pozici, počítáme ho jako "v práci")
             phases.forEach(phase => {
                 Object.entries(phase).forEach(([pos, empId]) => {
                     if (myEmps[empId]) {
+                        // Statistika pozic se počítá vždy
                         myEmps[empId].positions[pos] = (myEmps[empId].positions[pos] || 0) + 1;
+
+                        // Pokud tento člověk nemá status v statusMap, ale je ve fázích -> počítáme jako práci
+                        if (!globalProcessedDates[empId]) globalProcessedDates[empId] = new Set();
+                        if (!globalProcessedDates[empId].has(fullDate)) {
+                            myEmps[empId].totalHours += 7.5;
+                            globalProcessedDates[empId].add(fullDate);
+                        }
                     }
                 });
             });
         });
 
-        // Aktualizace výběrového menu podle nalezených roků
         updateYearSelect();
-
         statsData = Object.values(myEmps);
         renderAll();
 
     } catch (err) {
-        console.error(err);
-        listEl.innerHTML = `<div style="color:red">Chyba: ${err.message}</div>`;
+        console.error("Chyba:", err);
+        if (listEl) listEl.innerHTML = `<div style="color:red">Chyba: ${err.message}</div>`;
     }
 }
 
