@@ -378,7 +378,7 @@ async function loadAndCalculateStats() {
         let myEmps = {};
         availableYears.clear();
 
-        // 1. Příprava zaměstnanců
+        // 1. Příprava zaměstnanců a Skills (z karty zaměstnance)
         empsSnap.forEach(d => {
             const data = d.data();
             if (data.type !== "pujceny") {
@@ -398,14 +398,10 @@ async function loadAndCalculateStats() {
             }
         });
 
-        // --- POJISTKA PROTI DUPLICITÁM NAPŘÍČ DOKUMENTY ---
-        // Budeme si ukládat: { empId: [ "2026-03-13", "2026-03-14" ] }
-        const globalProcessedDates = {};
-
-        // 2. Výpočet ze směn
+        // 2. Výpočet HODIN - DÍVÁME SE POUZE NA statusSnapshot
         shiftsSnap.forEach(doc => {
             const shift = doc.data();
-            const fullDate = shift.date; // Např. "2026-03-13"
+            const fullDate = shift.date;
             if (!fullDate) return;
 
             const year = fullDate.split('-')[0];
@@ -416,57 +412,42 @@ async function loadAndCalculateStats() {
             const statusMap = shift.statusSnapshot || {};
             const phases = shift.phases || [];
 
-            // Definice statusů
-            const workStatuses = ["work", "shitmaking", "loaned", "borrowed"];
+            // A) POČÍTÁNÍ HODIN ZE SNAPSHOTU (Tečka, nic jiného hodiny nedává)
+            const workStatuses = ["work", "shitmaking", "loaned"];
             const absentStatuses = ["paragraf", "vacation", "sick"];
 
-            // A) ZPRACOVÁNÍ STATUSŮ (Absence a ruční statusy mají prioritu)
             Object.entries(statusMap).forEach(([empId, status]) => {
                 if (myEmps[empId]) {
-                    // Inicializace pole pro datumy u daného člověka
-                    if (!globalProcessedDates[empId]) globalProcessedDates[empId] = new Set();
+                    const s = (status || "").toLowerCase();
 
-                    // Pokud jsme tento den pro tohoto člověka ještě NIC nezapočítali
-                    if (!globalProcessedDates[empId].has(fullDate)) {
-                        const s = (status || "").toLowerCase();
-
-                        if (workStatuses.includes(s)) {
-                            myEmps[empId].totalHours += 7.5;
-                            globalProcessedDates[empId].add(fullDate);
-                        } 
-                        else if (absentStatuses.includes(s)) {
-                            myEmps[empId].absentHours += 7.5;
-                            globalProcessedDates[empId].add(fullDate);
-                        }
+                    if (workStatuses.includes(s)) {
+                        myEmps[empId].totalHours += 7.5;
+                    } 
+                    else if (absentStatuses.includes(s)) {
+                        myEmps[empId].absentHours += 7.5;
                     }
                 }
             });
 
-            // B) ZPRACOVÁNÍ PHASES (Pokud člověk nemá status, ale je na pozici, počítáme ho jako "v práci")
+            // B) POČÍTÁNÍ POZIC Z PHASES (Pouze pro ty ikonky pod jménem, neovlivňuje hodiny)
             phases.forEach(phase => {
                 Object.entries(phase).forEach(([pos, empId]) => {
                     if (myEmps[empId]) {
-                        // Statistika pozic se počítá vždy
                         myEmps[empId].positions[pos] = (myEmps[empId].positions[pos] || 0) + 1;
-
-                        // Pokud tento člověk nemá status v statusMap, ale je ve fázích -> počítáme jako práci
-                        if (!globalProcessedDates[empId]) globalProcessedDates[empId] = new Set();
-                        if (!globalProcessedDates[empId].has(fullDate)) {
-                            myEmps[empId].totalHours += 7.5;
-                            globalProcessedDates[empId].add(fullDate);
-                        }
                     }
                 });
             });
         });
 
         updateYearSelect();
-        statsData = Object.values(myEmps);
+
+        // 3. SEŘAZENÍ (Lidé s největší absencí nahoře)
+        statsData = Object.values(myEmps).sort((a, b) => (b.absentHours || 0) - (a.absentHours || 0));
+        
         renderAll();
 
     } catch (err) {
-        console.error("Chyba:", err);
-        if (listEl) listEl.innerHTML = `<div style="color:red">Chyba: ${err.message}</div>`;
+        console.error("Chyba při načítání statistik:", err);
     }
 }
 
