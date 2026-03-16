@@ -820,7 +820,7 @@ const app = initializeApp({
 });
 
 const db = getFirestore(app);
-
+let currentShiftSnapshot = null;
 /* DOM */
 
 const loadingEl = document.getElementById("loading");
@@ -1279,56 +1279,85 @@ genBtn.onclick = async () => {
 /* LOAD */
 
 loadBtn.onclick = async () => {
-  loadingEl.style.display = "flex";
+    loadingEl.style.display = "flex";
 
-  await loadWorkers(); // Načte aktuální seznam lidí (workers) a vytvoří allWorkersMap
+    try {
+        // 1. Načtení všech zaměstnanců (aktuální data)
+        const empSnap = await getDocs(collection(db, "employees"));
+        allWorkersMap = {}; 
+        const allWorkersArray = [];
 
-  const id = dateEl.value + "_" + shiftEl.value;
-  const snap = await getDoc(doc(db, "shifts", id));
+        empSnap.forEach(doc => {
+            // ID i data ukládáme čistě
+            const w = { id: doc.id.trim(), ...doc.data() };
+            allWorkersMap[w.id] = w;
+            allWorkersArray.push(w);
+        });
 
-  if (!snap.exists()) {
-    alert("Směna neexistuje");
-    loadingEl.style.display = "none";
-    return;
-  }
+        // Synchronizace s globální proměnnou workers
+        window.workers = allWorkersArray;
 
-  const data = snap.data();
-  // Načtení informací o směně (časy)
-  shiftInfo = data.info || { sk:{start:"",end:""}, fa:{start:"",end:""}, za:{start:"",end:""} };
+        const id = dateEl.value + "_" + shiftEl.value;
+        const snap = await getDoc(doc(db, "shifts", id));
 
-  // 1. Načtení fází a spárování lidí (Tady zůstává tvá funkční oprava pro přenos dat)
-  phases = data.phases.map(ph => {
-    const o = {};
-    Object.entries(ph).forEach(([pos, wid]) => {
-      if (wid && allWorkersMap && allWorkersMap[wid]) {
-        // Tady se přenesou všechna aktuální data (včetně statusToday), aby render mohl barvit červeně
-        o[pos] = { ...allWorkersMap[wid] }; 
-      } else if (wid) {
-        o[pos] = { id: wid, name: wid.split('_')[0], skills: [], status: "work" };
-      } else {
-        o[pos] = null;
-      }
+        if (!snap.exists()) {
+            alert("Směna neexistuje.");
+            loadingEl.style.display = "none";
+            return;
+        }
+
+        const data = snap.data();
+        currentShiftSnapshot = data.statusSnapshot || {}; 
+        shiftInfo = data.info || { sk:{start:"",end:""}, fa:{start:"",end:""}, za:{start:"",end:""} };
+
+        // 2. REKONSTRUKCE TABULKY (Phases)
+        phases = data.phases.map(ph => {
+            const o = {};
+            Object.entries(ph).forEach(([pos, wid]) => {
+                if (wid && allWorkersMap[wid.trim()]) {
+                    const worker = { ...allWorkersMap[wid.trim()] };
+                    // Vnutíme historický status
+                    const s = currentShiftSnapshot[worker.id] || "work";
+                    worker.statusToday = s;
+                    o[pos] = worker;
+                } else {
+                    o[pos] = null;
+                }
+            });
+            return o;
+        });
+
+        // 3. VÝPOČET NÁHRADNÍKŮ (Reserves) - Tady byla ta chyba
+        const zakazane = ["nemoc", "dovolená", "sick", "vacation", "paragraf"];
+
+       phaseReserves = phases.map((ph, phaseIdx) => {
+    const usedIdsInPhase = new Set();
+    Object.values(ph).forEach(w => { if (w && w.id) usedIdsInPhase.add(w.id.trim()); });
+
+    return allWorkersArray.filter(w => {
+        // Získáme status z historie (nebo aktuální)
+        const s = (currentShiftSnapshot[w.id] || "work").toString().toLowerCase().trim();
+        
+        const isUsed = usedIdsInPhase.has(w.id.trim());
+        
+        // PŘÍSNÁ PODMÍNKA: Musí to být přesně "work"
+        const isOnlyWork = (s === "work");
+
+        // Petr (a ostatní) projde jen pokud není v tabulce A MÁ status work
+        return !isUsed && isOnlyWork;
     });
-    return o;
-  });
+});
 
-  // 2. Výpočet náhradníků - TADY JE TA ZMĚNA (Filtrujeme lidi se špatným statusem)
-  const zakazane = ["sick", "vacation", "paragraf", "shitmaking", "loaned", "borrowed", "propujceny"];
+        // Finální kontrola do konzole
+        console.log("Náhradníci pro 3. fázi (sloupec):", phaseReserves[2]);
+        
+        render(); 
+        loadingEl.style.display = "none";
 
-  phaseReserves = phases.map(ph => {
-    // Ids lidí, kteří už v tabulce sedí
-    const usedIds = new Set(Object.values(ph).filter(w => w).map(w => w.id));
-    
-    // Filtrujeme globální seznam 'workers'
-    return workers.filter(w => {
-        const s = w.statusToday || w.status || 'work';
-        // Podmínka: Nesmí být v tabulce A ZÁROVEŇ nesmí mít zakázaný status
-        return !usedIds.has(w.id) && !zakazane.includes(s);
-    });
-  });
-
-  render();
-  loadingEl.style.display = "none";
+    } catch (err) {
+        console.error("Chyba:", err);
+        loadingEl.style.display = "none";
+    }
 };
 
 // --- 2. FUNKCE PRO VYNDÁNÍ ČLOVĚKA Z POZICE (Oprava Terky) ---
@@ -1412,7 +1441,7 @@ function render() {
   L.forEach(x => html += `<th style="font-size: 8px; padding: 2px; text-align: center;">${x}</th>`);
   html += "</tr></thead><tbody>";
 
-  // Sestavíme si seznam lidí, kteří už jsou v této směně obsazení (pro každou fázi p)
+  // 1. Zjistíme, kdo už v každé fázi pracuje
   const busyInPhase = [new Set(), new Set(), new Set(), new Set()];
   for (let p = 0; p < 4; p++) {
     if (phases[p]) {
@@ -1422,6 +1451,7 @@ function render() {
     }
   }
 
+  // 2. Vykreslíme řádky s pozicemi (DP-L, VET atd.)
   POSITIONS.forEach(pos => {
     const isLocked = locked.has(pos);
     const lockColor = isLocked ? '#f1c40f' : 'rgba(255,255,255,0.2)';
@@ -1438,69 +1468,53 @@ function render() {
       </td>`;
 
     for (let p = 0; p < 4; p++) {
-     const w = phases[p]?.[pos];
-let currentStatus = 'work';
+      const w = phases[p]?.[pos];
+      let currentStatus = 'work';
 
-if (w && allWorkersMap && allWorkersMap[w.id]) {
-    // Získáme status, převedeme na malá písmena a ořežeme mezery
-    currentStatus = (allWorkersMap[w.id].statusToday || allWorkersMap[w.id].status || 'work').toString().toLowerCase().trim();
-} else if (w) {
-    currentStatus = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
-}
-
-// TADY JE TA ZMĚNA: Každý, kdo NENÍ 'work', bude ALERT (červený)
-const isAlert = w && currentStatus !== 'work';
-
-let displayName = w ? w.name : "—";
-      let tdColor = "white";
-      let tdBg = rowBg;
-      let tdWeight = "400";
-
-      if (isAlert) {
-          tdColor = "#ffffff"; 
-          tdBg = "#ef4444 !important"; 
-          tdWeight = "800";
-      } else if (w) {
-          tdColor = "#2ecc71";
-          tdWeight = "800";
-      } else {
-          tdColor = "rgba(255,255,255,0.2)";
+      if (w) {
+        if (typeof currentShiftSnapshot !== 'undefined' && currentShiftSnapshot && currentShiftSnapshot[w.id]) {
+          currentStatus = currentShiftSnapshot[w.id].toString().toLowerCase().trim();
+        } else if (allWorkersMap && allWorkersMap[w.id]) {
+          currentStatus = (allWorkersMap[w.id].statusToday || allWorkersMap[w.id].status || 'work').toString().toLowerCase().trim();
+        } else {
+          currentStatus = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
+        }
       }
+
+      const isAlert = w && currentStatus !== 'work';
+      let displayName = w ? w.name : "—";
+      let tdColor = isAlert ? "#ffffff" : (w ? "#2ecc71" : "rgba(255,255,255,0.2)");
+      let tdBg = isAlert ? "#ef4444 !important" : rowBg;
 
       html += `
         <td class="slot" onclick="pick(${p},'${pos}')" 
-            style="padding: 0; background: ${tdBg}; height: 18px; width: 62px; text-align: center; vertical-align: middle; border: 0.5px solid rgba(255,255,255,0.05); color: ${tdColor}; font-size: 9px; font-weight: ${tdWeight}; text-transform: uppercase; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            style="padding: 0; background: ${tdBg}; height: 18px; width: 62px; text-align: center; vertical-align: middle; border: 0.5px solid rgba(255,255,255,0.05); color: ${tdColor}; font-size: 9px; font-weight: 800; text-transform: uppercase; cursor: pointer;">
             ${displayName}
         </td>`;
     }
     html += "</tr>";
   });
 
+  // --- TADY JE TA ČÁST, KTEROU JSI CHTĚL VLOŽIT ---
+  // Přidáme na konec tabulky řádky F1 až F4 s náhradníky
+  for (let p = 0; p < 4; p++) {
+    // Bereme seznam náhradníků, který už je v loadBtn vyfiltrovaný na "work"
+    const res = phaseReserves[p] || [];
+    const names = res.map(w => w.name).join(", ");
+
+    html += `
+      <tr style="height: 18px; background: rgba(255,255,255,0.02) !important;">
+        <td style="width: 55px; text-align: center; color: #f1c40f; font-weight: 900; font-size: 8px; border-right: 1px solid rgba(255,255,255,0.05);">
+          F${p + 1}:
+        </td>
+        <td colspan="4" style="padding-left: 10px; color: rgba(255,255,255,0.5); font-size: 8px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          ${names || "—"}
+        </td>
+      </tr>`;
+  }
+
   html += "</tbody>";
   gridEl.innerHTML = html;
-  
-  // --- NÁHRADNÍCI (Opravená logika) ---
-  // Místo nespolehlivých reservesData projdeme přímo allWorkersMap
-  reservesBoxEl.innerHTML = [0, 1, 2, 3].map(p => {
-    const availableAtWork = Object.values(allWorkersMap || {}).filter(worker => {
-      if (!worker || !worker.name) return false;
-      
-      const s = (worker.statusToday || worker.status || 'work').toString().toLowerCase().trim();
-      
-      // PODMÍNKA 1: Musí mít status 'work' (tady projdou všichni, i externisté)
-      const isWorking = (s === 'work');
-      
-      // PODMÍNKA 2: Nesmí už být obsazen v této konkrétní fázi p
-      const isNotBusy = !busyInPhase[p].has(worker.id);
-
-      return isWorking && isNotBusy;
-    });
-
-    return `
-    <div style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; margin-bottom: 2px; font-size: 10px; color: white;">
-      <b style="color: #f1c40f;">F${p + 1}:</b> ${availableAtWork.map(w => `<span>${w.name}</span>`).join(", ") || "—"}
-    </div>`;
-  }).join("");
 }
 /* LOCK TOGGLE */
 
@@ -1733,37 +1747,47 @@ async function loadAttendance() {
     try {
         const snap = await getDocs(collection(db, "employees"));
         let emps = [];
+        
         snap.forEach(d => {
             const data = d.data();
-            emps.push({ id: d.id, ...data });
+            let worker = { id: d.id, ...data };
+
+            // --- KLÍČOVÁ ZMĚNA ---
+            // Pokud máme načtenou směnu, vnutíme historický status ze směny.
+            if (typeof currentShiftSnapshot !== 'undefined' && currentShiftSnapshot && currentShiftSnapshot[d.id]) {
+                worker.statusToday = currentShiftSnapshot[d.id];
+                worker.status = currentShiftSnapshot[d.id];
+            }
+            emps.push(worker);
         });
 
-        // 1. Definice priority rolí (nižší číslo = vyšší pozice)
+        // 1. Definice priority statusů (čím nižší číslo, tím výše v seznamu)
         const rolePrio = { 
-            'shitmaking': 1, 
-            'work': 2, 
-            'borrowed': 3, 
-            'loaned': 4, 
-            'vacation': 5, 
-            'paragraf': 6, 
-            'sick': 7 
+            'shitmaking': 1, // Parťák
+            'work': 2,       // V práci
+            'borrowed': 3,   // Půjčený sem
+            'loaned': 4,     // Propůjčený pryč
+            'vacation': 5,   // Dovolená
+            'paragraf': 6,   // Paragraf
+            'sick': 7        // Nemoc
         };
 
-        // 2. HLAVNÍ ŘAZENÍ (Důkladné ošetření prázdných hodnot)
+        // 2. SAMOTNÉ ŘAZENÍ (Status -> Jméno)
         emps.sort((a, b) => {
-            // A) Typ (Moji vs Půjčení)
+            // A) Nejdřív podle typu (Moji vs Půjčení)
             const typeA = (a.type === "pujceny") ? 1 : 0;
             const typeB = (b.type === "pujceny") ? 1 : 0;
             if (typeA !== typeB) return typeA - typeB;
 
-            // B) Role (Status)
+            // B) Potom podle priority statusu
             const statA = a.statusToday || 'work';
             const statB = b.statusToday || 'work';
             const prioA = rolePrio[statA] || 2;
             const prioB = rolePrio[statB] || 2;
+            
             if (prioA !== prioB) return prioA - prioB;
 
-            // C) Abeceda
+            // C) Nakonec podle jména (Abeceda)
             return (a.name || "").localeCompare(b.name || "", 'cs');
         });
 
