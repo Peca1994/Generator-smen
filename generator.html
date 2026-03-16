@@ -1015,38 +1015,34 @@ async function loadWorkers() {
       }
       container.innerHTML = html;
 
-       if (!firstLoad) {
-          // 1. Zjistíme, kdo je právě teď obsazený v TABULCE (napříč všemi 4 fázemi)
+      if (!firstLoad) {
           const workingIds = new Set();
           if (typeof phases !== 'undefined') {
               phases.forEach(p => {
-                  if (p) Object.values(p).forEach(w => { 
-                      if (w && w.id) workingIds.add(w.id); 
-                  });
+                  if (p) {
+                      Object.values(p).forEach(w => { 
+                          if (w && w.id) workingIds.add(w.id); 
+                      });
+                  }
               });
           }
 
           if (typeof phaseReserves !== 'undefined') {
               for (let i = 0; i < 4; i++) {
-                  // 2. OPRAVA: Náhradníci musí být lidé z 'workers' (které mají skilly!),
-                  // kteří NEJSOU v tabulce v této fázi 'i' a mají status 'work'
-                  
-                  const busyInThisPhase = new Set();
-                  if (phases[i]) {
-                      Object.values(phases[i]).forEach(w => { 
-                          if (w && w.id) busyInThisPhase.add(w.id); 
-                      });
-                  }
-
+                  // OPRAVA: V náhradnících zůstanou jen ti, co nejsou v tabulce A mají status 'work'
                   phaseReserves[i] = workers.filter(w => {
-                      const isNotBusyHere = !busyInThisPhase.has(w.id);
+                      const isNotBusy = !workingIds.has(w.id);
+                      // Získáme aktuální status (malými písmeny a bez mezer)
                       const s = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
-                      return isNotBusyHere && s === 'work';
+                      
+                      return isNotBusy && s === 'work';
                   });
               }
           }
 
-          if (typeof render === "function") { render(); }
+          if (typeof render === "function") { 
+              render(); 
+          }
       }
 
       if (firstLoad) {
