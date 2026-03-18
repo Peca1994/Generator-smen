@@ -340,7 +340,11 @@ select option {
     background-color: white;
     color: black;
 }
-
+.skillItem.trainee {
+    background: rgba(59, 130, 246, 0.2) !important; /* Modrá */
+    border-color: #3b82f6 !important;
+    color: #3b82f6 !important;
+}
 
 </style>
 </head>
@@ -614,14 +618,25 @@ const POSITIONS = [
 POSITIONS.forEach(p => {
   const div = document.createElement("div");
   div.className = "skillItem";
+  // Výchozí stav: 0 = neumí, 1 = zaučuje se (modrá), 2 = umí (zelená)
+  div.dataset.level = "0"; 
+  div.dataset.val = p[0];
   
-  // p[0] je zkratka (např. VET), p[1] je název (VĚTRAČKY)
-  div.innerHTML = `<input type="checkbox" value="${p[0]}">${p[1]}`;
+  div.innerHTML = `<span>${p[1]}</span>`;
   
   div.onclick = () => {
-    const cb = div.querySelector("input");
-    cb.checked = !cb.checked;
-    div.classList.toggle("active", cb.checked);
+    let level = parseInt(div.dataset.level);
+    level = (level + 1) % 3; // Točí se to: 0 -> 1 -> 2 -> 0
+    div.dataset.level = level;
+
+    // Odstraníme staré barvy
+    div.classList.remove("active", "trainee");
+
+    if (level === 1) {
+        div.classList.add("trainee"); // Přidáme modrou (vytvoříme v CSS)
+    } else if (level === 2) {
+        div.classList.add("active");  // Tvoje původní zelená
+    }
   };
   
   skillsBox.appendChild(div);
@@ -660,11 +675,17 @@ const saveEmp = async () => {
             return;
         }
 
-        let skills = [];
-        const sBox = document.getElementById("skillsBox");
-        if (sBox) {
-            skills = [...sBox.querySelectorAll("input:checked")].map(x => x.value);
+        let skills = {};
+const sBox = document.getElementById("skillsBox");
+if (sBox) {
+    sBox.querySelectorAll(".skillItem").forEach(div => {
+        const lvl = parseInt(div.dataset.level);
+        if (lvl > 0) {
+            // Uložíme jako "DP-L": 1 (modrá) nebo 2 (zelená)
+            skills[div.dataset.val] = lvl;
         }
+    });
+}
 
         const id = editId || (fname + "_" + lname).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s/g, "");
         const docRef = doc(db, "employees", id);
@@ -674,9 +695,9 @@ const saveEmp = async () => {
             surname: lname,
             email: email.toLowerCase().trim(),
             info: info,
-            skills: skills,
-            type: empType
-        };
+            skills: skills, // Teď je to objekt { "DP-L": 2, "T-P": 1 }
+    type: empType
+};
 
         if (!editId) { empData.role = "user"; }
 
@@ -806,12 +827,33 @@ async function edit(id) {
   }
 
   // Skilly
-  const skillsBox = document.getElementById("skillsBox");
+ const skillsBox = document.getElementById("skillsBox");
   if (skillsBox) {
-    skillsBox.querySelectorAll("input").forEach(c => {
-      const hasSkill = e.skills && e.skills.includes(c.value);
-      c.checked = hasSkill;
-      c.parentElement.classList.toggle("active", hasSkill);
+    skillsBox.querySelectorAll(".skillItem").forEach(div => {
+      // 1. Zjistíme zkratku pozice (např. "DP-L") z datasetu nebo textu
+      const val = div.dataset.val; 
+      let lvl = 0;
+
+      if (e.skills) {
+        // A) KONTROLA NOVÉHO FORMÁTU (Objekt s číslem: { "DP-L": 2 })
+        if (typeof e.skills[val] === 'number') {
+          lvl = e.skills[val];
+        } 
+        // B) KONTROLA STARÉHO FORMÁTU (Pole: ["DP-L", "T-P"])
+        else if (Array.isArray(e.skills) && e.skills.includes(val)) {
+          lvl = 2; // Starý skill automaticky považujeme za "zelenou" (umí)
+        }
+      }
+
+      // 2. Nastavíme barvu políčka podle úrovně
+      div.dataset.level = lvl;
+      div.classList.remove("active", "trainee");
+      
+      if (lvl === 1) {
+        div.classList.add("trainee"); // Modrá (zaučuje se)
+      } else if (lvl === 2) {
+        div.classList.add("active");  // Zelená (umí)
+      }
     });
   }
 }
