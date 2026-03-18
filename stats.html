@@ -378,12 +378,19 @@ async function loadAndCalculateStats() {
         let myEmps = {};
         availableYears.clear();
 
-        // 1. Příprava zaměstnanců a Skills (z karty zaměstnance)
+        // 1. Příprava zaměstnanců a Skills
         empsSnap.forEach(d => {
             const data = d.data();
             if (data.type !== "pujceny") {
-                const allSkills = data.skills || [];
-                const validSkills = allSkills.filter(skill => {
+                const rawSkills = data.skills || [];
+                let skillsArray = [];
+                if (Array.isArray(rawSkills)) {
+                    skillsArray = rawSkills;
+                } else if (typeof rawSkills === 'object') {
+                    skillsArray = Object.keys(rawSkills).filter(key => rawSkills[key] === 2);
+                }
+
+                const validSkills = skillsArray.filter(skill => {
                     const s = skill.toUpperCase();
                     return !(s.startsWith("VET") || s.startsWith("INST") || s === "ZAM-L" || s === "ZAM-P");
                 });
@@ -398,9 +405,9 @@ async function loadAndCalculateStats() {
             }
         });
 
-        // 2. Výpočet HODIN - DÍVÁME SE POUZE NA statusSnapshot
-        shiftsSnap.forEach(doc => {
-            const shift = doc.data();
+        // 2. Výpočet HODIN A POZIC
+        shiftsSnap.forEach(docSnap => {
+            const shift = docSnap.data();
             const fullDate = shift.date;
             if (!fullDate) return;
 
@@ -409,30 +416,38 @@ async function loadAndCalculateStats() {
 
             if (currentPeriod !== 'all' && year !== currentPeriod) return;
 
+            // --- A) POČÍTÁNÍ HODIN ZE SNAPSHOTU (TATO ČÁST TI CHYBĚLA) ---
             const statusMap = shift.statusSnapshot || {};
-            const phases = shift.phases || [];
-
-            // A) POČÍTÁNÍ HODIN ZE SNAPSHOTU (Tečka, nic jiného hodiny nedává)
             const workStatuses = ["work", "shitmaking", "loaned"];
             const absentStatuses = ["paragraf", "vacation", "sick"];
 
             Object.entries(statusMap).forEach(([empId, status]) => {
-                if (myEmps[empId]) {
-                    const s = (status || "").toLowerCase();
-
+                // Očištění ID od uvozovek pro správné párování
+                const cleanId = empId.replace(/"/g, '').trim();
+                
+                if (myEmps[cleanId]) {
+                    const s = (status || "").toLowerCase().trim();
                     if (workStatuses.includes(s)) {
-                        myEmps[empId].totalHours += 7.5;
+                        myEmps[cleanId].totalHours += 7.5;
                     } 
                     else if (absentStatuses.includes(s)) {
-                        myEmps[empId].absentHours += 7.5;
+                        myEmps[cleanId].absentHours += 7.5;
                     }
                 }
             });
 
-            // B) POČÍTÁNÍ POZIC Z PHASES (Pouze pro ty ikonky pod jménem, neovlivňuje hodiny)
+            // --- B) POČÍTÁNÍ POZIC Z PHASES ---
+            const phases = shift.phases || [];
             phases.forEach(phase => {
-                Object.entries(phase).forEach(([pos, empId]) => {
-                    if (myEmps[empId]) {
+                Object.entries(phase).forEach(([pos, val]) => {
+                    let empId = null;
+                    if (typeof val === 'string') {
+                        empId = val.replace(/"/g, '').trim();
+                    } else if (val && val.m) {
+                        empId = val.m.replace(/"/g, '').trim();
+                    }
+
+                    if (empId && myEmps[empId]) {
                         myEmps[empId].positions[pos] = (myEmps[empId].positions[pos] || 0) + 1;
                     }
                 });
@@ -441,8 +456,8 @@ async function loadAndCalculateStats() {
 
         updateYearSelect();
 
-        // 3. SEŘAZENÍ (Lidé s největší absencí nahoře)
-        statsData = Object.values(myEmps).sort((a, b) => (b.absentHours || 0) - (a.absentHours || 0));
+        // 3. SEŘAZENÍ (Podle odpracovaných hodin, aby nahoře nebyli lidi s 0h)
+        statsData = Object.values(myEmps).sort((a, b) => b.totalHours - a.totalHours);
         
         renderAll();
 
