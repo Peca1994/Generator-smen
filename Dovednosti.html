@@ -347,22 +347,46 @@
         const table = document.getElementById("skillsTable");
         const loading = document.getElementById("loading");
 
-        // Filtrujeme cache v paměti
+        // Pomocná funkce pro získání pole názvů dovedností pro vyhledávání
+        const getSkillList = (s) => {
+            if (!s) return [];
+            return Array.isArray(s) ? s : Object.keys(s);
+        };
+
         const filtered = allEmployees.filter(emp => {
-            if (!queryText) return true; // Pokud nic nepíšeme, projdou všichni
-            const name = `${emp.name || ""} ${emp.surname || ""}`.toLowerCase();
-            const skills = (emp.skills || []).join(" ").toLowerCase();
-            return name.includes(queryText) || skills.includes(queryText);
+            const fullName = `${emp.name || ""} ${emp.surname || ""}`.toLowerCase();
+            const skillList = getSkillList(emp.skills);
+            const skillsString = skillList.join(" ").toLowerCase();
+            
+            if (!queryText) return true;
+            return fullName.includes(queryText) || skillsString.includes(queryText);
         });
 
         if (filtered.length > 0) {
-            // Seřazení výsledků podle příjmení (A-Z)
             filtered.sort((a, b) => (a.surname || "").localeCompare(b.surname || ""));
             
             let html = "";
             filtered.forEach(emp => {
                 const fullName = `${emp.name || ""} ${emp.surname || ""}`.trim();
-                const skillsHtml = (emp.skills || []).map(s => `<span class="badge">${s}</span>`).join("");
+                let skillsHtml = "";
+                const s = emp.skills || [];
+
+                if (Array.isArray(s)) {
+                    // STARÝ FORMÁT (Pole) - klasické šedé/zelené badges
+                    skillsHtml = s.map(skill => `<span class="badge">${skill}</span>`).join("");
+                } else if (typeof s === 'object') {
+                    // NOVÝ FORMÁT (Objekt) - rozlišíme barvy
+                    skillsHtml = Object.entries(s).map(([skill, lvl]) => {
+                        if (lvl === 1) {
+                            // Modrá badge pro zaučování
+                            return `<span class="badge" style="background:#3b82f6; border-color:#2563eb;">${skill} (Z)</span>`;
+                        } else {
+                            // Klasická badge pro hotové
+                            return `<span class="badge">${skill}</span>`;
+                        }
+                    }).join("");
+                }
+
                 html += `
                     <tr class="skill-row">
                         <td class="emp-name">${fullName}</td>
@@ -376,15 +400,9 @@
         } else {
             table.style.display = "none";
             loading.style.display = "block";
-            loading.innerText = "Žádná shoda nenalezena.";
+            loading.innerText = queryText ? "Žádná shoda nenalezena." : "Načítám data...";
         }
     }
-
-    // Vyhledávací funkce napojená na vstupní pole
-    window.searchSkills = () => {
-        const queryText = document.getElementById("skillSearch").value.toLowerCase().trim();
-        renderSkills(queryText);
-    };
 </script>
 
 </body>
