@@ -1327,13 +1327,18 @@ loadBtn.onclick = async () => {
         window.workers = allWorkersArray;
 
         // 3. REKONSTRUKCE TABULKY (Phases)
-        phases = shiftData.phases.map(ph => {
+       phases = shiftData.phases.map(ph => {
             const o = {};
-            Object.entries(ph).forEach(([pos, wid]) => {
-                const cleanId = wid ? wid.trim() : null;
-                if (cleanId && allWorkersMap[cleanId]) {
-                    // Bereme očistěného pracovníka z naší mapy (už má správný status)
-                    o[pos] = { ...allWorkersMap[cleanId] };
+            Object.entries(ph).forEach(([pos, val]) => {
+                // Pokud je val string (staré ID), očistíme ho. Pokud je to objekt, vezmeme jeho části.
+                if (typeof val === 'string') {
+                    const cleanId = val.trim();
+                    o[pos] = allWorkersMap[cleanId] ? { ...allWorkersMap[cleanId] } : null;
+                } else if (val && (val.m || val.t)) {
+                    // NOVÝ FORMÁT: Máme hlavního (m) a učně (t)
+                    const mainW = val.m ? allWorkersMap[val.m.trim()] : null;
+                    const traineeW = val.t ? allWorkersMap[val.t.trim()] : null;
+                    o[pos] = { main: mainW, trainee: traineeW };
                 } else {
                     o[pos] = null;
                 }
