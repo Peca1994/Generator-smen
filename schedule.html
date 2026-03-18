@@ -662,16 +662,36 @@ function render(){
     let html = "<thead><tr><th style='color: rgba(255,255,255,0.4); font-size: 11px;'>POZICE</th>" + labels.map(l => `<th style='color: rgba(255,255,255,0.4); font-size: 11px;'>${l}</th>`).join('') + "</tr></thead><tbody>";
 
     POSITIONS.forEach(pos => {
-        let rowNames = [];
+        let rowContent = []; // Tady budeme ukládat data pro celý řádek
+
         for(let i=0; i<4; i++) {
-            const wid = phasesData[i] ? phasesData[i][pos] : null;
-            rowNames.push(wid ? (workerMap[wid] || "???" ) : "");
+            const entry = phasesData[i] ? phasesData[i][pos] : null;
+            let mainName = "";
+            let traineeName = "";
+
+            if (entry) {
+                if (typeof entry === 'string') {
+                    // STARÝ FORMÁT (jen ID string)
+                    mainName = workerMap[entry] || "???";
+                } else if (entry.m || entry.t) {
+                    // NOVÝ FORMÁT (objekt {m: id, t: id})
+                    mainName = entry.m ? (workerMap[entry.m] || "???") : "";
+                    traineeName = entry.t ? (workerMap[entry.t] || "???") : "";
+                }
+            }
+            rowContent.push({ main: mainName, trainee: traineeName });
         }
 
-        // 1. FILTR: Pokud hledáme a v řádku jméno není, celý řádek skryjeme
-        if(filter && !rowNames.some(n => n.toLowerCase().includes(filter))) return;
+        // 1. FILTR: Kontrola, zda hledané jméno odpovídá hlavnímu nebo učni
+        if(filter) {
+            const matchInRow = rowContent.some(c => 
+                c.main.toLowerCase().includes(filter) || 
+                c.trainee.toLowerCase().includes(filter)
+            );
+            if(!matchInRow) return;
+        }
 
-        const isOccupied = rowNames.some(n => n !== "");
+        const isOccupied = rowContent.some(c => c.main !== "" || c.trainee !== "");
         const color = isOccupied ? "#2ecc71" : "rgba(255,255,255,0.15)";
         const borderColor = isOccupied ? "rgba(46, 204, 113, 0.3)" : "rgba(255,255,255,0.05)";
 
@@ -680,20 +700,24 @@ function render(){
                 ${pos}
             </td>`;
 
-        rowNames.forEach(n => {
-            if(!n) {
+        rowContent.forEach(c => {
+            if(!c.main && !c.trainee) {
                 html += `<td style="color: rgba(255,255,255,0.05); text-align: center;">—</td>`;
             } else {
-                // 2. ZVÝRAZNĚNÍ: Pokud se jméno shoduje s hledáním, vnutí se mu zelená barva
-                const isMatch = filter !== "" && n.toLowerCase().includes(filter);
+                // Barevné zvýraznění při hledání
+                const isMainMatch = filter !== "" && c.main.toLowerCase().includes(filter);
+                const isTraineeMatch = filter !== "" && c.trainee.toLowerCase().includes(filter);
                 
-                // Pokud hledáme, a jméno SOUHLASÍ -> ZELENÁ. Pokud hledáme a jméno NESOUHLASÍ -> ŠEDÁ. Pokud nehledáme -> BÍLÁ.
-                let currentNameColor = "white";
-                if (filter !== "") {
-                    currentNameColor = isMatch ? "#2ecc71" : "rgba(255,255,255,0.15)";
+                let mColor = (filter !== "" && !isMainMatch) ? "rgba(255,255,255,0.15)" : "white";
+                let tColor = (filter !== "" && !isTraineeMatch) ? "rgba(59, 130, 246, 0.2)" : "#3b82f6";
+
+                // Vykreslení jmen (Učeň menším modrým písmem pod hlavním)
+                let cellHTML = `<div style="color: ${mColor}; font-weight: 900; font-size: 14px; line-height: 1.1;">${c.main || "—"}</div>`;
+                if(c.trainee) {
+                    cellHTML += `<div style="color: ${tColor}; font-weight: 700; font-size: 10px; margin-top: 2px;">+ ${c.trainee}</div>`;
                 }
 
-                html += `<td style="color: ${currentNameColor} !important; font-weight: 900; text-align: center; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.03); transition: 0.2s;">${n}</td>`;
+                html += `<td style="text-align: center; border-bottom: 1px solid rgba(255,255,255,0.03); padding: 8px 0;">${cellHTML}</td>`;
             }
         });
         html += "</tr>";

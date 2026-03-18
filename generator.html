@@ -1457,17 +1457,6 @@ function render() {
   L.forEach(x => html += `<th style="font-size: 8px; padding: 2px; text-align: center;">${x}</th>`);
   html += "</tr></thead><tbody>";
 
-  // 1. Zjistíme, kdo už v každé fázi pracuje
-  const busyInPhase = [new Set(), new Set(), new Set(), new Set()];
-  for (let p = 0; p < 4; p++) {
-    if (phases[p]) {
-      Object.values(phases[p]).forEach(worker => {
-        if (worker && worker.id) busyInPhase[p].add(worker.id);
-      });
-    }
-  }
-
-  // 2. Vykreslíme řádky s pozicemi
   POSITIONS.forEach(pos => {
     const isLocked = locked.has(pos);
     const lockColor = isLocked ? '#f1c40f' : 'rgba(255,255,255,0.2)';
@@ -1485,41 +1474,55 @@ function render() {
 
     for (let p = 0; p < 4; p++) {
       const w = phases[p]?.[pos];
+      
+      // --- 1. VÝPOČET STATUSU A BAREV (PŘESUNUTO NAHORU) ---
       let currentStatus = 'work';
-
       if (w) {
-        // --- KLÍČOVÁ OPRAVA STATUSU ---
-        // Nejdříve se podíváme do historického snapshotu (pokud je načtená směna)
-        if (typeof currentShiftSnapshot !== 'undefined' && currentShiftSnapshot && currentShiftSnapshot[w.id]) {
-          currentStatus = currentShiftSnapshot[w.id].toString().toLowerCase().trim();
-        } 
-        // Pokud snapshot není (třeba nová směna), bereme status přímo od pracovníka
-        else {
-          currentStatus = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
+        // Získáme ID hlavního pracovníka (i když je ve struktuře s učněm)
+        let workerId = w.id || (w.main ? w.main.id : null);
+        
+        if (workerId && typeof currentShiftSnapshot !== 'undefined' && currentShiftSnapshot[workerId]) {
+          currentStatus = currentShiftSnapshot[workerId].toString().toLowerCase().trim();
+        } else if (w.statusToday) {
+          currentStatus = w.statusToday.toString().toLowerCase().trim();
         }
       }
 
-      // Pokud status není "work", zčervená buňka (Alert)
       const isAlert = w && currentStatus !== 'work';
-      
-      let displayName = "—";
-      if (w && w.name) {
-          displayName = w.name.charAt(0).toUpperCase() + w.name.slice(1);
-      }
-
       let tdColor = isAlert ? "#ffffff" : (w ? "#2ecc71" : "rgba(255,255,255,0.2)");
       let tdBg = isAlert ? "#ef4444 !important" : rowBg;
 
+      // --- 2. LOGIKA PRO JMÉNA (HLAVNÍ + UČEŇ) ---
+      let displayName = "—";
+      let traineeHTML = "";
+
+      if (w) {
+          if (w.id) {
+              displayName = w.name.charAt(0).toUpperCase() + w.name.slice(1);
+          } else {
+              let m = w.main ? (w.main.name.charAt(0).toUpperCase() + w.main.name.slice(1)) : "—";
+              displayName = m;
+              if (w.trainee) {
+                  let t = w.trainee.name.charAt(0).toUpperCase() + w.trainee.name.slice(1);
+                  traineeHTML = `<div style="font-size: 7px; color: #3b82f6; margin-top: -2px; font-weight: 700;">+ ${t}</div>`;
+              }
+          }
+      }
+
+      // --- 3. VYKRESLENÍ BUŇKY ---
       html += `
         <td class="slot" onclick="pick(${p},'${pos}')" 
-            style="padding: 0; background: ${tdBg}; height: 18px; width: 62px; text-align: center; vertical-align: middle; border: 0.5px solid rgba(255,255,255,0.05); color: ${tdColor}; font-size: 9px; font-weight: 800; text-transform: uppercase; cursor: pointer;">
-            ${displayName}
+            style="padding: 0; background: ${tdBg}; height: 22px; width: 62px; text-align: center; vertical-align: middle; border: 0.5px solid rgba(255,255,255,0.05); color: ${tdColor}; font-size: 9px; font-weight: 800; text-transform: uppercase; cursor: pointer;">
+            <div style="line-height: 1.1;">
+                <div>${displayName}</div>
+                ${traineeHTML}
+            </div>
         </td>`;
     }
     html += "</tr>";
   });
 
-  // --- 3. NÁHRADNÍCI (F1 až F4) ---
+  // --- 4. NÁHRADNÍCI (F1 až F4) ---
   for (let p = 0; p < 4; p++) {
     const res = phaseReserves[p] || [];
     const names = res.map(w => {
@@ -1557,66 +1560,85 @@ window.pick = (phase, pos) => {
   pickPhaseIndex = phase;
   pickPosition = pos;
 
-  const list = phaseReserves[phase].filter(w => {
-    // --- KLÍČOVÁ OPRAVA ---
-    // Vytáhneme si aktuální data pracovníka z hlavní mapy, abychom měli JISTOTU, že tam jsou skilly
-    const realWorker = (typeof allWorkersMap !== 'undefined' && allWorkersMap[w.id.trim()]) || w;
-    
-    // 1. Kontrola skillu (teď už z realWorker)
-    const hasSkill = realWorker.skills && realWorker.skills.includes(pos);
-    
-    // 2. Kontrola statusu (prioritně ze snapshotu, pak z workeru)
+  // 1. Získáme všechny lidi, co jsou v dané fázi volní (náhradníci)
+  const available = phaseReserves[phase] || [];
+
+  // 2. FILTR: Kdo to UMÍ (Level 2 nebo starý formát)
+  const masters = available.filter(w => {
+    const realWorker = allWorkersMap[w.id] || w;
+    // Kontrola statusu (musí být "work")
     const sToday = (typeof currentShiftSnapshot !== 'undefined' && currentShiftSnapshot[w.id]) 
                    ? currentShiftSnapshot[w.id] 
                    : (w.statusToday || w.status || 'work');
-                   
-    const s = sToday.toString().toLowerCase().trim();
-    const isWorking = (s === 'work');
-    
-    return hasSkill && isWorking;
+    if (sToday.toString().toLowerCase().trim() !== 'work') return false;
+
+    const lvl = (realWorker.skills && realWorker.skills[pos]) || 0;
+    const isOld = Array.isArray(realWorker.skills) && realWorker.skills.includes(pos);
+    return lvl === 2 || isOld;
+  });
+
+  // 3. FILTR: Kdo se to UČÍ (Level 1)
+  const trainees = available.filter(w => {
+    const realWorker = allWorkersMap[w.id] || w;
+    // Kontrola statusu
+    const sToday = (typeof currentShiftSnapshot !== 'undefined' && currentShiftSnapshot[w.id]) 
+                   ? currentShiftSnapshot[w.id] 
+                   : (w.statusToday || w.status || 'work');
+    if (sToday.toString().toLowerCase().trim() !== 'work') return false;
+
+    return realWorker.skills && realWorker.skills[pos] === 1;
   });
 
   pickTitle.innerText = "Pozice " + pos;
   
-  // Vykreslení tlačítek (s velkým počátečním písmenem)
-  pickList.innerHTML =
-    list.map(w => {
+  let html = `<div style="font-size:10px; color:#2ecc71; margin-bottom:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Kvalifikovaní:</div>`;
+  html += masters.map(w => {
+      const name = w.name.charAt(0).toUpperCase() + w.name.slice(1);
+      return `<button class="pickBtn" onclick="swapWorker('${w.id}', false)">${name}</button>`;
+  }).join("");
+
+  if (trainees.length > 0) {
+    html += `<div style="font-size:10px; color:#3b82f6; margin-top:15px; margin-bottom:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Zaučování (přidat k pozici):</div>`;
+    html += trainees.map(w => {
         const name = w.name.charAt(0).toUpperCase() + w.name.slice(1);
-        return `<button class="pickBtn" onclick="swapWorker('${w.id}')">${name}</button>`;
-    }).join("")
-    + `<button class="pickBtn removeBtn" onclick="removeWorker()">Vyprázdnit</button>`;
-    
+        return `<button class="pickBtn traineeBtn" style="border-color:#3b82f6; color:#3b82f6; background:rgba(59,130,246,0.1);" onclick="swapWorker('${w.id}', true)">+ ${name}</button>`;
+    }).join("");
+  }
+
+  html += `<button class="pickBtn removeBtn" style="margin-top:25px; opacity:0.6;" onclick="removeWorker()">Vyprázdnit pozici</button>`;
+  
+  pickList.innerHTML = html;
   pickModal.style.display = "flex";
 };
 
-window.swapWorker = (wid) => {
-  // 1. Najdeme nového pracovníka - VŽDY prioritně z allWorkersMap, tam jsou skilly!
+window.swapWorker = (wid, isTrainee) => {
   const newWorker = allWorkersMap[wid] || workers.find(x => x.id === wid);
-  const cur = phases[pickPhaseIndex][pickPosition];
+  let current = phases[pickPhaseIndex][pickPosition];
 
-  // VRÁCENÍ PŮVODNÍHO PRACOVNÍKA DO NÁHRADNÍKŮ
-  if (cur) {
-    // 2. Najdeme originál se skilly (opět prioritně v mapě)
-    const realOldWorker = allWorkersMap[cur.id] || workers.find(w => w.id === cur.id) || cur;
-    
-    // Získáme aktuální status
-    const s = (realOldWorker.statusToday || realOldWorker.status || 'work').toString().toLowerCase().trim();
-
-    // 3. Vracíme do náhradníků pouze ty, co mají status 'work'
-    if (s === 'work') {
-        const isAlreadyThere = phaseReserves[pickPhaseIndex].some(w => w.id === realOldWorker.id);
-        if (!isAlreadyThere) {
-            // Uložíme tam čistý objekt z mapy, který ty skilly URČITĚ má
-            phaseReserves[pickPhaseIndex].push(realOldWorker);
-            phaseReserves[pickPhaseIndex].sort((a, b) => (a.name || "").localeCompare(b.name || "", 'cs'));
-        }
+  if (isTrainee) {
+    // PŘIDÁVÁME UČNĚ
+    if (!current) {
+        // Pozice byla prázdná, dáme tam jen učně
+        phases[pickPhaseIndex][pickPosition] = { main: null, trainee: newWorker };
+    } else if (current.id) {
+        // Seděl tam jeden člověk (starý formát), uděláme z něj hlavního a přidáme učně
+        phases[pickPhaseIndex][pickPosition] = { main: current, trainee: newWorker };
+    } else {
+        // Už tam je struktura {main, trainee}, vyměníme/přidáme jen učně
+        phases[pickPhaseIndex][pickPosition].trainee = newWorker;
+    }
+  } else {
+    // PŘIDÁVÁME HLAVNÍHO
+    if (!current || current.id) {
+        // Klasická výměna jednoho za druhého
+        phases[pickPhaseIndex][pickPosition] = newWorker;
+    } else {
+        // Vyměníme jen hlavního v existující struktuře, učně necháme
+        phases[pickPhaseIndex][pickPosition].main = newWorker;
     }
   }
 
-  // Přiřadíme nového pracovníka do rozpisu (tady už má skilly z allWorkersMap)
-  phases[pickPhaseIndex][pickPosition] = newWorker;
-  
-  // Odstraníme ho z náhradníků
+  // Odstraníme ho z náhradníků pro danou fázi
   phaseReserves[pickPhaseIndex] = phaseReserves[pickPhaseIndex].filter(x => x.id !== wid);
   
   closePick(); 
@@ -1704,10 +1726,22 @@ saveBtn.onclick = async () => {
         saveBtn.disabled = true;
 
         const out = phases.map(ph => {
-            const o = {};
-            Object.entries(ph).forEach(([pos, w]) => { if (w) o[pos] = w.id; });
-            return o;
-        });
+    const o = {};
+    Object.entries(ph).forEach(([pos, w]) => { 
+        if (w) {
+            if (w.id) {
+                o[pos] = w.id; // Klasický id
+            } else {
+                // Uložíme jako objekt s IDčkama obou lidí
+                o[pos] = { 
+                    m: w.main ? w.main.id : null, 
+                    t: w.trainee ? w.trainee.id : null 
+                };
+            }
+        }
+    });
+    return o;
+});
 
         // --- KLÍČOVÁ OPRAVA TADY: Už nesaháme do DB pro statusy, ale bereme ty naše z paměti ---
         const statusSnapshot = {};
