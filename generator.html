@@ -819,7 +819,7 @@ const app = initializeApp({
 });
 
 const db = getFirestore(app);
-
+let currentShiftSnapshot = null;
 /* DOM */
 
 const loadingEl = document.getElementById("loading");
@@ -942,17 +942,15 @@ function activePositions(){
 
 /* STATE */
 
-let workers = [];
-let phases = [];
-let phaseReserves = [[], [], [], []];
-let allWorkersMap = {};
+let workers=[];
+let phases=[];
+let phaseReserves=[];
+let allWorkersMap={};   // ← NOVÉ
 let shiftInfo = {
  sk:{start:"",end:""},
  fa:{start:"",end:""},
  za:{start:"",end:""}
 };
-// --- TENTO ŘÁDEK TI CHYBÍ A KVŮLI NĚMU TO NEJDE NAČÍST ---
-let currentShiftSnapshot = null; 
 
 
 
@@ -981,12 +979,7 @@ async function loadWorkers() {
       snap.forEach(d => {
         const e = d.data();
         // Sjednocení statusu (bereme 'work' i 'v práci')
-        let st = (e.statusToday || e.status || "work").toLowerCase().trim();
-
-// TOTO JE TA KOTVA: Pokud jsme status právě změnili, nepustíme stará data z DB na obrazovku
-if (window.currentShiftSnapshot && window.currentShiftSnapshot[id]) {
-    st = window.currentShiftSnapshot[id]; 
-}
+        let st = (e.statusToday || e.status || "v práci").toString().toLowerCase().trim();
         
         const workerObj = { 
           id: d.id.trim(), 
@@ -1030,39 +1023,33 @@ if (window.currentShiftSnapshot && window.currentShiftSnapshot[id]) {
 
       // --- LOGIKA PRO AKTUALIZACI TABULKY ---
       if (!firstLoad) {
-          // --- PŘEPOČET NÁHRADNÍKŮ (F1-F4) PRO KAŽDOU FÁZI ZVLÁŠŤ ---
-          if (typeof phases !== 'undefined' && phases.length > 0 && typeof phaseReserves !== 'undefined') {
-              
-              for (let i = 0; i < 4; i++) {
-                  // 1. Zjistíme, kdo pracuje POUZE v této konkrétní fázi (sloupci)
-                  const busyInThisPhase = new Set();
-                  const currentPhase = phases[i];
-                  
-                  if (currentPhase) {
-                      Object.values(currentPhase).forEach(w => {
-                          if (!w) return;
-                          // Kontrola pro klasického pracovníka i balíček (učeň/hlavní)
-                          if (w.id) busyInThisPhase.add(w.id.trim());
-                          if (w.main && w.main.id) busyInThisPhase.add(w.main.id.trim());
-                          if (w.trainee && w.trainee.id) busyInThisPhase.add(w.trainee.id.trim());
+          const workingIds = new Set();
+          
+          if (typeof phases !== 'undefined' && phases.length > 0) {
+              phases.forEach(p => {
+                  if (p) {
+                      Object.values(p).forEach(w => { 
+                          if (w) {
+                              if (w.id) workingIds.add(w.id.trim());
+                              if (w.main && w.main.id) workingIds.add(w.main.id.trim());
+                              if (w.trainee && w.trainee.id) workingIds.add(w.trainee.id.trim());
+                          }
                       });
                   }
+              });
 
-                  // 2. Do náhradníků dáme lidi, co mají status 'work'/'v práci' a nesedí v této fázi na pozici
-                  phaseReserves[i] = workers.filter(w => {
-                      const workerId = w.id.trim();
-                      const isNotBusyHere = !busyInThisPhase.has(workerId);
-                      const s = (w.statusToday || w.status || 'v práci').toString().toLowerCase().trim();
-                      const isWorking = (s === 'work' || s === 'v práci');
-                      
-                      return isWorking && isNotBusyHere;
-                  });
-
-                  // 3. Seřadíme je abecedně
-                  phaseReserves[i].sort((a, b) => (a.surname || "").localeCompare(b.surname || "", 'cs'));
+              if (typeof phaseReserves !== 'undefined') {
+                  for (let i = 0; i < 4; i++) {
+                      phaseReserves[i] = workers.filter(w => {
+                          const isNotBusy = !workingIds.has(w.id.trim());
+                          // Kontrola na oba statusy
+                          const s = (w.status || 'v práci').toString().toLowerCase().trim();
+                          return isNotBusy && (s === 'work' || s === 'v práci');
+                      });
+                  }
               }
 
-              // Renderujeme jen pokud máme vygenerovaná data
+              // Renderujeme jen když jsou v phases skutečná data (ne prázdné objekty)
               const hasActualData = phases.some(ph => ph && Object.keys(ph).length > 0);
               if (hasActualData && typeof render === "function") { 
                   render(); 
@@ -1071,12 +1058,12 @@ if (window.currentShiftSnapshot && window.currentShiftSnapshot[id]) {
       }
 
       if (firstLoad) {
-          firstLoad = false;
-          resolve();
+        firstLoad = false;
+        resolve();
       }
-    }); // Konec onSnapshot
-  }); // Konec Promise
-} // Konec funkce loadWorkers
+    });
+  });
+}
 function renderWorkerList(kmenovi, pujceni) {
   const listDiv = document.getElementById("workerList"); // Zkontroluj si ID v HTML
   if (!listDiv) return;
@@ -2004,78 +1991,69 @@ const renderAttendanceRow = renderRowHTML;
 
 window.updateStatus = async (id, newStatus) => {
     try {
-        const cleanId = id.trim();
-        const s = newStatus.toLowerCase().trim();
-        console.log(`Ukládám status pro ${cleanId} na "${s}" do DB i paměti...`);
-
-        // --- 1. ZÁPIS DO DATABÁZE (Klíčové pro generátor!) ---
-        // Bez tohoto řádku ti 'loadWorkers()' při generování vždy vrátí stará data
-        const docRef = doc(db, "employees", cleanId);
-        await updateDoc(docRef, { 
-            statusToday: s,
-            status: s 
-        });
-
-        // --- 2. AKTUALIZACE SNAPSHOTU ---
+        console.log(`Měním status pro ${id} na ${newStatus} (pouze v paměti)`);
+await updateDoc(doc(db, "employees", id), { statusToday: newStatus, status: newStatus });
+        // 1. AKTUALIZACE SNAPSHOTU (To, co se pak ukládá do kolekce 'shifts')
         if (!window.currentShiftSnapshot) window.currentShiftSnapshot = {};
-        window.currentShiftSnapshot[cleanId] = s;
+        window.currentShiftSnapshot[id] = newStatus;
+        currentShiftSnapshot = window.currentShiftSnapshot;
 
-        // --- 3. AKTUALIZACE MAPY (Pro 'pick' a generátor) ---
-        if (typeof allWorkersMap !== 'undefined' && allWorkersMap[cleanId]) {
-            allWorkersMap[cleanId].statusToday = s;
-            allWorkersMap[cleanId].status = s;
-        }
-
-        // --- 4. AKTUALIZACE GLOBÁLNÍHO POLE WORKERS ---
+        // 2. AKTUALIZACE PROMĚNNÉ WORKERS (Pro seznam pod tabulkou)
         if (typeof workers !== 'undefined') {
-            const worker = workers.find(w => w.id === cleanId);
+            const worker = workers.find(w => w.id === id);
             if (worker) {
-                worker.statusToday = s;
-                worker.status = s;
+                worker.statusToday = newStatus;
+                worker.status = newStatus;
             }
         }
 
-        // --- 5. LOGIKA NÁHRADNÍKŮ (F1-F4) ---
+        // --- BOD 3: AKTUALIZACE MAPY (Kritické pro funkci 'pick' a skilly) ---
+        // Pokud toto neuděláš, při kliknutí na políčko v tabulce se načtou stará data z mapy.
+        if (typeof allWorkersMap !== 'undefined' && allWorkersMap[id]) {
+            allWorkersMap[id].statusToday = newStatus;
+            allWorkersMap[id].status = newStatus;
+        }
+
+        // 4. LOGIKA NÁHRADNÍKŮ (F1-F4)
+        // Petr/Anamaria musí zmizet z náhradníků, pokud už nejsou "work"
         if (typeof phaseReserves !== 'undefined') {
-            const targetWorker = allWorkersMap[cleanId] || (workers ? workers.find(w => w.id === cleanId) : null);
+            const targetWorker = allWorkersMap[id] || (workers ? workers.find(w => w.id === id) : null);
             
             if (targetWorker) {
                 phaseReserves.forEach((reserveList, phaseIdx) => {
-                    const isWorking = (s === 'work' || s === 'v práci');
-                    const isAlreadyInReserves = reserveList.some(w => w.id === cleanId);
+                    const s = newStatus.toLowerCase().trim();
+                    const isWorking = (s === 'work');
+                    const isAlreadyInReserves = reserveList.some(w => w.id === id);
                     
+                    // Je už na nějaké pozici v této fázi?
                     const isUsedInPhase = (phases && phases[phaseIdx]) ? 
-                        Object.values(phases[phaseIdx]).some(v => {
-                            if (!v) return false;
-                            return v.id === cleanId || (v.main && v.main.id === cleanId) || (v.trainee && v.trainee.id === cleanId);
-                        }) : false;
+                        Object.values(phases[phaseIdx]).some(w => w && w.id === id) : false;
 
-                    // Pokud začal pracovat a není v tabulce -> šup s ním do náhradníků
                     if (isWorking && !isUsedInPhase && !isAlreadyInReserves) {
                         reserveList.push(targetWorker);
-                        reserveList.sort((a, b) => (a.surname || "").localeCompare(b.surname || "", 'cs'));
+                        reserveList.sort((a, b) => (a.name || "").localeCompare(b.name || "", 'cs'));
                     } 
-                    // Pokud přestal pracovat -> pryč z náhradníků
                     else if (!isWorking && isAlreadyInReserves) {
-                        phaseReserves[phaseIdx] = reserveList.filter(w => w.id !== cleanId);
+                        phaseReserves[phaseIdx] = reserveList.filter(w => w.id !== id);
                     }
                 });
             }
         }
 
-        // --- 6. REFRESH UI ---
-        // loadAttendance si teď díky tvému snapshotu vezme správná data
+        // 5. REFRESH UI (Bez načítání z DB!)
+        // Tady pozor: Tvá funkce loadAttendance() v tvém kódu dělá getDocs(employees).
+        // To je to, co ti to "rozbíjelo", protože to přepsalo paměť databází.
+        // Pro refresh seznamu ji zavolej, ale ona si teď díky tvé úpravě 
+        // prioritně vezme data z currentShiftSnapshot.
+        
         await loadAttendance(); 
 
         if (typeof render === "function") {
-            render(); 
+            render(); // Jen překreslíme tabulku, nevoláme generátor (Math.random)!
         }
-
-        console.log("✅ Status úspěšně synchronizován.");
 
     } catch (err) {
         console.error("Chyba v updateStatus:", err);
-        alert("Chyba při ukládání statusu!");
     }
 };
 // OPRAVA loadAttendance (aby neignorovala změny v reálném čase)
