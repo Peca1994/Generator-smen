@@ -1294,7 +1294,7 @@ loadBtn.onclick = async () => {
     loadingEl.style.display = "flex";
 
     try {
-        // 1. Nejdříve načteme dokument směny, abychom věděli, jaké statusy tehdy lidé měli
+        // 1. NAČTENÍ DOKUMENTU SMĚNY
         const shiftId = dateEl.value + "_" + shiftEl.value;
         const shiftSnap = await getDoc(doc(db, "shifts", shiftId));
 
@@ -1305,11 +1305,10 @@ loadBtn.onclick = async () => {
         }
 
         const shiftData = shiftSnap.data();
-        // Načteme historický "otisk" statusů
         currentShiftSnapshot = shiftData.statusSnapshot || {}; 
         shiftInfo = shiftData.info || { sk:{start:"",end:""}, fa:{start:"",end:""}, za:{start:"",end:""} };
 
-        // 2. Načtení všech zaměstnanců a OKAMŽITÉ vložení historických statusů
+        // 2. NAČTENÍ ZAMĚSTNANCŮ A HISTORICKÝCH STATUSŮ
         const empSnap = await getDocs(collection(db, "employees"));
         allWorkersMap = {}; 
         const allWorkersArray = [];
@@ -1317,15 +1316,12 @@ loadBtn.onclick = async () => {
         empSnap.forEach(docSnap => {
             const w = { id: docSnap.id.trim(), ...docSnap.data() };
             
-            // --- TADY JE TA OPRAVA ---
-            // Pokud v načtené směně existuje záznam pro tohoto člověka, 
-            // přepíšeme jeho aktuální status (zítřek) tím historickým (včerejšek).
+            // Pojistka: Pokud v načtené směně existuje záznam, přepíšeme status
             if (currentShiftSnapshot[w.id]) {
                 const historicalStatus = currentShiftSnapshot[w.id];
                 w.statusToday = historicalStatus;
                 w.status = historicalStatus;
             } else {
-                // Pokud ve staré směně nebyl (nový člověk), dáme mu "work"
                 w.statusToday = 'work';
                 w.status = 'work';
             }
@@ -1334,36 +1330,25 @@ loadBtn.onclick = async () => {
             allWorkersArray.push(w);
         });
 
-        // Synchronizace s globální proměnnou workers - teď už obsahuje JEN historická data
         window.workers = allWorkersArray;
 
-        // 3. REKONSTRUKCE TABULKY (Phases)
-       phases = shiftData.phases.map(ph => {
+        // 3. REKONSTRUKCE TABULKY (Phases) - S PODPOROU PRO UČNĚ A DIVNÁ ID
+        phases = (shiftData.phases || []).map(ph => {
             const o = {};
             Object.entries(ph).forEach(([pos, val]) => {
                 if (!val) { o[pos] = null; return; }
 
-                // POMOCNÁ FUNKCE: Pokud ID v mapě není, zkusíme ho "vyčistit" nebo ho prostě ignorovat
                 const getW = (id) => {
                     if (!id) return null;
-                    const cid = id.toString().trim();
-                    
-                    // 1. Zkusíme najít přesnou shodu (např. 'romain_jarolim')
-                    if (allWorkersMap[cid]) return { ...allWorkersMap[cid] };
-                    
-                    // 2. Pokud ID obsahuje závorku, zkusíme vzít jen to před ní (vytáhneme čisté ID)
-                    if (cid.includes('(')) {
-                        const shortId = cid.split('(')[0].trim();
-                        if (allWorkersMap[shortId]) return { ...allWorkersMap[shortId] };
-                    }
-
-                    // 3. Pokud ho v mapě nenajdeme vůbec, dáme null (nespadneme!)
-                    return null;
+                    // Fix pro ID se závorkami: vezmeme jen část před závorkou
+                    const cid = id.toString().split('(')[0].trim();
+                    return allWorkersMap[cid] ? { ...allWorkersMap[cid] } : null;
                 };
 
                 if (typeof val === 'string') {
                     o[pos] = getW(val);
                 } else if (val && (val.m || val.t)) {
+                    // Podpora pro objekt {m: hlavní, t: učeň}
                     const mainW = getW(val.m);
                     const traineeW = getW(val.t);
                     o[pos] = (mainW || traineeW) ? { main: mainW, trainee: traineeW } : null;
@@ -1373,37 +1358,39 @@ loadBtn.onclick = async () => {
             });
             return o;
         });
-        // 4. VÝPOČET NÁHRADNÍKŮ (Reserves)
-        // Teď už se díváme do očistěného allWorkersArray
+
+        // 4. VÝPOČET NÁHRADNÍKŮ (Reserves) - FIX PRO BALÍČKY
         phaseReserves = phases.map((ph, phaseIdx) => {
-    const usedIdsInPhase = new Set();
-    
-    Object.values(ph).forEach(w => { 
-        if (w) {
-            if (w.id) {
-                // Klasický jeden pracovník
-                usedIdsInPhase.add(w.id.trim()); 
-            } else {
-                // NOVÝ FORMÁT: Musíme přidat ID hlavního i učně!
-                if (w.main && w.main.id) usedIdsInPhase.add(w.main.id.trim());
-                if (w.trainee && w.trainee.id) usedIdsInPhase.add(w.trainee.id.trim());
-            }
+            const usedIdsInPhase = new Set();
+            
+            Object.values(ph).forEach(val => { 
+                if (val) {
+                    if (val.id) {
+                        usedIdsInPhase.add(val.id.trim()); 
+                    } else {
+                        // Přidáme ID hlavního i učně do obsazených
+                        if (val.main && val.main.id) usedIdsInPhase.add(val.main.id.trim());
+                        if (val.trainee && val.trainee.id) usedIdsInPhase.add(val.trainee.id.trim());
+                    }
+                }
+            });
+
+            return allWorkersArray.filter(w => {
+                const s = (w.statusToday || 'work').toString().toLowerCase().trim();
+                const isUsed = usedIdsInPhase.has(w.id.trim());
+                return !isUsed && s === "work";
+            });
+        });
+
+        console.log("Směna úspěšně načtena. Vypínám loading...");
+        
+        // 5. FINÁLNÍ VYKRESLENÍ (Tady se to předtím seklo)
+        if (typeof render === "function") {
+            render(); 
+        } else {
+            console.error("Chyba: Funkce render() nebyla nalezena!");
         }
-    });
-
-    return allWorkersArray.filter(w => {
-        const s = (w.statusToday || 'work').toString().toLowerCase().trim();
-        const isUsed = usedIdsInPhase.has(w.id.trim());
-        return !isUsed && s === "work";
-    });
-});
-
-        console.log("Směna úspěšně načtena s historickými statusy.");
         
-        // 5. FINÁLNÍ VYKRESLENÍ
-        render(); 
-        
-        // Pokud máš v kódu funkci pro seznam docházky pod tabulkou, zavoláme ji taky
         if (typeof loadAttendance === "function") {
             await loadAttendance();
         }
@@ -1416,7 +1403,6 @@ loadBtn.onclick = async () => {
         loadingEl.style.display = "none";
     }
 };
-
 // --- 2. FUNKCE PRO VYNDÁNÍ ČLOVĚKA Z POZICE (Oprava Terky) ---
 window.removeWorker = () => {
   // 1. Zjistíme, co je v téhle buňce (pickPhaseIndex a pickPosition už máme globálně)
