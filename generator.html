@@ -774,7 +774,13 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 
         <!-- SEKCE S INPUTY -->
         <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px;">
-           
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <b style="color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Scala / Kamiq</b>
+                <div style="display: flex; gap: 10px;">
+                    <input id="skStart" placeholder="Začátek" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; color: white; font-weight: 700;">
+                    <input id="skEnd" placeholder="Konec" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; color: white; font-weight: 700;">
+                </div>
+            </div>
 
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <b style="color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Fabie</b>
@@ -783,13 +789,7 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
                     <input id="faEnd" placeholder="Konec" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; color: white; font-weight: 700;">
                 </div>
             </div>
-  <div style="display: flex; flex-direction: column; gap: 5px;">
-                <b style="color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Scala / Kamiq</b>
-                <div style="display: flex; gap: 10px;">
-                    <input id="skStart" placeholder="Začátek" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; color: white; font-weight: 700;">
-                    <input id="skEnd" placeholder="Konec" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; color: white; font-weight: 700;">
-                </div>
-            </div>
+
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <b style="color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Zásobník</b>
                 <div style="display: flex; gap: 10px;">
@@ -965,34 +965,35 @@ async function loadWorkers() {
     let firstLoad = true;
 
     onSnapshot(collection(db, "employees"), (snap) => {
-     if (currentShiftSnapshot) return;
-        let moje = [];
+      // --- OPRAVA 1: Přísnější kontrola historie ---
+      // Pokud existuje snapshot, ale chceme pracovat s aktuálními daty, musíme ho umět ignorovat
+      const isViewingHistory = typeof currentShiftSnapshot !== 'undefined' && 
+                               currentShiftSnapshot && 
+                               Object.keys(currentShiftSnapshot).length > 0;
+
+      let moje = [];
       let pujcene = [];
       let temporaryWorkers = [];
       
-      // VYČIŠTĚNÍ MAPY PŘED NAČTENÍM
       allWorkersMap = {}; 
 
       snap.forEach(d => {
         const e = d.data();
-        const st = e.statusToday || "work";
+        // Sjednocení statusu (bereme 'work' i 'v práci')
+        let st = (e.statusToday || e.status || "v práci").toString().toLowerCase().trim();
         
-        const zakazane = ["sick", "vacation", "paragraf", "shitmaking", "loaned", "borrowed", "propujceny"];
-        
-
         const workerObj = { 
-          id: d.id, 
+          id: d.id.trim(), 
           name: e.name, 
           surname: e.surname || "", 
           type: e.type || "kmenovy",
-          skills: e.skills || [],
+          skills: e.skills || {}, 
           status: st 
         };
 
-        // NAPLNĚNÍ MAPY PRO PŘEVOD ID -> OBJEKT SE SKILLY
-        allWorkersMap[d.id] = workerObj; 
-
+        allWorkersMap[d.id.trim()] = workerObj; 
         temporaryWorkers.push(workerObj);
+
         if (e.type === "pujceny") {
           pujcene.push(workerObj);
         } else {
@@ -1000,49 +1001,60 @@ async function loadWorkers() {
         }
       });
 
+      // --- OPRAVA 2: Vždy aktualizujeme workers, pokud zrovna nekoukáme na STAROU uloženou směnu ---
       workers = temporaryWorkers; 
 
-      const sortFn = (a, b) => a.surname.localeCompare(b.surname, 'cs');
+      const sortFn = (a, b) => (a.surname || "").localeCompare(b.surname || "", 'cs');
       moje.sort(sortFn); 
       pujcene.sort(sortFn);
       
       let html = "";
       html += `<div style="color:#22c55e; font-size:10px; font-weight:900; margin:15px 0 8px 5px; text-transform:uppercase;">Moji Zaměstnanci (${moje.length})</div>`;
-      moje.forEach(w => { html += renderAttendanceRow(w, "#22c55e"); });
+      moje.forEach(w => { 
+          if (typeof renderAttendanceRow === 'function') html += renderAttendanceRow(w, "#22c55e"); 
+      });
       
       if (pujcene.length > 0) {
         html += `<div style="color:#3b82f6; font-size:10px; font-weight:900; margin:25px 0 8px 5px; text-transform:uppercase;">Půjčení / Výpomoc (${pujcene.length})</div>`;
-        pujcene.forEach(w => { html += renderAttendanceRow(w, "#3b82f6"); });
+        pujcene.forEach(w => { 
+            if (typeof renderAttendanceRow === 'function') html += renderAttendanceRow(w, "#3b82f6"); 
+        });
       }
       container.innerHTML = html;
 
+      // --- LOGIKA PRO AKTUALIZACI TABULKY ---
       if (!firstLoad) {
           const workingIds = new Set();
-          if (typeof phases !== 'undefined') {
+          
+          if (typeof phases !== 'undefined' && phases.length > 0) {
               phases.forEach(p => {
                   if (p) {
                       Object.values(p).forEach(w => { 
-                          if (w && w.id) workingIds.add(w.id); 
+                          if (w) {
+                              if (w.id) workingIds.add(w.id.trim());
+                              if (w.main && w.main.id) workingIds.add(w.main.id.trim());
+                              if (w.trainee && w.trainee.id) workingIds.add(w.trainee.id.trim());
+                          }
                       });
                   }
               });
-          }
 
-          if (typeof phaseReserves !== 'undefined') {
-              for (let i = 0; i < 4; i++) {
-                  // OPRAVA: V náhradnících zůstanou jen ti, co nejsou v tabulce A mají status 'work'
-                  phaseReserves[i] = workers.filter(w => {
-                      const isNotBusy = !workingIds.has(w.id);
-                      // Získáme aktuální status (malými písmeny a bez mezer)
-                      const s = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
-                      
-                      return isNotBusy && s === 'work';
-                  });
+              if (typeof phaseReserves !== 'undefined') {
+                  for (let i = 0; i < 4; i++) {
+                      phaseReserves[i] = workers.filter(w => {
+                          const isNotBusy = !workingIds.has(w.id.trim());
+                          // Kontrola na oba statusy
+                          const s = (w.status || 'v práci').toString().toLowerCase().trim();
+                          return isNotBusy && (s === 'work' || s === 'v práci');
+                      });
+                  }
               }
-          }
 
-          if (typeof render === "function") { 
-              render(); 
+              // Renderujeme jen když jsou v phases skutečná data (ne prázdné objekty)
+              const hasActualData = phases.some(ph => ph && Object.keys(ph).length > 0);
+              if (hasActualData && typeof render === "function") { 
+                  render(); 
+              }
           }
       }
 
@@ -1294,7 +1306,7 @@ loadBtn.onclick = async () => {
     loadingEl.style.display = "flex";
 
     try {
-        // 1. NAČTENÍ DOKUMENTU SMĚNY
+        // 1. Nejdříve načteme dokument směny, abychom věděli, jaké statusy tehdy lidé měli
         const shiftId = dateEl.value + "_" + shiftEl.value;
         const shiftSnap = await getDoc(doc(db, "shifts", shiftId));
 
@@ -1305,10 +1317,11 @@ loadBtn.onclick = async () => {
         }
 
         const shiftData = shiftSnap.data();
+        // Načteme historický "otisk" statusů
         currentShiftSnapshot = shiftData.statusSnapshot || {}; 
         shiftInfo = shiftData.info || { sk:{start:"",end:""}, fa:{start:"",end:""}, za:{start:"",end:""} };
 
-        // 2. NAČTENÍ ZAMĚSTNANCŮ A HISTORICKÝCH STATUSŮ
+        // 2. Načtení všech zaměstnanců a OKAMŽITÉ vložení historických statusů
         const empSnap = await getDocs(collection(db, "employees"));
         allWorkersMap = {}; 
         const allWorkersArray = [];
@@ -1316,12 +1329,15 @@ loadBtn.onclick = async () => {
         empSnap.forEach(docSnap => {
             const w = { id: docSnap.id.trim(), ...docSnap.data() };
             
-            // Pojistka: Pokud v načtené směně existuje záznam, přepíšeme status
+            // --- TADY JE TA OPRAVA ---
+            // Pokud v načtené směně existuje záznam pro tohoto člověka, 
+            // přepíšeme jeho aktuální status (zítřek) tím historickým (včerejšek).
             if (currentShiftSnapshot[w.id]) {
                 const historicalStatus = currentShiftSnapshot[w.id];
                 w.statusToday = historicalStatus;
                 w.status = historicalStatus;
             } else {
+                // Pokud ve staré směně nebyl (nový člověk), dáme mu "work"
                 w.statusToday = 'work';
                 w.status = 'work';
             }
@@ -1330,28 +1346,22 @@ loadBtn.onclick = async () => {
             allWorkersArray.push(w);
         });
 
+        // Synchronizace s globální proměnnou workers - teď už obsahuje JEN historická data
         window.workers = allWorkersArray;
 
-        // 3. REKONSTRUKCE TABULKY (Phases) - S PODPOROU PRO UČNĚ A DIVNÁ ID
-        phases = (shiftData.phases || []).map(ph => {
+        // 3. REKONSTRUKCE TABULKY (Phases)
+       phases = shiftData.phases.map(ph => {
             const o = {};
             Object.entries(ph).forEach(([pos, val]) => {
-                if (!val) { o[pos] = null; return; }
-
-                const getW = (id) => {
-                    if (!id) return null;
-                    // Fix pro ID se závorkami: vezmeme jen část před závorkou
-                    const cid = id.toString().split('(')[0].trim();
-                    return allWorkersMap[cid] ? { ...allWorkersMap[cid] } : null;
-                };
-
+                // Pokud je val string (staré ID), očistíme ho. Pokud je to objekt, vezmeme jeho části.
                 if (typeof val === 'string') {
-                    o[pos] = getW(val);
+                    const cleanId = val.trim();
+                    o[pos] = allWorkersMap[cleanId] ? { ...allWorkersMap[cleanId] } : null;
                 } else if (val && (val.m || val.t)) {
-                    // Podpora pro objekt {m: hlavní, t: učeň}
-                    const mainW = getW(val.m);
-                    const traineeW = getW(val.t);
-                    o[pos] = (mainW || traineeW) ? { main: mainW, trainee: traineeW } : null;
+                    // NOVÝ FORMÁT: Máme hlavního (m) a učně (t)
+                    const mainW = val.m ? allWorkersMap[val.m.trim()] : null;
+                    const traineeW = val.t ? allWorkersMap[val.t.trim()] : null;
+                    o[pos] = { main: mainW, trainee: traineeW };
                 } else {
                     o[pos] = null;
                 }
@@ -1359,38 +1369,37 @@ loadBtn.onclick = async () => {
             return o;
         });
 
-        // 4. VÝPOČET NÁHRADNÍKŮ (Reserves) - FIX PRO BALÍČKY
+        // 4. VÝPOČET NÁHRADNÍKŮ (Reserves)
+        // Teď už se díváme do očistěného allWorkersArray
         phaseReserves = phases.map((ph, phaseIdx) => {
-            const usedIdsInPhase = new Set();
-            
-            Object.values(ph).forEach(val => { 
-                if (val) {
-                    if (val.id) {
-                        usedIdsInPhase.add(val.id.trim()); 
-                    } else {
-                        // Přidáme ID hlavního i učně do obsazených
-                        if (val.main && val.main.id) usedIdsInPhase.add(val.main.id.trim());
-                        if (val.trainee && val.trainee.id) usedIdsInPhase.add(val.trainee.id.trim());
-                    }
-                }
-            });
-
-            return allWorkersArray.filter(w => {
-                const s = (w.statusToday || 'work').toString().toLowerCase().trim();
-                const isUsed = usedIdsInPhase.has(w.id.trim());
-                return !isUsed && s === "work";
-            });
-        });
-
-        console.log("Směna úspěšně načtena. Vypínám loading...");
-        
-        // 5. FINÁLNÍ VYKRESLENÍ (Tady se to předtím seklo)
-        if (typeof render === "function") {
-            render(); 
-        } else {
-            console.error("Chyba: Funkce render() nebyla nalezena!");
+    const usedIdsInPhase = new Set();
+    
+    Object.values(ph).forEach(w => { 
+        if (w) {
+            if (w.id) {
+                // Klasický jeden pracovník
+                usedIdsInPhase.add(w.id.trim()); 
+            } else {
+                // NOVÝ FORMÁT: Musíme přidat ID hlavního i učně!
+                if (w.main && w.main.id) usedIdsInPhase.add(w.main.id.trim());
+                if (w.trainee && w.trainee.id) usedIdsInPhase.add(w.trainee.id.trim());
+            }
         }
+    });
+
+    return allWorkersArray.filter(w => {
+        const s = (w.statusToday || 'work').toString().toLowerCase().trim();
+        const isUsed = usedIdsInPhase.has(w.id.trim());
+        return !isUsed && s === "work";
+    });
+});
+
+        console.log("Směna úspěšně načtena s historickými statusy.");
         
+        // 5. FINÁLNÍ VYKRESLENÍ
+        render(); 
+        
+        // Pokud máš v kódu funkci pro seznam docházky pod tabulkou, zavoláme ji taky
         if (typeof loadAttendance === "function") {
             await loadAttendance();
         }
@@ -1403,6 +1412,7 @@ loadBtn.onclick = async () => {
         loadingEl.style.display = "none";
     }
 };
+
 // --- 2. FUNKCE PRO VYNDÁNÍ ČLOVĚKA Z POZICE (Oprava Terky) ---
 window.removeWorker = () => {
   // 1. Zjistíme, co je v téhle buňce (pickPhaseIndex a pickPosition už máme globálně)
@@ -1528,58 +1538,65 @@ function render() {
       </td>`;
 
     for (let p = 0; p < 4; p++) {
-      const w = phases[p]?.[pos];
-      
-      // --- 1. BEZPEČNÝ VÝPOČET STATUSU (OPRAVA PROTI PÁDU) ---
-      let currentStatus = 'work';
-      if (w) {
-        // POUŽÍVÁME ?. ABY KÓD NESPADL, KDYŽ NĚCO CHYBÍ
-        let workerId = w.id || w.main?.id || null;
-        
-        if (workerId && typeof workerId === 'string') {
-          workerId = workerId.trim();
-          // PŘÍSNÁ KONTROLA EXISTENCE VE SNAPSHOTU
-          if (typeof currentShiftSnapshot !== 'undefined' && currentShiftSnapshot && currentShiftSnapshot[workerId]) {
-            currentStatus = currentShiftSnapshot[workerId].toString().toLowerCase().trim();
-          } else if (w.statusToday) {
-            currentStatus = w.statusToday.toString().toLowerCase().trim();
-          }
-        }
+  const w = phases[p]?.[pos];
+  
+  // 1. BEZPEČNÝ VÝPOČET STATUSU (Tady to doteď padalo)
+  let currentStatus = 'work';
+  
+  // PŘIDÁNA POJISTKA: Pokud v buňce 'w' nikdo není, status neřešíme
+  if (w) {
+    let workerId = w.id || (w.main ? w.main.id : null);
+    
+    if (workerId) {
+      const cleanId = workerId.toString().trim();
+      // Kontrola v snapshotu nebo v objektu (bezpečně přes ?.)
+      if (typeof currentShiftSnapshot !== 'undefined' && currentShiftSnapshot?.[cleanId]) {
+        currentStatus = currentShiftSnapshot[cleanId].toString().toLowerCase().trim();
+      } else if (w.statusToday) {
+        currentStatus = w.statusToday.toString().toLowerCase().trim();
       }
+    }
+  }
 
-      const isAlert = w && currentStatus !== 'work';
-      let tdColor = isAlert ? "#ffffff" : (w ? "#2ecc71" : "rgba(255,255,255,0.2)");
-      let tdBg = isAlert ? "#ef4444 !important" : rowBg;
+  // Barvy políčka (Červená, pokud status není 'work' nebo 'v práci')
+  const isAlert = w && currentStatus !== 'work' && currentStatus !== 'v práci';
+  let tdColor = isAlert ? "#ffffff" : (w ? "#2ecc71" : "rgba(255,255,255,0.2)");
+  let tdBg = isAlert ? "#ef4444 !important" : rowBg;
 
-      // --- 2. LOGIKA PRO JMÉNA (S POJISTKOU PROTI NULL) ---
-      let displayName = "—";
-      let traineeHTML = "";
+  // 2. LOGIKA PRO JMÉNA (S pojistkou proti null)
+  let displayName = "—";
+  let traineeHTML = "";
 
-      if (w) {
-          const getName = (obj) => {
-              if (!obj) return "—";
-              if (obj.name) return obj.name;
-              const fromMap = (obj.id && typeof allWorkersMap !== 'undefined') ? allWorkersMap[obj.id.trim()] : null;
-              return fromMap ? (fromMap.name || fromMap.fName || obj.id) : (obj.id || "—");
-          };
+  if (w) {
+      const getName = (obj) => {
+          if (!obj) return "—";
+          // Zkusíme najít jméno v mapě všech pracovníků (ID musí být ořezané)
+          const workerId = obj.id ? obj.id.trim() : null;
+          const fromMap = (workerId && typeof allWorkersMap !== 'undefined') ? allWorkersMap[workerId] : null;
+          
+          if (fromMap && fromMap.name) return fromMap.name;
+          if (obj.name) return obj.name;
+          return workerId || "—";
+      };
 
-          if (w.id) {
-              let n = getName(w);
-              displayName = n.charAt(0).toUpperCase() + n.slice(1);
-          } else {
-              let m = getName(w.main);
-              displayName = m !== "—" ? (m.charAt(0).toUpperCase() + m.slice(1)) : "—";
-              
-              if (w.trainee) {
-                  let t = getName(w.trainee);
-                  if (t !== "—") {
-                      let tFinal = t.charAt(0).toUpperCase() + t.slice(1);
-                      traineeHTML = `<div style="font-size: 7px; color: #3b82f6; margin-top: -2px; font-weight: 700;">+ ${tFinal}</div>`;
-                  }
+      if (w.id) {
+          let n = getName(w);
+          displayName = n !== "—" ? (n.charAt(0).toUpperCase() + n.slice(1)) : "—";
+      } else if (w.main) {
+          let m = getName(w.main);
+          displayName = m !== "—" ? (m.charAt(0).toUpperCase() + m.slice(1)) : "—";
+          
+          if (w.trainee) {
+              let t = getName(w.trainee);
+              if (t !== "—") {
+                  let tFinal = t.charAt(0).toUpperCase() + t.slice(1);
+                  traineeHTML = `<div style="font-size: 7px; color: #3b82f6; margin-top: -2px; font-weight: 700;">+ ${tFinal}</div>`;
               }
           }
       }
+  }
 
+      // --- 3. VYKRESLENÍ BUŇKY ---
       html += `
         <td class="slot" onclick="pick(${p},'${pos}')" 
             style="padding: 0; background: ${tdBg}; height: 22px; width: 62px; text-align: center; vertical-align: middle; border: 0.5px solid rgba(255,255,255,0.05); color: ${tdColor}; font-size: 9px; font-weight: 800; text-transform: uppercase; cursor: pointer;">
@@ -1592,15 +1609,18 @@ function render() {
     html += "</tr>";
   });
 
-  // --- 3. NÁHRADNÍCI (F1 až F4) ---
-  for (let p = 0; p < 4; p++) {
+  // --- 4. NÁHRADNÍCI (F1 až F4) ---
+ for (let p = 0; p < 4; p++) {
     const res = phaseReserves[p] || [];
+    
+    // Musíme zajistit, že vytáhneme jméno, i kdyby byl objekt rozbitý
     const names = res.map(w => {
-        if (!w || !w.id) return "";
-        const realW = (typeof allWorkersMap !== 'undefined' && allWorkersMap[w.id.trim()]) ? allWorkersMap[w.id.trim()] : w;
-        const n = realW.name || realW.fName || "";
-        return n ? (n.charAt(0).toUpperCase() + n.slice(1)) : "";
-    }).filter(n => n !== "").join(", ");
+    if (!w) return "";
+    // Vždy vytáhneme jméno z allWorkersMap, tam je to nejjistější
+    const realW = (w.id && allWorkersMap[w.id]) ? allWorkersMap[w.id] : w;
+    const n = realW.name || "";
+    return n.charAt(0).toUpperCase() + n.slice(1);
+}).filter(n => n !== "").join(", ");
 
     html += `
       <tr style="height: 18px; background: rgba(255,255,255,0.02) !important;">
@@ -1632,40 +1652,52 @@ window.pick = (phase, pos) => {
   pickPhaseIndex = phase;
   pickPosition = pos;
 
-  // 1. Získáme náhradníky a přidáme pojistku proti prázdnému poli
+  // 1. Získáme všechny lidi, co jsou v dané fázi volní (náhradníci)
   const available = phaseReserves[phase] || [];
 
-  // POMOCNÁ FUNKCE: Bezpečně zjistí úroveň skillu a nepadne
-  const getLvl = (w, p) => {
-    if (!w || !w.id) return 0;
-    // Očistíme ID a vytáhneme data z mapy
-    const realW = allWorkersMap[w.id.trim()];
-    if (!realW || !realW.skills) return 0;
-    
-    // Zvládneme objekt i staré pole
-    if (typeof realW.skills === 'object' && !Array.isArray(realW.skills)) {
-      return realW.skills[p] || 0;
-    }
-    return realW.skills.includes(p) ? 2 : 0;
-  };
+  // 2. FILTR: Kdo to UMÍ (Level 2 nebo starý formát)
+  const masters = available.filter(w => {
+    const realWorker = allWorkersMap[w.id] || w;
+    // Kontrola statusu (musí být "work")
+    const sToday = (typeof currentShiftSnapshot !== 'undefined' && currentShiftSnapshot[w.id]) 
+                   ? currentShiftSnapshot[w.id] 
+                   : (w.statusToday || w.status || 'work');
+    if (sToday.toString().toLowerCase().trim() !== 'work') return false;
 
-  // 2. FILTR: Kvalifikovaní (Level 2)
-  const masters = available.filter(w => getLvl(w, pos) === 2);
+    const lvl = (realWorker.skills && realWorker.skills[pos]) || 0;
+    const isOld = Array.isArray(realWorker.skills) && realWorker.skills.includes(pos);
+    return lvl === 2 || isOld;
+  });
 
-  // 3. FILTR: Učni (Level 1)
-  const trainees = available.filter(w => getLvl(w, pos) === 1);
+  // 3. FILTR: Kdo se to UČÍ (Level 1)
+  const trainees = available.filter(w => {
+    const realWorker = allWorkersMap[w.id] || w;
+    // Kontrola statusu
+    const sToday = (typeof currentShiftSnapshot !== 'undefined' && currentShiftSnapshot[w.id]) 
+                   ? currentShiftSnapshot[w.id] 
+                   : (w.statusToday || w.status || 'work');
+    if (sToday.toString().toLowerCase().trim() !== 'work') return false;
+
+    return realWorker.skills && realWorker.skills[pos] === 1;
+  });
 
   pickTitle.innerText = "Pozice " + pos;
   
-  let html = `<div style="font-size:10px; color:#2ecc71; margin-bottom:8px; font-weight:800; text-transform:uppercase;">Kvalifikovaní:</div>`;
-  html += masters.map(w => `<button class="pickBtn" onclick="swapWorker('${w.id}', false)">${w.name}</button>`).join("");
+  let html = `<div style="font-size:10px; color:#2ecc71; margin-bottom:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Kvalifikovaní:</div>`;
+  html += masters.map(w => {
+      const name = w.name.charAt(0).toUpperCase() + w.name.slice(1);
+      return `<button class="pickBtn" onclick="swapWorker('${w.id}', false)">${name}</button>`;
+  }).join("");
 
   if (trainees.length > 0) {
-    html += `<div style="font-size:10px; color:#3b82f6; margin-top:15px; margin-bottom:8px; font-weight:800; text-transform:uppercase;">Zaučování:</div>`;
-    html += trainees.map(w => `<button class="pickBtn traineeBtn" style="border-color:#3b82f6; color:#3b82f6;" onclick="swapWorker('${w.id}', true)">+ ${w.name}</button>`).join("");
+    html += `<div style="font-size:10px; color:#3b82f6; margin-top:15px; margin-bottom:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Zaučování (přidat k pozici):</div>`;
+    html += trainees.map(w => {
+        const name = w.name.charAt(0).toUpperCase() + w.name.slice(1);
+        return `<button class="pickBtn traineeBtn" style="border-color:#3b82f6; color:#3b82f6; background:rgba(59,130,246,0.1);" onclick="swapWorker('${w.id}', true)">+ ${name}</button>`;
+    }).join("");
   }
 
-  html += `<button class="pickBtn removeBtn" style="margin-top:25px;" onclick="removeWorker()">Vyprázdnit pozici</button>`;
+  html += `<button class="pickBtn removeBtn" style="margin-top:25px; opacity:0.6;" onclick="removeWorker()">Vyprázdnit pozici</button>`;
   
   pickList.innerHTML = html;
   pickModal.style.display = "flex";
