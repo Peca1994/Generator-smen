@@ -774,7 +774,7 @@ th, td { border-bottom: 1px solid rgba(255,255,255,0.1) !important; padding: 8px
 
         <!-- SEKCE S INPUTY -->
         <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px;">
-        
+
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <b style="color: rgba(255,255,255,0.5); font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Fabie</b>
                 <div style="display: flex; gap: 10px;">
@@ -819,7 +819,7 @@ const app = initializeApp({
 });
 
 const db = getFirestore(app);
-let currentShiftSnapshot = null;
+
 /* DOM */
 
 const loadingEl = document.getElementById("loading");
@@ -942,15 +942,17 @@ function activePositions(){
 
 /* STATE */
 
-let workers=[];
-let phases=[];
-let phaseReserves=[];
-let allWorkersMap={};   // ← NOVÉ
+let workers = [];
+let phases = [];
+let phaseReserves = [[], [], [], []];
+let allWorkersMap = {};
 let shiftInfo = {
  sk:{start:"",end:""},
  fa:{start:"",end:""},
  za:{start:"",end:""}
 };
+// --- TENTO ŘÁDEK TI CHYBÍ A KVŮLI NĚMU TO NEJDE NAČÍST ---
+let currentShiftSnapshot = null; 
 
 
 
@@ -964,7 +966,8 @@ async function loadWorkers() {
     let firstLoad = true;
 
     onSnapshot(collection(db, "employees"), (snap) => {
-      // Zjistíme, zda si právě prohlížíme starou směnu z historie
+      // --- OPRAVA 1: Přísnější kontrola historie ---
+      // Pokud existuje snapshot, ale chceme pracovat s aktuálními daty, musíme ho umět ignorovat
       const isViewingHistory = typeof currentShiftSnapshot !== 'undefined' && 
                                currentShiftSnapshot && 
                                Object.keys(currentShiftSnapshot).length > 0;
@@ -977,13 +980,16 @@ async function loadWorkers() {
 
       snap.forEach(d => {
         const e = d.data();
-        const id = d.id.trim();
-        
-        // --- PŘÍSNÁ KONTROLA STATUSU: Musí to být přesně "V práci" nebo "work" ---
-        let st = (e.statusToday || e.status || "v práci").toString().toLowerCase().trim();
+        // Sjednocení statusu (bereme 'work' i 'v práci')
+        let st = (e.statusToday || e.status || "work").toLowerCase().trim();
+
+// TOTO JE TA KOTVA: Pokud jsme status právě změnili, nepustíme stará data z DB na obrazovku
+if (window.currentShiftSnapshot && window.currentShiftSnapshot[id]) {
+    st = window.currentShiftSnapshot[id]; 
+}
         
         const workerObj = { 
-          id: id, 
+          id: d.id.trim(), 
           name: e.name, 
           surname: e.surname || "", 
           type: e.type || "kmenovy",
@@ -991,7 +997,7 @@ async function loadWorkers() {
           status: st 
         };
 
-        allWorkersMap[id] = workerObj; 
+        allWorkersMap[d.id.trim()] = workerObj; 
         temporaryWorkers.push(workerObj);
 
         if (e.type === "pujceny") {
@@ -1001,12 +1007,13 @@ async function loadWorkers() {
         }
       });
 
-      // Pokud NEKOUKÁME na historii, aktualizujeme aktuální seznam pro generátor
-      if (!isViewingHistory) {
-          workers = temporaryWorkers; 
-      }
+      // --- OPRAVA 2: Vždy aktualizujeme workers, pokud zrovna nekoukáme na STAROU uloženou směnu ---
+      workers = temporaryWorkers; 
 
-      // Vykreslení seznamu docházky (ten modál se statusy)
+      const sortFn = (a, b) => (a.surname || "").localeCompare(b.surname || "", 'cs');
+      moje.sort(sortFn); 
+      pujcene.sort(sortFn);
+      
       let html = "";
       html += `<div style="color:#22c55e; font-size:10px; font-weight:900; margin:15px 0 8px 5px; text-transform:uppercase;">Moji Zaměstnanci (${moje.length})</div>`;
       moje.forEach(w => { 
@@ -1021,52 +1028,55 @@ async function loadWorkers() {
       }
       container.innerHTML = html;
 
-      // --- LOGIKA PRO ŽIVOU AKTUALIZACI TABULKY ---
+      // --- LOGIKA PRO AKTUALIZACI TABULKY ---
       if (!firstLoad) {
-          const workingIds = new Set();
-          const hasPhases = typeof phases !== 'undefined' && phases.length > 0;
-
-          if (hasPhases) {
-              phases.forEach(p => {
-                  if (p) {
-                      Object.values(p).forEach(w => { 
-                          if (w) {
-                              if (w.id) workingIds.add(w.id.trim());
-                              if (w.main && w.main.id) workingIds.add(w.main.id.trim());
-                              if (w.trainee && w.trainee.id) workingIds.add(w.trainee.id.trim());
-                          }
+          // --- PŘEPOČET NÁHRADNÍKŮ (F1-F4) PRO KAŽDOU FÁZI ZVLÁŠŤ ---
+          if (typeof phases !== 'undefined' && phases.length > 0 && typeof phaseReserves !== 'undefined') {
+              
+              for (let i = 0; i < 4; i++) {
+                  // 1. Zjistíme, kdo pracuje POUZE v této konkrétní fázi (sloupci)
+                  const busyInThisPhase = new Set();
+                  const currentPhase = phases[i];
+                  
+                  if (currentPhase) {
+                      Object.values(currentPhase).forEach(w => {
+                          if (!w) return;
+                          // Kontrola pro klasického pracovníka i balíček (učeň/hlavní)
+                          if (w.id) busyInThisPhase.add(w.id.trim());
+                          if (w.main && w.main.id) busyInThisPhase.add(w.main.id.trim());
+                          if (w.trainee && w.trainee.id) busyInThisPhase.add(w.trainee.id.trim());
                       });
                   }
-              });
 
-              // --- AKTUALIZACE NÁHRADNÍKŮ: Jen status "work" nebo "v práci" ---
-              if (typeof phaseReserves !== 'undefined') {
-                  for (let i = 0; i < 4; i++) {
-                      phaseReserves[i] = workers.filter(w => {
-                          const isNotBusy = !workingIds.has(w.id.trim());
-                          const s = (w.status || 'v práci').toString().toLowerCase().trim();
-                          
-                          // TADY JE TA ZMĚNA: Pustíme jen ty, co mají status "v práci" nebo "work"
-                          return isNotBusy && (s === 'work' || s === 'v práci');
-                      });
-                  }
+                  // 2. Do náhradníků dáme lidi, co mají status 'work'/'v práci' a nesedí v této fázi na pozici
+                  phaseReserves[i] = workers.filter(w => {
+                      const workerId = w.id.trim();
+                      const isNotBusyHere = !busyInThisPhase.has(workerId);
+                      const s = (w.statusToday || w.status || 'v práci').toString().toLowerCase().trim();
+                      const isWorking = (s === 'work' || s === 'v práci');
+                      
+                      return isWorking && isNotBusyHere;
+                  });
+
+                  // 3. Seřadíme je abecedně
+                  phaseReserves[i].sort((a, b) => (a.surname || "").localeCompare(b.surname || "", 'cs'));
               }
 
-              // Pojistka: Renderujeme jen když jsou v phases skutečná data (ne prázdné objekty)
-              const hasRealData = phases.some(ph => ph && Object.keys(ph).length > 0);
-              if (hasRealData && typeof render === "function") { 
+              // Renderujeme jen pokud máme vygenerovaná data
+              const hasActualData = phases.some(ph => ph && Object.keys(ph).length > 0);
+              if (hasActualData && typeof render === "function") { 
                   render(); 
               }
           }
       }
 
       if (firstLoad) {
-        firstLoad = false;
-        resolve();
+          firstLoad = false;
+          resolve();
       }
-    });
-  });
-}
+    }); // Konec onSnapshot
+  }); // Konec Promise
+} // Konec funkce loadWorkers
 function renderWorkerList(kmenovi, pujceni) {
   const listDiv = document.getElementById("workerList"); // Zkontroluj si ID v HTML
   if (!listDiv) return;
@@ -1116,35 +1126,26 @@ if (typeof historyStats === 'undefined') { var historyStats = {}; }
 if (typeof lastPosByWorker === 'undefined') { var lastPosByWorker = {}; }
 
 function buildPhase(act) {
-  // 1. FILTR: Musí brát VŠECHNY lidi, co mají pracovat (včetně Parťáků)
-  const activeWorkers = Object.values(allWorkersMap).filter(w => {
-    // Sjednotíme status (malá písmena, bez mezer)
-    const s = (w.statusToday || w.status || 'v práci').toString().toLowerCase().trim();
-    
-    // TADY JE TA OPRAVA: Kdo všechno jde do rozpisu?
-    // Musí to sedět na to, co máš v tom modálu (v práci, parťák, work)
-    return s === 'v práci' || s === 'work';
+  // 1. Vyfiltrujeme POUZE lidi, kteří mají status 'work'
+  const activeWorkers = workers.filter(w => {
+    const s = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
+    return s === 'work';
   });
 
-  // 2. POJISTKA PROTI ZÁSEKU (To točící se kolečko)
-  if (!act || !activeWorkers || activeWorkers.length < act.length) {
-    console.error("MÁLO LIDÍ! Potřeba:", act?.length, "Aktivních:", activeWorkers?.length);
-    // Tohle vyvolá chybu v genBtn a VYPNĚ KOLEČKO!
-    return null; 
-  }
+  if (!act || !activeWorkers || activeWorkers.length < act.length) return null;
 
   const map = {};
   act.forEach(pos => {
+    // --- KLÍČOVÁ OPRAVA: Kontrola skillů, která zvládne Pole i Objekt ---
     map[pos] = activeWorkers.filter(w => {
       if (!w.skills) return false;
 
-      // A) Nový formát (Objekt): Bere úroveň 2 (umí) i 1 (zaučování)
-      // Tím zajistíme, že se generátor nezasekne, když máš víc učňů
+      // A) Nový formát (Objekt): Bere jen plnou kvalifikaci (úroveň 2)
       if (typeof w.skills === 'object' && !Array.isArray(w.skills)) {
-        return w.skills[pos] >= 1; 
+        return w.skills[pos] === 2;
       }
       
-      // B) Starý formát (Pole)
+      // B) Starý formát (Pole): Klasické hledání zkratky
       if (Array.isArray(w.skills)) {
         return w.skills.includes(pos);
       }
@@ -1153,8 +1154,8 @@ function buildPhase(act) {
     });
   });
 
-  // --- ZBYTEK LOGIKY ZŮSTÁVÁ STEJNÝ (Bodování a řazení) ---
-  const orderedPos = [...act].sort((a, b) => (map[a]?.length || 0) - (map[b]?.length || 0));
+  // Zbytek logiky zůstává stejný (řazení podle náročnosti, bodování atd.)
+  const orderedPos = [...act].sort((a, b) => map[a].length - map[b].length);
 
   let bestResult = null;
   let minScore = Infinity;
@@ -1182,6 +1183,7 @@ function buildPhase(act) {
         if (phaseBack2) {
           const posBack2 = Object.keys(phaseBack2).find(p => {
              const worker = phaseBack2[p];
+             // Kontrola pro případ, že v minulé fázi byl učeň (objekt)
              return (worker && worker.id === wId) || (worker && worker.main && worker.main.id === wId);
           });
           
@@ -1425,63 +1427,56 @@ loadBtn.onclick = async () => {
 
 // --- 2. FUNKCE PRO VYNDÁNÍ ČLOVĚKA Z POZICE (Oprava Terky) ---
 window.removeWorker = () => {
-  // 1. Získáme aktuální data z buňky
+  // 1. Zjistíme, co je v téhle buňce (pickPhaseIndex a pickPosition už máme globálně)
   const cur = phases[pickPhaseIndex][pickPosition];
-  
+  console.log("Mažu pozici:", pickPosition, "Data v buňce:", cur);
+
   if (cur) {
     let toReturn = [];
 
-    // ROZBALENÍ: Zjistíme, kdo tam sedí
+    // ROZBALENÍ: Zjistíme, kdo tam sedí (klasický pracovník nebo učeň+hlavní)
     if (cur.id) {
+        // Starý formát (jen jeden objekt pracovníka)
         toReturn.push(cur);
     } else {
+        // Nový formát (balíček {main, trainee})
         if (cur.main) toReturn.push(cur.main);
         if (cur.trainee) toReturn.push(cur.trainee);
     }
 
-    // VRÁCENÍ DO NÁHRADNÍKŮ (Reserves)
+    // VRÁCENÍ DO NÁHRADNÍKŮ
     toReturn.forEach(w => {
       if (!w || !w.id) return;
-      const workerId = w.id.trim();
 
-      // Získáme ČERSTVÝ objekt z mapy (aby zůstaly skilly!)
-      const realWorker = allWorkersMap[workerId];
-      if (!realWorker) return;
+      // Najdeme "čerstvý" objekt se skilly v allWorkersMap nebo v hlavním poli workers
+      const realWorker = (typeof allWorkersMap !== 'undefined' && allWorkersMap[w.id]) 
+                         || (typeof workers !== 'undefined' ? workers.find(x => x.id === w.id) : w);
+      
+      // Zjistíme aktuální status (kvůli červeným polím)
+      const s = (realWorker.statusToday || realWorker.status || 'work').toString().toLowerCase().trim();
 
-      // Kontrola statusu (podpora pro 'work' i 'v práci')
-      const s = (realWorker.statusToday || realWorker.status || 'v práci').toString().toLowerCase().trim();
-
-      if (s === 'work' || s === 'v práci') {
-        // Kontrola, aby tam člověk nebyl dvakrát (tohle dřív blokovalo kód)
-        const isAlreadyInReserves = phaseReserves[pickPhaseIndex].some(x => x.id === workerId);
+      // Vracíme jen ty, co jsou reálně "v práci"
+      if (s === 'work') {
+        const isAlreadyInReserves = phaseReserves[pickPhaseIndex].some(x => x.id === realWorker.id);
         if (!isAlreadyInReserves) {
           phaseReserves[pickPhaseIndex].push(realWorker);
         }
       }
     });
 
-    // Seřadíme náhradníky abecedně
+    // Seřadíme náhradníky abecedně (A-Z)
     phaseReserves[pickPhaseIndex].sort((a, b) => (a.name || "").localeCompare(b.name || "", 'cs'));
   }
 
-  // 2. VYMAZÁNÍ POZICE
+  // 2. VYMAZÁNÍ POZICE A REFRESH
   phases[pickPhaseIndex][pickPosition] = null;
   
-  // 3. KLÍČOVÁ POJISTKA: Vyčištění všech náhradníků (aby se nic nezaseklo příště)
-  // Toto zajistí, že můžeš dělat "nekonečno" změn
-  if (typeof window.refreshReserves === 'function') {
-      window.refreshReserves(); 
-  }
+  if (typeof closePick === "function") closePick(); 
+  else if (document.getElementById('pickModal')) document.getElementById('pickModal').style.display = "none";
 
-  // 4. ZAVŘENÍ A REFRESH
-  const modal = document.getElementById('pickModal');
-  if (modal) modal.style.display = "none";
+  if (typeof render === "function") render();
   
-  if (typeof render === "function") {
-      render(); 
-  }
-  
-  console.log("Pozice " + pickPosition + " je nyní volná. Můžete dělat další změny.");
+  console.log("Pozice vyprázdněna a náhradníci aktualizováni.");
 };
 
 // --- 3. FUNKCE PRO ZAVŘENÍ OKNA VÝBĚRU ---
@@ -1532,10 +1527,6 @@ function phaseLabels(){
 }
 
 function render() {
-     if (!phases || phases.length === 0) {
-    console.log("Render zablokován: Tabulka se nevykreslí, dokud nevygenerujete směnu.");
-    return; 
-  }
   const L = phaseLabels();
   const locked = new Set(lockedPositions());
 
@@ -1673,73 +1664,52 @@ window.pick = (phase, pos) => {
   pickPhaseIndex = phase;
   pickPosition = pos;
 
-  // 1. Získáme náhradníky (pojistka proti undefined)
-  const available = (typeof phaseReserves !== 'undefined' && phaseReserves[phase]) ? phaseReserves[phase] : [];
+  // 1. Získáme všechny lidi, co jsou v dané fázi volní (náhradníci)
+  const available = phaseReserves[phase] || [];
 
-  // POMOCNÁ FUNKCE: Projde status a skilly bezpečně, aby kód NESPADL (Fix řádku 1093)
-  const checkWorker = (w, targetLvl) => {
-    if (!w || !w.id) return false; // Pokud je objekt null, přeskočíme ho
-    
-    const workerId = w.id.trim();
-    // Vždy bereme čerstvá data o skillech a statusech z allWorkersMap
-    const realW = (typeof allWorkersMap !== 'undefined') ? allWorkersMap[workerId] : w;
-    
-    if (!realW) return false;
+  // 2. FILTR: Kdo to UMÍ (Level 2 nebo starý formát)
+  const masters = available.filter(w => {
+    const realWorker = allWorkersMap[w.id] || w;
+    // Kontrola statusu (musí být "work")
+    const sToday = (typeof currentShiftSnapshot !== 'undefined' && currentShiftSnapshot[w.id]) 
+                   ? currentShiftSnapshot[w.id] 
+                   : (w.statusToday || w.status || 'work');
+    if (sToday.toString().toLowerCase().trim() !== 'work') return false;
 
-    // Kontrola statusu (Sjednocení 'work' a 'v práci')
-    const sToday = (typeof currentShiftSnapshot !== 'undefined' && currentShiftSnapshot && currentShiftSnapshot[workerId]) 
-                   ? currentShiftSnapshot[workerId] 
-                   : (realW.statusToday || realW.status || 'work');
-    
-    const s = sToday.toString().toLowerCase().trim();
-    if (s !== 'work' && s !== 'v práci') return false;
+    const lvl = (realWorker.skills && realWorker.skills[pos]) || 0;
+    const isOld = Array.isArray(realWorker.skills) && realWorker.skills.includes(pos);
+    return lvl === 2 || isOld;
+  });
 
-    // Kontrola skillů (Objekt i Pole)
-    if (realW.skills) {
-      if (typeof realW.skills === 'object' && !Array.isArray(realW.skills)) {
-        const lvl = realW.skills[pos] || 0;
-        return lvl === targetLvl;
-      }
-      if (Array.isArray(realW.skills) && targetLvl === 2) {
-        return realW.skills.includes(pos);
-      }
-    }
-    return false;
-  };
+  // 3. FILTR: Kdo se to UČÍ (Level 1)
+  const trainees = available.filter(w => {
+    const realWorker = allWorkersMap[w.id] || w;
+    // Kontrola statusu
+    const sToday = (typeof currentShiftSnapshot !== 'undefined' && currentShiftSnapshot[w.id]) 
+                   ? currentShiftSnapshot[w.id] 
+                   : (w.statusToday || w.status || 'work');
+    if (sToday.toString().toLowerCase().trim() !== 'work') return false;
 
-  // 2. FILTRY: Kvalifikovaní vs Zaučování
-  const masters = available.filter(w => checkWorker(w, 2));
-  const trainees = available.filter(w => checkWorker(w, 1));
+    return realWorker.skills && realWorker.skills[pos] === 1;
+  });
 
   pickTitle.innerText = "Pozice " + pos;
   
-  let html = "";
+  let html = `<div style="font-size:10px; color:#2ecc71; margin-bottom:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Kvalifikovaní:</div>`;
+  html += masters.map(w => {
+      const name = w.name.charAt(0).toUpperCase() + w.name.slice(1);
+      return `<button class="pickBtn" onclick="swapWorker('${w.id}', false)">${name}</button>`;
+  }).join("");
 
-  // SEKCE: KVALIFIKOVANÍ (Zelená)
-  if (masters.length > 0) {
-    html += `<div style="font-size:10px; color:#2ecc71; margin-bottom:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Kvalifikovaní:</div>`;
-    html += masters.map(w => {
-        const name = (w.name || w.id).charAt(0).toUpperCase() + (w.name || w.id).slice(1);
-        return `<button class="pickBtn" onclick="swapWorker('${w.id}', false)">${name}</button>`;
-    }).join("");
-  }
-
-  // SEKCE: ZAUČOVÁNÍ (Modrá)
   if (trainees.length > 0) {
     html += `<div style="font-size:10px; color:#3b82f6; margin-top:15px; margin-bottom:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Zaučování (přidat k pozici):</div>`;
     html += trainees.map(w => {
-        const name = (w.name || w.id).charAt(0).toUpperCase() + (w.name || w.id).slice(1);
+        const name = w.name.charAt(0).toUpperCase() + w.name.slice(1);
         return `<button class="pickBtn traineeBtn" style="border-color:#3b82f6; color:#3b82f6; background:rgba(59,130,246,0.1);" onclick="swapWorker('${w.id}', true)">+ ${name}</button>`;
     }).join("");
   }
 
-  // Pokud nikdo není volný
-  if (masters.length === 0 && trainees.length === 0) {
-      html += `<div style="color:gray; font-size:11px; padding:10px; text-align:center;">Žádní volní náhradníci se skillem.</div>`;
-  }
-
-  // Tlačítko pro vymazání
-  html += `<button class="pickBtn removeBtn" style="margin-top:25px; opacity:0.8; background:rgba(231, 76, 60, 0.1); color:#e74c3c; border:1px solid #e74c3c;" onclick="removeWorker()">Vyprázdnit pozici</button>`;
+  html += `<button class="pickBtn removeBtn" style="margin-top:25px; opacity:0.6;" onclick="removeWorker()">Vyprázdnit pozici</button>`;
   
   pickList.innerHTML = html;
   pickModal.style.display = "flex";
@@ -2036,78 +2006,77 @@ window.updateStatus = async (id, newStatus) => {
     try {
         const cleanId = id.trim();
         const s = newStatus.toLowerCase().trim();
+        console.log(`Ukládám status pro ${cleanId} na "${s}" do DB i paměti...`);
 
-        // 1. POJISTKA PRO SNAPSHOT (Aby kód nespadl na null)
-        if (!window.currentShiftSnapshot) {
-            window.currentShiftSnapshot = {};
-        }
-        window.currentShiftSnapshot[cleanId] = s;
-
-        // 2. OKAMŽITÁ VIZUÁLNÍ ZMĚNA SELECTU
-        const allSelects = document.querySelectorAll(`select`);
-        allSelects.forEach(sel => {
-            if (sel.getAttribute('onchange')?.includes(id)) {
-                sel.value = s;
-                sel.className = 'status-select ' + s;
-            }
-        });
-
-        // 3. ZÁPIS DO FIREBASE (Trvalé uložení)
+        // --- 1. ZÁPIS DO DATABÁZE (Klíčové pro generátor!) ---
+        // Bez tohoto řádku ti 'loadWorkers()' při generování vždy vrátí stará data
         const docRef = doc(db, "employees", cleanId);
         await updateDoc(docRef, { 
             statusToday: s,
             status: s 
         });
 
-        // 4. AKTUALIZACE allWorkersMap (Pro generátor a skilly)
+        // --- 2. AKTUALIZACE SNAPSHOTU ---
+        if (!window.currentShiftSnapshot) window.currentShiftSnapshot = {};
+        window.currentShiftSnapshot[cleanId] = s;
+
+        // --- 3. AKTUALIZACE MAPY (Pro 'pick' a generátor) ---
         if (typeof allWorkersMap !== 'undefined' && allWorkersMap[cleanId]) {
             allWorkersMap[cleanId].statusToday = s;
             allWorkersMap[cleanId].status = s;
         }
 
-        // 5. AKTUALIZACE window.workers (Tohle opraví ten modál bez F5!)
-        if (window.workers && window.workers.length > 0) {
-            const idx = window.workers.findIndex(w => w.id.trim() === cleanId);
-            if (idx !== -1) {
-                window.workers[idx].statusToday = s;
-                window.workers[idx].status = s;
-                console.log(`Status pro ${cleanId} aktualizován v paměti.`);
+        // --- 4. AKTUALIZACE GLOBÁLNÍHO POLE WORKERS ---
+        if (typeof workers !== 'undefined') {
+            const worker = workers.find(w => w.id === cleanId);
+            if (worker) {
+                worker.statusToday = s;
+                worker.status = s;
             }
         }
 
-        console.log(`✅ Status úspěšně uložen: ${s}`);
+        // --- 5. LOGIKA NÁHRADNÍKŮ (F1-F4) ---
+        if (typeof phaseReserves !== 'undefined') {
+            const targetWorker = allWorkersMap[cleanId] || (workers ? workers.find(w => w.id === cleanId) : null);
+            
+            if (targetWorker) {
+                phaseReserves.forEach((reserveList, phaseIdx) => {
+                    const isWorking = (s === 'work' || s === 'v práci');
+                    const isAlreadyInReserves = reserveList.some(w => w.id === cleanId);
+                    
+                    const isUsedInPhase = (phases && phases[phaseIdx]) ? 
+                        Object.values(phases[phaseIdx]).some(v => {
+                            if (!v) return false;
+                            return v.id === cleanId || (v.main && v.main.id === cleanId) || (v.trainee && v.trainee.id === cleanId);
+                        }) : false;
 
-        // 6. REFRESH SEZNAMU (Seřadí lidi a potvrdí změnu v modálu)
-        if (typeof loadAttendance === "function") {
-            loadAttendance();
+                    // Pokud začal pracovat a není v tabulce -> šup s ním do náhradníků
+                    if (isWorking && !isUsedInPhase && !isAlreadyInReserves) {
+                        reserveList.push(targetWorker);
+                        reserveList.sort((a, b) => (a.surname || "").localeCompare(b.surname || "", 'cs'));
+                    } 
+                    // Pokud přestal pracovat -> pryč z náhradníků
+                    else if (!isWorking && isAlreadyInReserves) {
+                        phaseReserves[phaseIdx] = reserveList.filter(w => w.id !== cleanId);
+                    }
+                });
+            }
         }
 
+        // --- 6. REFRESH UI ---
+        // loadAttendance si teď díky tvému snapshotu vezme správná data
+        await loadAttendance(); 
+
+        if (typeof render === "function") {
+            render(); 
+        }
+
+        console.log("✅ Status úspěšně synchronizován.");
+
     } catch (err) {
-        console.error("❌ Chyba při ukládání:", err);
+        console.error("Chyba v updateStatus:", err);
+        alert("Chyba při ukládání statusu!");
     }
-};
-window.refreshReserves = () => {
-    if (typeof phases === 'undefined' || !phases) return;
-
-    phaseReserves = phases.map((ph, idx) => {
-        // 1. Kdo už v této fázi sedí na pozici?
-        const busyIds = new Set();
-        Object.values(ph).forEach(w => {
-            if (!w) return;
-            if (w.id) busyIds.add(w.id.trim());
-            if (w.main) busyIds.add(w.main.id.trim());
-            if (w.trainee) busyIds.add(w.trainee.id.trim());
-        });
-
-        // 2. Do náhradníků dáme jen ty, co mají status 'work'/'v práci' a NEJSOU obsazení
-        return Object.values(allWorkersMap).filter(w => {
-            const id = w.id.trim();
-            const s = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
-            const isWorking = (s === 'work' || s === 'v práci');
-            return isWorking && !busyIds.has(id);
-        });
-    });
-    console.log("Náhradníci byli kompletně aktualizováni.");
 };
 // OPRAVA loadAttendance (aby neignorovala změny v reálném čase)
 async function loadAttendance() {
@@ -2190,42 +2159,6 @@ async function loadAttendance() {
         console.error("Chyba v loadAttendance:", e);
     }
 }
-window.updateWorkerStatus = async (id, newStatus) => {
-    try {
-        const cleanId = id.trim();
-        const s = newStatus.toLowerCase().trim();
-        
-        // 1. Zápis do Firebase (aby to tam bylo uloženo)
-        const docRef = doc(db, "employees", cleanId);
-        await updateDoc(docRef, { 
-            statusToday: s,
-            status: s 
-        });
-
-        // 2. Zápis do PAMĚTI (Tohle opraví ten počet 22 v generátoru!)
-        if (typeof allWorkersMap !== 'undefined' && allWorkersMap[cleanId]) {
-            allWorkersMap[cleanId].statusToday = s;
-            allWorkersMap[cleanId].status = s;
-        }
-        
-        // Aktualizujeme i pole workers
-        if (window.workers) {
-            const idx = window.workers.findIndex(w => w.id === cleanId);
-            if (idx !== -1) {
-                window.workers[idx].statusToday = s;
-                window.workers[idx].status = s;
-            }
-        }
-
-        console.log(`Status pro ${cleanId} změněn na: ${s}. Generátor nyní uvidí změnu.`);
-        
-        // Překreslíme seznam docházky, aby se projevilo řazení a barvy
-        loadAttendance();
-
-    } catch (e) {
-        console.error("Chyba při ukládání statusu:", e);
-    }
-};
 
 </script>
 </body>
