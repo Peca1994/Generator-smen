@@ -633,8 +633,8 @@ async function loadShift(){
             details.style.alignItems = "flex-start";
 
             details.innerHTML = `
+             ${createSection('Fabia', data.info.fa.start, data.info.fa.end)}
                 ${createSection('Scala/Kamiq', data.info.sk.start, data.info.sk.end)}
-                ${createSection('Fabia', data.info.fa.start, data.info.fa.end)}
                 ${createSection('Zásobník', data.info.za.start, data.info.za.end, true)}
             `;
             
