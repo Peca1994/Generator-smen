@@ -364,7 +364,7 @@ function updateSingleColor(el) {
         .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // odstraní diakritiku (á -> a)
         
     el.classList.add('bg-' + val);
-}
+
 const row = el.closest('.empRow'); // Najde celý řádek/kartu zaměstnance
     if (row) {
         const status = el.value;
@@ -383,7 +383,7 @@ const row = el.closest('.empRow'); // Najde celý řádek/kartu zaměstnance
             row.classList.remove('not-available-alert');
         }
     }
-
+}
 // Tuto funkci zavolej VŽDY po vykreslení tabulky v onSnapshot
 function initAllSelects() {
     document.querySelectorAll('.status-select').forEach(select => {
@@ -664,46 +664,66 @@ window.closeModal=()=> modal.style.display="none";
 const saveEmp = async () => {
     console.log("KLIKNUTO: Spouštím ukládání...");
     try {
-        const fname = document.getElementById("fName")?.value || "";
-        const lname = document.getElementById("lName")?.value || "";
+        // Načtení hodnot z políček
+        let fname = document.getElementById("fName")?.value.trim() || "";
+        let lname = document.getElementById("lName")?.value.trim() || "";
         const email = document.getElementById("email")?.value || "";
         const info = document.getElementById("info")?.value || "";
         const empType = document.getElementById("empType")?.value || "kmenovy";
         
+        // Kontrola, zda jsou vyplněna základní jména
         if (!fname || !lname) {
-            showBtnFeedback("save", "Chybí jméno!", "error");
+            showBtnFeedback(".save", "Chybí jméno!", "error");
             return;
         }
 
-        let skills = {};
-const sBox = document.getElementById("skillsBox");
-if (sBox) {
-    sBox.querySelectorAll(".skillItem").forEach(div => {
-        const lvl = parseInt(div.dataset.level);
-        if (lvl > 0) {
-            // Uložíme jako "DP-L": 1 (modrá) nebo 2 (zelená)
-            skills[div.dataset.val] = lvl;
-        }
-    });
-}
+        // --- OPRAVA VELKÝCH PÍSMEN (Jméno i Příjmení/Přezdívka) ---
+        // První písmeno velké, zbytek malým
+        fname = fname.charAt(0).toUpperCase() + fname.slice(1).toLowerCase();
+        lname = lname.charAt(0).toUpperCase() + lname.slice(1).toLowerCase();
 
-        const id = editId || (fname + "_" + lname).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s/g, "");
+        // Posbírání dovedností (skills) z mřížky
+        let skills = {};
+        const sBox = document.getElementById("skillsBox");
+        if (sBox) {
+            sBox.querySelectorAll(".skillItem").forEach(div => {
+                const lvl = parseInt(div.dataset.level);
+                if (lvl > 0) {
+                    // Uložíme jako např. "DP-L": 2
+                    skills[div.dataset.val] = lvl;
+                }
+            });
+        }
+
+        // Generování ID (bez diakritiky, malými písmeny, s podtržítkem)
+        const id = editId || (fname + "_" + lname).toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/\s/g, "");
+        
         const docRef = doc(db, "employees", id);
 
+        // Příprava dat pro Firebase
         const empData = {
-            name: fname,
-            surname: lname,
+            name: fname,      // Toto je ta přezdívka, co se píše do rozpisu
+            surname: lname,   // Celé jméno
             email: email.toLowerCase().trim(),
             info: info,
-            skills: skills, // Teď je to objekt { "DP-L": 2, "T-P": 1 }
-    type: empType
-};
+            skills: skills,
+            type: empType
+        };
 
-        if (!editId) { empData.role = "user"; }
+        // Pokud je to úplně nový člověk, nastavíme mu roli 'user'
+        if (!editId) { 
+            empData.role = "user"; 
+        }
 
+        // ULOŽENÍ DO DATABÁZE
         await setDoc(docRef, empData, { merge: true });
         
-        showBtnFeedback("save", "Uloženo do systému");
+        // Zpětná vazba pro uživatele (zelené tlačítko)
+        showBtnFeedback(".save", "Uloženo do systému");
+        
+        // Zavření okna a refresh seznamu
         setTimeout(() => { 
             document.getElementById("modal").style.display = "none"; 
             if (typeof load === "function") load(); 
@@ -711,11 +731,11 @@ if (sBox) {
 
     } catch (e) {
         console.error("Chyba Firebase:", e);
-        showBtnFeedback("save", "Chyba databáze", "error");
+        showBtnFeedback(".save", "Chyba databáze", "error");
     }
 };
 
-// ZÁSADNÍ OPRAVA: Ruční propojení funkce s oknem prohlížeče
+// --- PROPOJENÍ S OKNEM (STAČÍ POUZE JEDNOU) ---
 window.saveEmp = saveEmp;
 
 window.deleteEmp = async () => {

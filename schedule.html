@@ -649,79 +649,113 @@ async function loadShift(){
         console.error("Chyba při načítání:", e);
     }
 }
-function render(){
+function render() {
     const filter = nameFilterEl.value.toLowerCase().trim();
     const s = shiftEl.value;
     
+    /* 1. DEFINICE ŠTÍTKŮ A SKUPIN */
     const labels = (s === "ranni") 
         ? ["06:00-08:00", "08:05-10:15", "10:45-12:00", "12:05-14:00"] 
         : (s === "odpo") 
         ? ["14:00-16:00", "16:05-18:15", "18:45-20:00", "20:05-22:00"] 
         : ["22:00-00:00", "00:05-02:15", "02:45-04:00", "04:05-06:00"];
+
+    const MERGED_GROUPS = {
+        "VYP1-L": { others: ["VYP2-L"], label: "VÝPLNĚ L" },
+        "VYP1-P": { others: ["VYP2-P"], label: "VÝPLNĚ P" },
+        "VET":    { others: ["VET2", "VET3"], label: "VĚTRAČKY" },
+        "INST":   { others: ["INST2", "INST3"], label: "INSTALACE" }
+    };
     
-    let html = "<thead><tr><th style='color: rgba(255,255,255,0.4); font-size: 11px;'>POZICE</th>" + labels.map(l => `<th style='color: rgba(255,255,255,0.4); font-size: 11px;'>${l}</th>`).join('') + "</tr></thead><tbody>";
+    const skippedPositions = new Set();
+    let html = "<thead><tr><th style='color: rgba(255,255,255,0.4); font-size: 9px;'>Pozice</th>" + 
+               labels.map(l => `<th style='color: rgba(255,255,255,0.4); font-size: 9px;'>${l}</th>`).join('') + 
+               "</tr></thead><tbody>";
 
     POSITIONS.forEach(pos => {
-        let rowContent = []; // Tady budeme ukládat data pro celý řádek
+        if (skippedPositions.has(pos)) return;
 
-        for(let i=0; i<4; i++) {
-            const entry = phasesData[i] ? phasesData[i][pos] : null;
-            let mainName = "";
-            let traineeName = "";
+        const group = MERGED_GROUPS[pos];
+        const subPositions = group ? [pos, ...group.others] : [pos];
+        if (group) group.others.forEach(p => skippedPositions.add(p));
 
-            if (entry) {
-                if (typeof entry === 'string') {
-                    // STARÝ FORMÁT (jen ID string)
-                    mainName = workerMap[entry] || "???";
-                } else if (entry.m || entry.t) {
-                    // NOVÝ FORMÁT (objekt {m: id, t: id})
-                    mainName = entry.m ? (workerMap[entry.m] || "???") : "";
-                    traineeName = entry.t ? (workerMap[entry.t] || "???") : "";
+        const labelToShow = group ? group.label : pos;
+
+        // --- SBĚR DAT PRO CELÝ ŘÁDEK (včetně pod-pozic) ---
+        let rowData = []; // [phase][subPosIdx]
+        let isRowOccupied = false;
+        let matchInRow = false;
+
+        for (let i = 0; i < 4; i++) {
+            let phaseSubData = [];
+            subPositions.forEach(sp => {
+                const entry = phasesData[i] ? phasesData[i][sp] : null;
+                let m = "", t = "";
+
+                if (entry) {
+                    if (typeof entry === 'string') {
+                        m = workerMap[entry] || "???";
+                    } else if (entry.m || entry.t) {
+                        m = entry.m ? (workerMap[entry.m] || "???") : "";
+                        t = entry.t ? (workerMap[entry.t] || "???") : "";
+                    }
                 }
-            }
-            rowContent.push({ main: mainName, trainee: traineeName });
+
+                if (m !== "" || t !== "") isRowOccupied = true;
+                
+                // Kontrola filtru
+                if (filter && (m.toLowerCase().includes(filter) || t.toLowerCase().includes(filter))) {
+                    matchInRow = true;
+                }
+                phaseSubData.push({ main: m, trainee: t });
+            });
+            rowData.push(phaseSubData);
         }
 
-        // 1. FILTR: Kontrola, zda hledané jméno odpovídá hlavnímu nebo učni
-        if(filter) {
-            const matchInRow = rowContent.some(c => 
-                c.main.toLowerCase().includes(filter) || 
-                c.trainee.toLowerCase().includes(filter)
-            );
-            if(!matchInRow) return;
-        }
+        // Pokud hledáme a v řádku nic není, přeskočíme ho
+        if (filter && !matchInRow) return;
 
-        const isOccupied = rowContent.some(c => c.main !== "" || c.trainee !== "");
-        const color = isOccupied ? "#2ecc71" : "rgba(255,255,255,0.15)";
-        const borderColor = isOccupied ? "rgba(46, 204, 113, 0.3)" : "rgba(255,255,255,0.05)";
+        // Barvy řádku
+        const finalColor = isRowOccupied ? '#2ecc71' : '#ef4444';
+        const finalBg = isRowOccupied ? 'rgba(46, 204, 113, 0.05)' : 'rgba(239, 68, 68, 0.12)';
+        const rowHeight = subPositions.length * 24;
 
-        html += `<tr>
-            <td class="posCol" style="color: ${color} !important; border: 1px solid ${borderColor} !important; font-weight: 900; background: rgba(0,0,0,0.2); padding-left: 20px; border-radius: 10px; margin: 4px 0; font-size: 13px; letter-spacing: 1px;">
-                ${pos}
+        html += `<tr style="background: ${finalBg}; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <td style="width: 55px; text-align: center; border-right: 1px solid rgba(255,255,255,0.05); padding: 0;">
+                <span style="font-weight: 900; color: ${finalColor} !important; font-size: 8px; display: flex; align-items: center; justify-content: center; height: ${rowHeight}px; letter-spacing: 0.5px;">
+                    ${labelToShow}
+                </span>
             </td>`;
 
-        rowContent.forEach(c => {
-            if(!c.main && !c.trainee) {
-                html += `<td style="color: rgba(255,255,255,0.05); text-align: center;">—</td>`;
-            } else {
-                // Barevné zvýraznění při hledání
-                const isMainMatch = filter !== "" && c.main.toLowerCase().includes(filter);
-                const isTraineeMatch = filter !== "" && c.trainee.toLowerCase().includes(filter);
+        // --- VYKRESLENÍ FÁZÍ (SLOUPCŮ) ---
+        for (let i = 0; i < 4; i++) {
+            html += `<td style="padding: 0; vertical-align: middle;">`;
+            
+            rowData[i].forEach((c, idx) => {
+                const isLastInGroup = idx === subPositions.length - 1;
                 
-                let mColor = (filter !== "" && !isMainMatch) ? "rgba(255,255,255,0.15)" : "white";
-                let tColor = (filter !== "" && !isTraineeMatch) ? "rgba(59, 130, 246, 0.2)" : "#3b82f6";
+                if (!c.main && !c.trainee) {
+                    html += `<div style="height: 24px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.05); border-bottom: ${isLastInGroup ? 'none' : '1px solid rgba(255,255,255,0.03)'};">—</div>`;
+                } else {
+                    // Zvýraznění při hledání
+                    const isMainMatch = filter !== "" && c.main.toLowerCase().includes(filter);
+                    const isTraineeMatch = filter !== "" && c.trainee.toLowerCase().includes(filter);
+                    
+                    let mColor = (filter !== "" && !isMainMatch) ? "rgba(255,255,255,0.15)" : "#2ecc71";
+                    let tColor = (filter !== "" && !isTraineeMatch) ? "rgba(59, 130, 246, 0.2)" : "#3b82f6";
 
-                // Vykreslení jmen (Učeň menším modrým písmem pod hlavním)
-                let cellHTML = `<div style="color: ${mColor}; font-weight: 900; font-size: 14px; line-height: 1.1;">${c.main || "—"}</div>`;
-                if(c.trainee) {
-                    cellHTML += `<div style="color: ${tColor}; font-weight: 700; font-size: 10px; margin-top: 2px;">+ ${c.trainee}</div>`;
+                    html += `
+                        <div style="height: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-bottom: ${isLastInGroup ? 'none' : '1px solid rgba(255,255,255,0.03)'}; text-transform: none !important;">
+                            <div style="color: ${mColor}; font-weight: 800; font-size: 10px; line-height: 1;">${c.main || "—"}</div>
+                            ${c.trainee ? `<div style="color: ${tColor}; font-weight: 700; font-size: 7px; margin-top: 1px;">+ ${c.trainee}</div>` : ''}
+                        </div>`;
                 }
-
-                html += `<td style="text-align: center; border-bottom: 1px solid rgba(255,255,255,0.03); padding: 8px 0;">${cellHTML}</td>`;
-            }
-        });
+            });
+            html += `</td>`;
+        }
         html += "</tr>";
     });
+
     gridEl.innerHTML = html + "</tbody>";
 }
 
