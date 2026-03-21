@@ -768,6 +768,10 @@ shiftEl.addEventListener("change", loadShift);
 nameFilterEl.addEventListener("input", render);
 
 // SPUŠTĚNÍ PŘI NAČTENÍ
+(async () => {
+    await loadWorkers();
+    await loadShift();
+})();
 (function() {
     function setShiftAutomatically() {
         const today = new Date();
@@ -830,6 +834,7 @@ nameFilterEl.addEventListener("input", render);
         window.addEventListener('load', setShiftAutomatically);
     }
 })();
+
 
 </script>
 </body>
