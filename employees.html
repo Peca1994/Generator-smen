@@ -650,15 +650,22 @@ window.openNew=()=>{
   lNameEl.value="";
   emailEl.value="";
   infoEl.value="";
-  skillsBox.querySelectorAll("input").forEach(c=>{
-    c.checked=false;
-    c.parentElement.classList.remove("active");
+  
+  // RESET DOVEDNOSTÍ: Projdeme všechny čtverečky v skillsBox
+  skillsBox.querySelectorAll(".skillItem").forEach(div => {
+    div.dataset.level = "0";             // Vrátíme level na nulu
+    div.classList.remove("active");      // Smažeme zelenou (Level 2)
+    div.classList.remove("trainee");     // Smažeme modrou (Level 1)
   });
+
+  // Skryjeme tlačítko Smazat (u nového není co mazat)
+  const delBtn = document.querySelector(".delete");
+  if(delBtn) delBtn.style.display = "none";
+
   modal.style.display="block";
 };
 
 window.closeModal=()=> modal.style.display="none";
-
 /* SAVE */
 
 const saveEmp = async () => {
@@ -679,9 +686,8 @@ const saveEmp = async () => {
 
         // --- OPRAVA VELKÝCH PÍSMEN (Jméno i Příjmení/Přezdívka) ---
         // První písmeno velké, zbytek malým
-        fname = fname.charAt(0).toUpperCase() + fname.slice(1).toLowerCase();
-        lname = lname.charAt(0).toUpperCase() + lname.slice(1).toLowerCase();
-
+       fname = fname.trim().charAt(0).toUpperCase() + fname.trim().slice(1);
+        lname = lname.trim().charAt(0).toUpperCase() + lname.trim().slice(1);
         // Posbírání dovedností (skills) z mřížky
         let skills = {};
         const sBox = document.getElementById("skillsBox");
@@ -800,9 +806,12 @@ async function load() {
     </div>`;
 
   kmenovi.forEach(e => {
+    // TADY JE TA ÚPRAVA: Pokud má příjmení, dáme ho do závorky
+    const displayFull = e.surname ? `${e.name} (${e.surname})` : e.name;
+    
     html += `
       <div class="empRow" style="border-left: 4px solid #22c55e; margin-bottom: 8px;" onclick="edit('${e.id}')">
-        <div class="empName">${e.name} ${e.surname || ""}</div>
+        <div class="empName">${displayFull}</div>
         ${iconChevron}
       </div>`;
   });
@@ -816,9 +825,12 @@ async function load() {
       </div>`;
 
     pujceni.forEach(e => {
+      // TADY TAKÉ:
+      const displayFull = e.surname ? `${e.name} (${e.surname})` : e.name;
+
       html += `
         <div class="empRow" style="border-left: 4px solid #3b82f6; margin-bottom: 8px; opacity: 0.85;" onclick="edit('${e.id}')">
-          <div class="empName">${e.name} ${e.surname || ""}</div>
+          <div class="empName">${displayFull}</div>
           ${iconChevron}
         </div>`;
     });
@@ -836,7 +848,12 @@ async function edit(id) {
   editId = id;
   modal.style.display = "block";
 
-  // Přímé přiřazení do políček, aby se vyhnulo chybě undefined proměnných
+  // --- TADY JE TA OPRAVA PRO TLAČÍTKO SMAZAT ---
+  const delBtn = document.querySelector(".delete");
+  if (delBtn) delBtn.style.display = "block"; 
+  // --------------------------------------------
+
+  // Přímé přiřazení do políček
   document.getElementById("fName").value = e.name || "";
   document.getElementById("lName").value = e.surname || "";
   document.getElementById("email").value = e.email || "";
@@ -847,32 +864,28 @@ async function edit(id) {
   }
 
   // Skilly
- const skillsBox = document.getElementById("skillsBox");
+  const skillsBox = document.getElementById("skillsBox");
   if (skillsBox) {
     skillsBox.querySelectorAll(".skillItem").forEach(div => {
-      // 1. Zjistíme zkratku pozice (např. "DP-L") z datasetu nebo textu
       const val = div.dataset.val; 
       let lvl = 0;
 
       if (e.skills) {
-        // A) KONTROLA NOVÉHO FORMÁTU (Objekt s číslem: { "DP-L": 2 })
         if (typeof e.skills[val] === 'number') {
           lvl = e.skills[val];
         } 
-        // B) KONTROLA STARÉHO FORMÁTU (Pole: ["DP-L", "T-P"])
         else if (Array.isArray(e.skills) && e.skills.includes(val)) {
-          lvl = 2; // Starý skill automaticky považujeme za "zelenou" (umí)
+          lvl = 2; 
         }
       }
 
-      // 2. Nastavíme barvu políčka podle úrovně
       div.dataset.level = lvl;
       div.classList.remove("active", "trainee");
       
       if (lvl === 1) {
-        div.classList.add("trainee"); // Modrá (zaučuje se)
+        div.classList.add("trainee"); 
       } else if (lvl === 2) {
-        div.classList.add("active");  // Zelená (umí)
+        div.classList.add("active");  
       }
     });
   }

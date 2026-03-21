@@ -1127,8 +1127,25 @@ window.toggleAttendance = (show) => {
 if (typeof historyStats === 'undefined') { var historyStats = {}; }
 if (typeof lastPosByWorker === 'undefined') { var lastPosByWorker = {}; }
 
+/**
+ * Pomocná funkce pro sjednocení rodin pozic.
+ * VYP1-L i VYP2-L -> VYP
+ * MOT-L i MOT-P -> MOT
+ * AGR-LZ -> AGR-LZ (ponecháno dle zadání jako unikátní)
+ */
+const getGenericPos = (p) => {
+    if (!p) return "";
+    let clean = p.toUpperCase().trim();
+    // AGR pozice (PP, PZ, LZ, LP) necháváme unikátní dle tvého požadavku
+    if (clean.startsWith("AGR")) return clean;
+    // Ostatní: odstraníme čísla (VYP1 -> VYP)
+    clean = clean.replace(/[0-9]/g, "");
+    // Odstraníme strany (MOT-L -> MOT), pokud to není AGR
+    if (clean.includes('-')) return clean.split('-')[0];
+    return clean;
+};
+
 function buildPhase(act) {
-  // 1. Vyfiltrujeme POUZE lidi, kteří mají status 'work'
   const activeWorkers = workers.filter(w => {
     const s = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
     return s === 'work';
@@ -1136,66 +1153,56 @@ function buildPhase(act) {
 
   if (!act || !activeWorkers || activeWorkers.length < act.length) return null;
 
-  const map = {};
-  act.forEach(pos => {
-    // --- KLÍČOVÁ OPRAVA: Kontrola skillů, která zvládne Pole i Objekt ---
-    map[pos] = activeWorkers.filter(w => {
-      if (!w.skills) return false;
-
-      // A) Nový formát (Objekt): Bere jen plnou kvalifikaci (úroveň 2)
-      if (typeof w.skills === 'object' && !Array.isArray(w.skills)) {
-        return w.skills[pos] === 2;
+  // --- 1. PŘEDVÝPOČET HISTORIE (Zrychlení o 1000%) ---
+  // Spočítáme si "únavu" každého člověka jen jednou před startem pokusů
+  const dailyHistory = {}; 
+  phases.forEach(p => {
+    Object.entries(p).forEach(([pos, worker]) => {
+      const wId = worker.id || worker.main?.id;
+      if (wId) {
+        const gen = getGenericPos(pos);
+        const key = `${wId}_${gen}`;
+        dailyHistory[key] = (dailyHistory[key] || 0) + 1;
       }
-      
-      // B) Starý formát (Pole): Klasické hledání zkratky
-      if (Array.isArray(w.skills)) {
-        return w.skills.includes(pos);
-      }
-
-      return false;
     });
   });
 
-  // Zbytek logiky zůstává stejný (řazení podle náročnosti, bodování atd.)
-  const orderedPos = [...act].sort((a, b) => map[a].length - map[b].length);
+  const map = {};
+  act.forEach(pos => {
+    map[pos] = activeWorkers.filter(w => {
+      if (!w.skills) return false;
+      if (typeof w.skills === 'object' && !Array.isArray(w.skills)) return w.skills[pos] === 2;
+      return Array.isArray(w.skills) && w.skills.includes(pos);
+    });
+  });
 
+  const orderedPos = [...act].sort((a, b) => map[a].length - map[b].length);
   let bestResult = null;
   let minScore = Infinity;
+  const currentPhaseIdx = phases.length;
 
-  const getBasePos = (p) => (p && p.includes('-')) ? p.split('-')[0] : (p || "");
-  const currentPhaseIdx = phases.length; 
-
-  for (let i = 0; i < 600; i++) {
-    const attempt = runSmartAttempt(orderedPos, map);
+  // Snížíme počet pokusů na 400 (s novým řazením to stačí)
+  for (let i = 0; i < 400; i++) {
+    // Předáme dailyHistory do hledače, aby nemusel nic počítat
+    const attempt = runSmartAttempt(orderedPos, map, dailyHistory);
     if (!attempt) continue;
 
     let currentScore = 0;
     for (const pos in attempt) {
       const wId = attempt[pos].id;
-      const currentBase = getBasePos(pos);
+      const currentGen = getGenericPos(pos);
       
+      // Pokuty za minulé kolo
       const lastPos = lastPosByWorker[wId];
       if (lastPos) {
-        if (lastPos === pos) currentScore += 50000; 
-        else if (getBasePos(lastPos) === currentBase) currentScore += 20000;
+        if (lastPos === pos) currentScore += 300000;
+        else if (getGenericPos(lastPos) === currentGen) currentScore += 150000;
       }
 
-      if (currentPhaseIdx >= 2) {
-        const phaseBack2 = phases[currentPhaseIdx - 2];
-        if (phaseBack2) {
-          const posBack2 = Object.keys(phaseBack2).find(p => {
-             const worker = phaseBack2[p];
-             // Kontrola pro případ, že v minulé fázi byl učeň (objekt)
-             return (worker && worker.id === wId) || (worker && worker.main && worker.main.id === wId);
-          });
-          
-          if (posBack2) {
-             if (posBack2 === pos) currentScore += 30000; 
-             else if (getBasePos(posBack2) === currentBase) currentScore += 15000; 
-          }
-        }
-      }
-      currentScore += (historyStats[wId + "_" + pos] || 0) * 100;
+      // Využití předvypočítané historie pro finální skóre
+      const usedToday = dailyHistory[`${wId}_${currentGen}`] || 0;
+      if (usedToday === 1) currentScore += 100000;
+      else if (usedToday >= 2) currentScore += 800000;
     }
 
     if (currentScore < minScore) {
@@ -1207,30 +1214,33 @@ function buildPhase(act) {
 
   if (bestResult) {
     for (const p in bestResult) {
-      const wId = bestResult[p].id;
-      historyStats[wId + "_" + p] = (historyStats[wId + "_" + p] || 0) + 1;
-      lastPosByWorker[wId] = p;
+      lastPosByWorker[bestResult[p].id] = p;
     }
     const usedIds = new Set(Object.values(bestResult).map(w => w.id));
-    
-    return { 
-        assign: bestResult, 
-        reserves: activeWorkers.filter(w => !usedIds.has(w.id)) 
-    };
+    return { assign: bestResult, reserves: activeWorkers.filter(w => !usedIds.has(w.id)) };
   }
   return null;
 }
 
-function runSmartAttempt(orderedPos, map) {
+function runSmartAttempt(orderedPos, map, dailyHistory) {
   let assign = {}; let used = new Set(); let steps = 0;
+  
   function solve(index) {
     steps++; 
-    if (steps > 10000) return false; 
+    if (steps > 5000) return false; // Snížený limit, aby to nezamrzlo
     if (index === orderedPos.length) return true;
 
     const pos = orderedPos[index];
-    let candidates = map[pos].filter(w => !used.has(w.id));
-    candidates.sort(() => Math.random() - 0.5);
+    const currentGen = getGenericPos(pos);
+    let candidates = [...map[pos].filter(w => !used.has(w.id))];
+
+    // Rychlé řazení kandidátů podle už existujících dat
+    candidates.sort((a, b) => {
+        const countA = dailyHistory[`${a.id}_${currentGen}`] || 0;
+        const countB = dailyHistory[`${b.id}_${currentGen}`] || 0;
+        if (countA !== countB) return countA - countB;
+        return Math.random() - 0.5;
+    });
 
     for (const worker of candidates) {
       assign[pos] = worker; used.add(worker.id);
@@ -1240,7 +1250,7 @@ function runSmartAttempt(orderedPos, map) {
     return false;
   }
   return solve(0) ? assign : null;
-} 
+}
 
 
 /* GENERATE */
