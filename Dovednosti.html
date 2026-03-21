@@ -343,66 +343,82 @@
 
     // Univerzální vykreslovací a filtrovací funkce
     function renderSkills(queryText) {
-        const tableBody = document.getElementById("skillsTableBody");
-        const table = document.getElementById("skillsTable");
-        const loading = document.getElementById("loading");
+    const tableBody = document.getElementById("skillsTableBody");
+    const table = document.getElementById("skillsTable");
+    const loading = document.getElementById("loading");
 
-        // Pomocná funkce pro získání pole názvů dovedností pro vyhledávání
-        const getSkillList = (s) => {
-            if (!s) return [];
-            return Array.isArray(s) ? s : Object.keys(s);
-        };
+    /* --- 1. DEFINICE SKUPIN PRO SJEDNOCENÍ --- */
+    const SKILL_GROUPS = {
+        "VYP1-L": "VÝPLNĚ L", "VYP2-L": "VÝPLNĚ L",
+        "VYP1-P": "VÝPLNĚ P", "VYP2-P": "VÝPLNĚ P",
+        "VET": "VĚTRAČKY", "VET2": "VĚTRAČKY", "VET3": "VĚTRAČKY",
+        "INST": "INSTALACE", "INST2": "INSTALACE", "INST3": "INSTALACE"
+    };
 
-        const filtered = allEmployees.filter(emp => {
-            const fullName = `${emp.name || ""} ${emp.surname || ""}`.toLowerCase();
-            const skillList = getSkillList(emp.skills);
-            const skillsString = skillList.join(" ").toLowerCase();
-            
-            if (!queryText) return true;
-            return fullName.includes(queryText) || skillsString.includes(queryText);
+    const getSkillList = (s) => {
+        if (!s) return [];
+        return Array.isArray(s) ? s : Object.keys(s);
+    };
+
+    const filtered = allEmployees.filter(emp => {
+        const fullName = `${emp.name || ""} ${emp.surname || ""}`.toLowerCase();
+        const skillList = getSkillList(emp.skills);
+        const skillsString = skillList.join(" ").toLowerCase();
+        
+        if (!queryText) return true;
+        return fullName.includes(queryText) || skillsString.includes(queryText);
+    });
+
+    if (filtered.length > 0) {
+        filtered.sort((a, b) => (a.surname || "").localeCompare(b.surname || ""));
+        
+        let html = "";
+        filtered.forEach(emp => {
+            const fullName = `${emp.name || ""} ${emp.surname || ""}`.trim();
+            let skillsHtml = "";
+            const s = emp.skills || {};
+
+            if (Array.isArray(s)) {
+                // STARÝ FORMÁT (Pole) - Sjednotíme unikátní názvy skupin
+                const uniqueSkills = [...new Set(s.map(skill => SKILL_GROUPS[skill] || skill))];
+                skillsHtml = uniqueSkills.map(skill => `<span class="badge">${skill}</span>`).join("");
+            } else if (typeof s === 'object') {
+                // NOVÝ FORMÁT (Objekt) - Sjednotíme a vybereme nejvyšší dosažený level
+                let grouped = {};
+                Object.entries(s).forEach(([pos, lvl]) => {
+                    if (lvl === 0) return;
+                    const groupName = SKILL_GROUPS[pos] || pos;
+                    // Pokud už ve skupině máme Level 2, nepřepisujeme ho Levelem 1
+                    if (!grouped[groupName] || lvl > grouped[groupName]) {
+                        grouped[groupName] = lvl;
+                    }
+                });
+
+                skillsHtml = Object.entries(grouped).map(([name, lvl]) => {
+                    if (lvl === 1) {
+                        return `<span class="badge" style="background:#3b82f6; border-color:#2563eb;">${name} (Z)</span>`;
+                    } else {
+                        return `<span class="badge">${name}</span>`;
+                    }
+                }).join("");
+            }
+
+            html += `
+                <tr class="skill-row">
+                    <td class="emp-name">${fullName}</td>
+                    <td>${skillsHtml || '<i style="color:rgba(255,255,255,0.2);font-size:10px;">Bez operací</i>'}</td>
+                </tr>`;
         });
-
-        if (filtered.length > 0) {
-            filtered.sort((a, b) => (a.surname || "").localeCompare(b.surname || ""));
-            
-            let html = "";
-            filtered.forEach(emp => {
-                const fullName = `${emp.name || ""} ${emp.surname || ""}`.trim();
-                let skillsHtml = "";
-                const s = emp.skills || [];
-
-                if (Array.isArray(s)) {
-                    // STARÝ FORMÁT (Pole) - klasické šedé/zelené badges
-                    skillsHtml = s.map(skill => `<span class="badge">${skill}</span>`).join("");
-                } else if (typeof s === 'object') {
-                    // NOVÝ FORMÁT (Objekt) - rozlišíme barvy
-                    skillsHtml = Object.entries(s).map(([skill, lvl]) => {
-                        if (lvl === 1) {
-                            // Modrá badge pro zaučování
-                            return `<span class="badge" style="background:#3b82f6; border-color:#2563eb;">${skill} (Z)</span>`;
-                        } else {
-                            // Klasická badge pro hotové
-                            return `<span class="badge">${skill}</span>`;
-                        }
-                    }).join("");
-                }
-
-                html += `
-                    <tr class="skill-row">
-                        <td class="emp-name">${fullName}</td>
-                        <td>${skillsHtml || '<i style="color:rgba(255,255,255,0.2);font-size:10px;">Bez operací</i>'}</td>
-                    </tr>`;
-            });
-            
-            tableBody.innerHTML = html;
-            table.style.display = "table";
-            loading.style.display = "none";
-        } else {
-            table.style.display = "none";
-            loading.style.display = "block";
-            loading.innerText = queryText ? "Žádná shoda nenalezena." : "Načítám data...";
-        }
+        
+        tableBody.innerHTML = html;
+        table.style.display = "table";
+        loading.style.display = "none";
+    } else {
+        table.style.display = "none";
+        loading.style.display = "block";
+        loading.innerText = queryText ? "Žádná shoda nenalezena." : "Načítám data...";
     }
+}
 </script>
 
 </body>

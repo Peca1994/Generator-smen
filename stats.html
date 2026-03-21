@@ -379,19 +379,30 @@ async function loadAndCalculateStats() {
         availableYears.clear();
 
         // 1. Příprava zaměstnanců a Skills
-        empsSnap.forEach(d => {
+       empsSnap.forEach(d => {
             const data = d.data();
             if (data.type !== "pujceny") {
-                const rawSkills = data.skills || [];
-                let skillsArray = [];
-                if (Array.isArray(rawSkills)) {
-                    skillsArray = rawSkills;
-                } else if (typeof rawSkills === 'object') {
-                    skillsArray = Object.keys(rawSkills).filter(key => rawSkills[key] === 2);
+                const rawSkills = data.skills || {};
+                let uniqueSkillsSet = new Set();
+
+                // Převedeme skilly na sjednocené názvy bez čísel
+                if (typeof rawSkills === 'object' && !Array.isArray(rawSkills)) {
+                    Object.entries(rawSkills).forEach(([sKey, lvl]) => {
+                        if (lvl === 2) {
+                            // Sjednotíme: VYP1-L -> VYP-L, VET2 -> VET
+                            const cleanName = sKey.toUpperCase().trim().replace(/[0-9]/g, "");
+                            uniqueSkillsSet.add(cleanName);
+                        }
+                    });
+                } else if (Array.isArray(rawSkills)) {
+                    rawSkills.forEach(sKey => {
+                        const cleanName = sKey.toUpperCase().trim().replace(/[0-9]/g, "");
+                        uniqueSkillsSet.add(cleanName);
+                    });
                 }
 
-                const validSkills = skillsArray.filter(skill => {
-                    const s = skill.toUpperCase();
+                // Aplikujeme tvůj filtr (vyřazení VET, INST a ZAM z Master of Skills)
+                const finalSkills = [...uniqueSkillsSet].filter(s => {
                     return !(s.startsWith("VET") || s.startsWith("INST") || s === "ZAM-L" || s === "ZAM-P");
                 });
 
@@ -400,7 +411,7 @@ async function loadAndCalculateStats() {
                     totalHours: 0,
                     absentHours: 0,
                     positions: {},
-                    skillsCount: validSkills.length
+                    skillsCount: finalSkills.length // Tady je teď ten správný ponížený počet
                 };
             }
         });
