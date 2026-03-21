@@ -438,20 +438,32 @@ async function loadAndCalculateStats() {
 
             // --- B) POČÍTÁNÍ POZIC Z PHASES ---
             const phases = shift.phases || [];
-            phases.forEach(phase => {
-                Object.entries(phase).forEach(([pos, val]) => {
-                    let empId = null;
-                    if (typeof val === 'string') {
-                        empId = val.replace(/"/g, '').trim();
-                    } else if (val && val.m) {
-                        empId = val.m.replace(/"/g, '').trim();
-                    }
 
-                    if (empId && myEmps[empId]) {
-                        myEmps[empId].positions[pos] = (myEmps[empId].positions[pos] || 0) + 1;
-                    }
-                });
-            });
+// --- PŘEKLADOVÁ MAPA PRO STATISTIKY ---
+const POS_MAP = {
+    "VYP1-L": "VÝPLNĚ L", "VYP2-L": "VÝPLNĚ L",
+    "VYP1-P": "VÝPLNĚ P", "VYP2-P": "VÝPLNĚ P",
+    "VET":    "VĚTRAČKY", "VET2": "VĚTRAČKY", "VET3": "VĚTRAČKY",
+    "INST":   "INSTALACE", "INST2": "INSTALACE", "INST3": "INSTALACE"
+};
+
+phases.forEach(phase => {
+    Object.entries(phase).forEach(([pos, val]) => {
+        let empId = null;
+        if (typeof val === 'string') {
+            empId = val.replace(/"/g, '').trim();
+        } else if (val && val.m) {
+            empId = val.m.replace(/"/g, '').trim();
+        }
+
+        if (empId && myEmps[empId]) {
+            // Pokud pozice patří do skupiny (např. VYP1-L), použijeme název skupiny (VÝPLNĚ L)
+            const displayPos = POS_MAP[pos] || pos;
+            
+            myEmps[empId].positions[displayPos] = (myEmps[empId].positions[displayPos] || 0) + 1;
+        }
+    });
+});
         });
 
         updateYearSelect();

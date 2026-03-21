@@ -768,50 +768,62 @@ shiftEl.addEventListener("change", loadShift);
 nameFilterEl.addEventListener("input", render);
 
 // SPUŠTĚNÍ PŘI NAČTENÍ
-(async () => {
-    await loadWorkers();
-    await loadShift();
-})();
 (function() {
     function setShiftAutomatically() {
-        // Nastavíme anchor na pondělí 2. 3. 2026
-        const anchorDate = new Date(2026, 2, 2); 
         const today = new Date();
+        const hours = today.getHours();
+        const anchorDate = new Date(2026, 2, 2); // Pondělí 2. 3. 2026
         
-        // Rozdíl týdnů
-        const msDiff = today.getTime() - anchorDate.getTime();
-        const weeksDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24 * 7));
+        // Pomocná funkce pro výpočet směny pro jakýkoliv den
+        const getShiftForDate = (date) => {
+            const msDiff = date.getTime() - anchorDate.getTime();
+            const weeksDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24 * 7));
+            const shiftValues = ["noc", "odpo", "ranni"];
+            let index = weeksDiff % 3;
+            if (index < 0) index += 3;
+            return shiftValues[index];
+        };
 
-        // POŘADÍ SMĚN: 
-        // Index 0 (tento týden) = noc
-        // Index 1 (příští týden) = odpo
-        // Index 2 (další týden) = ranni
-        const shiftValues = ["noc", "odpo", "ranni"];
-        
-        let index = weeksDiff % 3;
-        if (index < 0) index += 3;
+        let displayDate = new Date(today);
+        let shiftToSet = getShiftForDate(displayDate);
+
+        // --- CHYTRÁ LOGIKA PRO NOČNÍ (od 12:00) ---
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        const shiftTomorrow = getShiftForDate(tomorrow);
+
+        // Pravidlo: Pokud zítra začíná týden s NOČNÍ a dnes je už po 12:00,
+        // ukážeme jim rovnou ten zítřek a tu noční směnu.
+        if (shiftTomorrow === "noc" && hours >= 12) {
+            displayDate = tomorrow;
+            shiftToSet = "noc";
+        } 
+        // Pokud je po 22:00 večer, lidé už většinou chtějí vidět zítřek automaticky
+        else if (hours >= 22) {
+            displayDate = tomorrow;
+            shiftToSet = getShiftForDate(tomorrow);
+        }
 
         const shiftSelect = document.getElementById("shift");
         const dateInput = document.getElementById("date");
 
-        // 1. Nastavíme dnešní datum
+        // 1. Nastavení data (ošetření časového pásma pro správný formát)
         if (dateInput) {
-            dateInput.valueAsDate = today;
+            const offset = displayDate.getTimezoneOffset() * 60000;
+            const localISO = (new Date(displayDate - offset)).toISOString().slice(0, 10);
+            dateInput.value = localISO;
         }
 
-        // 2. Nastavíme směnu
+        // 2. Nastavení směny
         if (shiftSelect) {
-            shiftSelect.value = shiftValues[index];
-            // Vyvoláme změnu, aby se tabulka překreslila
+            shiftSelect.value = shiftToSet;
             shiftSelect.dispatchEvent(new Event('change'));
             
-            // Pokud máš v kódu funkci na update tabulky, zavoláme ji (zkusíme nejčastější názvy)
-            if (typeof updateTable === "function") updateTable();
-            if (typeof filterData === "function") filterData();
+            // Spuštění loadu dat z databáze
+            if (typeof loadShift === "function") loadShift();
         }
     }
 
-    // Spustíme to hned a pro jistotu i po úplném načtení okna
     if (document.readyState === "complete") {
         setShiftAutomatically();
     } else {
