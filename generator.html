@@ -1146,27 +1146,27 @@ const getGenericPos = (p) => {
 };
 
 function buildPhase(act) {
+  // 1. FILTR: Kdo je dnes v práci
   const activeWorkers = workers.filter(w => {
     const s = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
-    return s === 'work';
+    return s.includes('work') || s.includes('prác') || s.includes('prac');
   });
 
   if (!act || !activeWorkers || activeWorkers.length < act.length) return null;
 
-  // --- 1. PŘEDVÝPOČET HISTORIE (Zrychlení o 1000%) ---
-  // Spočítáme si "únavu" každého člověka jen jednou před startem pokusů
+  // 2. HISTORIE: Co už se dnes odpracovalo
   const dailyHistory = {}; 
   phases.forEach(p => {
     Object.entries(p).forEach(([pos, worker]) => {
-      const wId = worker.id || worker.main?.id;
+      const wId = worker?.id || worker?.main?.id;
       if (wId) {
         const gen = getGenericPos(pos);
-        const key = `${wId}_${gen}`;
-        dailyHistory[key] = (dailyHistory[key] || 0) + 1;
+        dailyHistory[`${wId}_${gen}`] = (dailyHistory[`${wId}_${gen}`] || 0) + 1;
       }
     });
   });
 
+  // 3. MAPA SKILLŮ: Kdo co může dělat
   const map = {};
   act.forEach(pos => {
     map[pos] = activeWorkers.filter(w => {
@@ -1176,40 +1176,38 @@ function buildPhase(act) {
     });
   });
 
-  const orderedPos = [...act].sort((a, b) => map[a].length - map[b].length);
+  // 4. GENEROVÁNÍ: Zkusíme 500 úplně náhodných pokusů
   let bestResult = null;
   let minScore = Infinity;
-  const currentPhaseIdx = phases.length;
 
-  // Snížíme počet pokusů na 400 (s novým řazením to stačí)
-  for (let i = 0; i < 400; i++) {
-    // Předáme dailyHistory do hledače, aby nemusel nic počítat
-    const attempt = runSmartAttempt(orderedPos, map, dailyHistory);
+  for (let i = 0; i < 500; i++) {
+    // Náhodně zamícháme pořadí pozic, aby se nezačínalo vždy stejně
+    const shuffledPos = [...act].sort(() => Math.random() - 0.5);
+    const attempt = runSmartAttempt(shuffledPos, map, dailyHistory);
+    
     if (!attempt) continue;
 
     let currentScore = 0;
     for (const pos in attempt) {
       const wId = attempt[pos].id;
       const currentGen = getGenericPos(pos);
-      
-      // Pokuty za minulé kolo
       const lastPos = lastPosByWorker[wId];
-      if (lastPos) {
-        if (lastPos === pos) currentScore += 300000;
-        else if (getGenericPos(lastPos) === currentGen) currentScore += 150000;
-      }
-
-      // Využití předvypočítané historie pro finální skóre
+      
+      // Obří pokuta za opakování stejné věci hned po sobě
+      if (lastPos && getGenericPos(lastPos) === currentGen) currentScore += 1000000;
+      
+      // Pokuta za to, že už tam dnes byl (podporuje rotaci ob fázi)
       const usedToday = dailyHistory[`${wId}_${currentGen}`] || 0;
-      if (usedToday === 1) currentScore += 100000;
-      else if (usedToday >= 2) currentScore += 800000;
+      currentScore += (usedToday * 50000);
+      
+      // Bonus za náhodu (každý pokus dostane malý náhodný bonus/postih)
+      currentScore += Math.floor(Math.random() * 100);
     }
 
     if (currentScore < minScore) {
       minScore = currentScore;
       bestResult = attempt;
     }
-    if (minScore === 0) break;
   }
 
   if (bestResult) {
@@ -1222,30 +1220,41 @@ function buildPhase(act) {
   return null;
 }
 
-function runSmartAttempt(orderedPos, map, dailyHistory) {
-  let assign = {}; let used = new Set(); let steps = 0;
+function runSmartAttempt(shuffledPos, map, dailyHistory) {
+  let assign = {}; 
+  let used = new Set(); 
+  let steps = 0;
   
   function solve(index) {
     steps++; 
-    if (steps > 5000) return false; // Snížený limit, aby to nezamrzlo
-    if (index === orderedPos.length) return true;
+    if (steps > 10000) return false; 
+    if (index === shuffledPos.length) return true;
 
-    const pos = orderedPos[index];
+    const pos = shuffledPos[index];
     const currentGen = getGenericPos(pos);
-    let candidates = [...map[pos].filter(w => !used.has(w.id))];
+    
+    // TOTÁLNÍ NÁHODA: Seznam lidí pro tuhle pozici úplně rozházíme
+    let candidates = [...map[pos].filter(w => !used.has(w.id))].sort(() => Math.random() - 0.5);
 
-    // Rychlé řazení kandidátů podle už existujících dat
+    // Seřadíme je jen podle nejnutnějších pravidel
     candidates.sort((a, b) => {
-        const countA = dailyHistory[`${a.id}_${currentGen}`] || 0;
-        const countB = dailyHistory[`${b.id}_${currentGen}`] || 0;
-        if (countA !== countB) return countA - countB;
-        return Math.random() - 0.5;
+      // 1. Přednost mají ti, co tam neseděli minule
+      const lastA = lastPosByWorker[a.id] && getGenericPos(lastPosByWorker[a.id]) === currentGen ? 1 : 0;
+      const lastB = lastPosByWorker[b.id] && getGenericPos(lastPosByWorker[b.id]) === currentGen ? 1 : 0;
+      if (lastA !== lastB) return lastA - lastB;
+
+      // 2. Přednost mají specialisté (málo skillů), aby nezacláněli univerzálům
+      const sA = Object.keys(a.skills || {}).length;
+      const sB = Object.keys(b.skills || {}).length;
+      return sA - sB;
     });
 
     for (const worker of candidates) {
-      assign[pos] = worker; used.add(worker.id);
+      assign[pos] = worker; 
+      used.add(worker.id);
       if (solve(index + 1)) return true;
-      used.delete(worker.id); delete assign[pos];
+      used.delete(worker.id); 
+      delete assign[pos];
     }
     return false;
   }
