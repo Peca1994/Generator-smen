@@ -107,6 +107,29 @@
 
     .disclaimer { position: fixed !important; bottom: 15px; left: 0; width: 100%; text-align: center; font-size: 9px; color: rgba(255, 255, 255, 0.3); pointer-events: none; }
     #chatInterface, #backBtn { display: none; }
+    .msg-approved {
+    border-left: 4px solid #22c55e !important;
+    background: rgba(34, 197, 94, 0.1) !important;
+}
+.msg-rejected {
+    border-left: 4px solid #ef4444 !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+    opacity: 0.8;
+}
+@keyframes pulse-wait {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+.wait-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #f1c40f; /* Žlutá barva čekání */
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    animation: pulse-wait 2s infinite;
+}
 </style>
 </head>
 <body>
@@ -177,7 +200,7 @@
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><polyline points="21 3 21 8 16 8"></polyline></svg>
         </div>
         <h3 class="text-lg font-bold text-blue-100 mb-1">Změny v rozpisu</h3>
-        <p class="text-blue-100/60 text-[10px]">Hlášení operativních změn.</p>
+        <p class="text-blue-100/60 text-[10px]">Správa a schvalování výměn.</p>
     </div>
 
     <!-- Karta 2: Absence -->
@@ -202,17 +225,6 @@
 <div id="chatInterface">
     <div id="topicInfoPanel"><p id="topicInfoDesc">Popis...</p></div>
 
-    <!-- FORMULÁŘ ZMĚNY -->
-    <div id="changeForm" class="change-form-container mx-4 mt-4">
-        <div class="grid grid-cols-2 gap-2">
-            <select id="workerSelect" class="col-span-2 w-full"><option value="">-- Vyber jméno --</option></select>
-            <select id="posFrom"><option value="">Odkud</option></select>
-            <select id="posTo"><option value="">Kam</option></select>
-            <input type="time" id="timeFrom"> <input type="time" id="timeTo">
-            <input type="date" id="changeDate" class="col-span-2">
-        </div>
-        <button id="submitChangeBtn" class="send-change-btn">Odeslat hlášení změny</button>
-    </div>
 
     <!-- FORMULÁŘ ABSENCE -->
     <div id="absenceForm" class="change-form-container mx-4 mt-4">
@@ -256,18 +268,8 @@ import { getAuth, onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 import { 
-    getFirestore, 
-    collection, 
-    getDocs, 
-    addDoc, 
-    deleteDoc,
-    updateDoc,      // PŘIDÁNO
-    doc,          // PŘIDAT
-    query,       // PŘIDAT
-    where,       // PŘIDAT
-    orderBy,     // PŘIDAT
-    onSnapshot, 
-    serverTimestamp // PŘIDAT
+    getFirestore, collection, getDocs, getDoc, addDoc, deleteDoc, updateDoc, 
+    doc, query, where, orderBy, onSnapshot, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     const firebaseConfig = {
         apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
@@ -279,283 +281,385 @@ import {
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app); 
+const db = getFirestore(app);
+const auth = getAuth(app); 
 
-   const POSITIONS = [
-    "DP-L", "DP-P", 
-    "ZRC-L", "ZRC-P", 
-    "T-L", "T-P", 
-    "AGR-LP", "AGR-PP", "AGR-PZ", "AGR-LZ", 
-    "MOT-L", "MOT-P", 
-    "LEP-LP", "LEP-PP", "LEP-Z", 
-    "REPRO-L", "REPRO-P", 
-    "VYP1-L", "VYP1-P", 
-    "VYP2-L", "VYP2-P", 
-    "PR-L", "PR-P", 
-    "ZAM-L", "ZAM-P", 
-    "VET", "VET2", "VET3",    // Seřazeno: VET3 je za VET2
-    "INST", "INST2", "INST3"  // Seřazeno: INST3 je za INST2
-];
-    let allNicknames = {}; let currentTopicId = null; let chatUnsubscribe = null;
+// --- KONSTANTY A PROMĚNNÉ ---
+const POSITIONS = ["DP-L", "DP-P", "ZRC-L", "ZRC-P", "T-L", "T-P", "AGR-LP", "AGR-PP", "AGR-PZ", "AGR-LZ", "MOT-L", "MOT-P", "LEP-LP", "LEP-PP", "LEP-Z", "REPRO-L", "REPRO-P", "VYP1-L", "VYP1-P", "VYP2-L", "VYP2-P", "PR-L", "PR-P", "ZAM-L", "ZAM-P", "VET", "VET2", "VET3", "INST", "INST2", "INST3"];
 
-    const topicData = {
-        'zmeny': { desc: "Zde nahlašujte veškeré <strong>výměny pozic</strong>. Parťák je následně zanese do systému, abychom při reklamaci zamezili postihu nesprávného zaměstnance.", icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><polyline points="21 3 21 8 16 8"></polyline></svg>' },
-        'absence': { desc: "Zde podávejte <strong>oficiální žádosti</strong> o dovolenou nebo paragraf. U paragrafu prosím vždy vyberte <strong>přesný důvod</strong> z nabídky, aby bylo možné žádost správně zaevidovat do systému.", icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="3"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>' },
-        'pokec': { desc: "Volná diskuse mimo pracovní témata. Prosíme o dodržování <strong>zásad slušného chování</strong>, respektu k ostatním a <strong>zachování profesionality</strong>. Chat neslouží k šíření nevhodného obsahu nebo k řešení osobních konfliktů. <strong>Pravidla jsou pro všechny stejná.</strong>", 
-        icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>' }
-    };
+let allNicknames = {}; 
+let userRoles = {}; 
+let currentTopicId = null; 
+let chatUnsubscribe = null;
 
-    const pFrom = document.getElementById("posFrom"); const pTo = document.getElementById("posTo");
+const topicData = {
+    'zmeny': { 
+        desc: `Zde se zobrazují <strong>žádosti o prohození pozic</strong>. Na žádost může reagovat pouze adresát. 
+               <br><span style="font-size: 11px; opacity: 0.7; display: block; margin-top: 8px; font-weight: 400; line-height: 1.4;">
+               Pro odeslání žádosti si otevři Rozpis směn, klikni na svoje jméno a vyber si, s kým se chceš vyměnit.
+               </span>`, 
+        icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><polyline points="21 3 21 8 16 8"></polyline></svg>' 
+    },
+    'absence': { desc: "Zde podávejte <strong>oficiální žádosti</strong> o dovolenou nebo paragraf.", icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="3"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>' },
+    'pokec': { desc: "Volná diskuse mimo pracovní témata. Prosíme o dodržování <strong>zásad slušného chování</strong>.", icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>' }
+};
+
+// --- INICIALIZACE FORMULÁŘŮ ---
+const pFrom = document.getElementById("posFrom"); 
+const pTo = document.getElementById("posTo");
+if (pFrom && pTo) {
     POSITIONS.forEach(p => { 
-    if (pFrom) pFrom.innerHTML += `<option value="${p}">${p}</option>`; 
-    if (pTo) pTo.innerHTML += `<option value="${p}">${p}</option>`; 
-});
+        pFrom.innerHTML += `<option value="${p}">${p}</option>`; 
+        pTo.innerHTML += `<option value="${p}">${p}</option>`; 
+    });
+}
 
-    window.toggleParagrafOptions = () => {
-        const type = document.getElementById("absType").value;
-        document.getElementById("absReason").style.display = (type === "Paragraf") ? "block" : "none";
-    };
+window.toggleParagrafOptions = () => {
+    const type = document.getElementById("absType").value;
+    document.getElementById("absReason").style.display = (type === "Paragraf") ? "block" : "none";
+};
 
-    window.selectTopic = (id, name) => {
-        currentTopicId = id;
-        document.getElementById("topicSelection").style.display = 'none';
-        document.getElementById("chatInterface").style.display = 'block';
-        document.getElementById("backBtn").style.display = 'inline-block';
-        document.getElementById("headerIcon").innerHTML = topicData[id].icon;
-        document.getElementById("headerLabel").innerText = name;
-        document.getElementById("topicInfoDesc").innerHTML = topicData[id].desc;
-        document.getElementById("changeForm").style.display = (id === 'zmeny') ? 'block' : 'none';
-        document.getElementById("absenceForm").style.display = (id === 'absence') ? 'block' : 'none';
-        document.querySelector(".chat-input-container").style.display = (id === 'pokec') ? 'block' : 'none';
-        startChatListener(id);
-    };
+// --- LOGIKA TÉMAT A PŘEPÍNÁNÍ ---
+window.selectTopic = (id, name) => {
+    currentTopicId = id;
+    document.getElementById("topicSelection").style.display = 'none';
+    document.getElementById("chatInterface").style.display = 'block';
+    document.getElementById("backBtn").style.display = 'inline-block';
+    document.getElementById("headerIcon").innerHTML = topicData[id].icon;
+    document.getElementById("headerLabel").innerText = name;
+    document.getElementById("topicInfoDesc").innerHTML = topicData[id].desc;
+    document.getElementById("absenceForm").style.display = (id === 'absence') ? 'block' : 'none';
+    const pokecInput = document.querySelector(".chat-input-container");
+    if (pokecInput) pokecInput.style.display = (id === 'pokec') ? 'block' : 'none';
+    startChatListener(id);
+};
 
-    window.showTopics = () => {
+window.showTopics = () => {
     if (chatUnsubscribe) chatUnsubscribe();
     document.getElementById("topicSelection").style.display = 'grid';
     document.getElementById("chatInterface").style.display = 'none';
     document.getElementById("backBtn").style.display = 'none';
-    
-    // TADY JE OPRAVA: Nejdříve vyčistit, pak vložit (nebo prostě rovnou vložit)
     document.getElementById("headerIcon").innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14 5.6 8.4a1 1 0 0 0-1.4 0l-1.4 1.4a1 1 0 0 0 0 1.4l5.6 5.6"></path><path d="m14 14 5.6-5.6a1 1 0 0 1 1.4 0l1.4 1.4a1 1 0 0 1 0 1.4L17 17"></path><path d="m11 11-2-2a1 1 0 0 0-1.4 0l-1.4 1.4a1 1 0 0 0 0 1.4l2 2"></path><path d="m13 13 2 2a1 1 0 0 1 0 1.4l-1.4 1.4a1 1 0 0 1-1.4 0l-2-2"></path></svg>`;
-    
     document.getElementById("headerLabel").innerText = 'Týmový portál';
 };
 
-    let userRoles = {}; 
-
+// --- DATA PRACOVNÍKŮ ---
 async function loadNicknames() {
     const snap = await getDocs(collection(db, "employees"));
     const wSelect = document.getElementById("workerSelect"); 
     const aSelect = document.getElementById("absWorkerSelect");
     let namesArray = [];
     
-    snap.forEach(doc => {
-        const d = doc.data(); 
-        const jmeno = d.name || d.surname || "Bezejmenný";
+    snap.forEach(docSnap => {
+        const d = docSnap.data(); 
+        const jmeno = d.fName || d.name || "Host";
         const email = d.email?.replace(/["']/g, '').trim().toLowerCase();
-        
         if (email) {
             allNicknames[email] = jmeno;
-            // DŮLEŽITÉ: Uložíme si roli z pole 'role' v dokumentu zaměstnance
             userRoles[email] = d.role || "user"; 
         }
         namesArray.push(jmeno);
     });
     
     namesArray.sort((a, b) => a.localeCompare(b, 'cs'));
-    wSelect.innerHTML = aSelect.innerHTML = '<option value="">-- Vyber jméno --</option>';
-    namesArray.forEach(n => { 
-        wSelect.innerHTML += `<option value="${n}">${n}</option>`; 
-        aSelect.innerHTML += `<option value="${n}">${n}</option>`; 
-    });
-
-    // PŘIDÁNO: Nastavení aktuálního data do inputů
-    const today = new Date();
-    const offset = today.getTimezoneOffset() * 60000;
-    const localISOTime = (new Date(today - offset)).toISOString().slice(0, 10);
-    
-    if (document.getElementById("changeDate")) document.getElementById("changeDate").value = localISOTime;
-    if (document.getElementById("absDateFrom")) document.getElementById("absDateFrom").value = localISOTime;
-    if (document.getElementById("absDateTo")) document.getElementById("absDateTo").value = localISOTime;
-}
-
-    onAuthStateChanged(auth, async (u) => { if (u) await loadNicknames(); else window.location.href = "index.html"; });
-
-    function startChatListener(topicId) {
-        const q = query(collection(db, "chat"), where("topic", "==", topicId), orderBy("createdAt", "asc"));
-        chatUnsubscribe = onSnapshot(q, (snapshot) => {
-            let html = "";
-            snapshot.forEach((docSnap) => {
-                const m = docSnap.data(); const isMe = m.senderEmail === auth.currentUser?.email;
-                const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "...";
-                const senderNick = allNicknames[m.senderEmail?.toLowerCase()] || "Host";
-                const icon = topicData[topicId]?.icon || "";
-               const userEmail = auth.currentUser?.email?.toLowerCase();
-const isAdmin = userRoles[auth.currentUser?.email?.toLowerCase()] === "admin";
-  const isApproved = m.status === "approved"; // Načte status z Firebase
-const isRejected = m.status === "rejected"; // PŘIDÁNO: Kontrola zamítnutí
-
-        html += `
-        <div class="msg ${isMe ? 'me' : ''} ${isApproved ? 'approved-bg' : ''} ${isRejected ? 'rejected-bg' : ''}" id="msg-${docSnap.id}">
-            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:4px;">
-                <span class="msg-sender">Poslal: ${senderNick}</span>
-                <div style="display:flex; gap:10px;">
-                    ${isAdmin && !isApproved && !isRejected ? `
-                        <button onclick="window.approveMsg('${docSnap.id}')" title="Schválit" style="color:#22c55e; font-weight:bold; font-size:18px;">✓</button>
-                        <button onclick="window.rejectMsg('${docSnap.id}')" title="Zamítnout" style="color:#f87171; font-weight:bold; font-size:18px;">⊖</button>
-                    ` : ''}
-                    ${isAdmin ? `<button onclick="window.deleteMsg('${docSnap.id}')" title="Smazat" style="color:#ef4444; opacity:0.6; font-size:16px;">✕</button>` : ''}
-                </div>
-            </div>
-            <div class="msg-body">
-                ${icon} 
-                <span class="msg-text" style="${isApproved ? 'color:#86efac !important;' : ''} ${isRejected ? 'color:#fca5a5 !important;' : ''} font-weight:800;">
-                    ${m.text} 
-                    ${isApproved ? '<br><span style="font-size:10px; opacity:0.8;">[ SCHVÁLENO ]</span>' : ''}
-                    ${isRejected ? '<br><span style="font-size:10px; opacity:0.8;">[ ZAMÍTNUTO ]</span>' : ''}
-                </span>
-            </div>
-            <span class="msg-time">${time}</span>
-        </div>`;
-            });
-            document.getElementById("chatBox").innerHTML = html;
-            document.getElementById("chatBox").scrollTop = document.getElementById("chatBox").scrollHeight;
+    if (wSelect && aSelect) {
+        wSelect.innerHTML = aSelect.innerHTML = '<option value="">-- Vyber jméno --</option>';
+        namesArray.forEach(n => { 
+            wSelect.innerHTML += `<option value="${n}">${n}</option>`; 
+            aSelect.innerHTML += `<option value="${n}">${n}</option>`; 
         });
     }
+
+    const today = new Date();
+    const offset = today.getTimezoneOffset() * 60000;
+    const localISO = (new Date(today - offset)).toISOString().slice(0, 10);
+    if (document.getElementById("changeDate")) document.getElementById("changeDate").value = localISO;
+    if (document.getElementById("absDateFrom")) document.getElementById("absDateFrom").value = localISO;
+    if (document.getElementById("absDateTo")) document.getElementById("absDateTo").value = localISO;
+}
+
+onAuthStateChanged(auth, async (u) => { 
+    if (u) await loadNicknames(); 
+    else window.location.href = "index.html"; 
+});
+
+// --- HLAVNÍ POSLUCHAČ ZPRÁV ---
+function startChatListener(topicId) {
+    const q = query(collection(db, "chat"), where("topic", "==", topicId), orderBy("createdAt", "asc"));
+    
+    // Definice časů pro jednotlivé směny
+    const shiftTimes = {
+        "ranni": ["06:00-08:00", "08:05-10:15", "10:45-12:00", "12:05-14:00"],
+        "odpo": ["14:00-16:00", "16:05-18:15", "18:45-20:00", "20:05-22:00"],
+        "noc": ["22:00-00:00", "00:05-02:15", "02:45-04:00", "04:05-06:00"]
+    };
+
+    chatUnsubscribe = onSnapshot(q, (snapshot) => {
+        let html = "";
+        const currentUserEmail = auth.currentUser?.email?.toLowerCase().trim();
+        const isAdmin = userRoles[currentUserEmail] === "admin";
+
+        snapshot.forEach((docSnap) => {
+            const m = docSnap.data();
+            const msgId = docSnap.id;
+            const isMe = m.senderEmail === currentUserEmail;
+            const isTarget = m.targetEmail === currentUserEmail;
+            
+            const senderNick = allNicknames[m.senderEmail] || "Někdo";
+            const targetNick = allNicknames[m.targetEmail] || "Někdo";
+            const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "...";
+
+            const posStyle = `style="font-size: 18px; color: #2ecc71; font-weight: 900;"`;
+
+            // --- 1. BARVA KARTY ---
+            let cardClass = "";
+            if (m.status === "approved") cardClass = "approved-bg";
+            else if (m.status === "rejected") cardClass = "rejected-bg";
+            else if (isMe) cardClass = "me";
+
+            // --- 2. ČASOVÉ INFO ŽÁDOSTI ---
+            let infoTime = "";
+if (m.isSwapRequest && m.swapDetails) {
+    const d = m.swapDetails;
+    // Formát data: 22. 3.
+    const czechDate = new Date(d.date).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
+    const shiftLabel = d.shift === "ranni" ? "Ranní" : d.shift === "odpo" ? "Odpo" : "Noční";
+    const exactTime = shiftTimes[d.shift] ? shiftTimes[d.shift][d.phase] : `${d.phase + 1}. část`;
+    
+    // Moderní vyznění: Tučný text, žádné ikony, výrazná barva
+    infoTime = `
+        <div style="font-size: 12px; color: #fff; margin-bottom: 10px; letter-spacing: 0.5px;">
+            <b style="color: #2ecc71; text-transform: uppercase; font-weight: 900; font-size: 11px;">Změna:</b> 
+            <span style="font-weight: 800; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 6px; margin-left: 5px;">
+                ${czechDate} | ${shiftLabel} (${exactTime})
+            </span>
+        </div>`;
+}
+
+            // --- 3. DYNAMICKÝ TEXT ŽÁDOSTI ---
+            let messageText = m.text; 
+            if (m.isSwapRequest) {
+                if (isMe) {
+                    messageText = `${infoTime} Tvoje žádost o prohození <span ${posStyle}>${m.swapDetails.fromPos}</span> za <span ${posStyle}>${m.swapDetails.toPos}</span> pro uživatele ${targetNick}`;
+                } else if (isTarget) {
+                    messageText = `${infoTime} <b style="font-size: 16px;">${senderNick}</b> tě žádá o prohození tvého <b ${posStyle}>${m.swapDetails.toPos}</b> za jeho <b ${posStyle}>${m.swapDetails.fromPos}</b>`;
+                } else {
+                    messageText = `${infoTime} Výměna pozic: <b>${senderNick}</b> (<span ${posStyle}>${m.swapDetails.fromPos}</span>) ➔ <b>${targetNick}</b> (<span ${posStyle}>${m.swapDetails.toPos}</span>)`;
+                }
+            }
+
+            // --- 4. STAVOVÉ TEXTY ---
+            let statusInfo = "";
+            if (m.status === "approved") {
+                statusInfo = `<div style="color:#2ecc71; font-size:12px; margin-top:10px; font-weight:700;">✓ Potvrzeno a změněno v rozpisu</div>`;
+            } else if (m.status === "rejected") {
+                const isSystemError = m.text.includes("(system_error)");
+                const statusText = isSystemError ? "Výměna nemohla být provedena kvůli změnám v rozpisu" : "Výměna byla zamítnuta";
+                statusInfo = `<div style="color:#ef4444; font-size:12px; margin-top:10px; font-weight:700;">✕ ${statusText}</div>`;
+            }
+
+            const displayMessageText = messageText.replace("(system_error)", "");
+
+            // --- 5. ADMIN KŘÍŽEK ---
+            const deleteBtn = isAdmin ? `
+                <button onclick="window.deleteMsg('${msgId}')" title="Smazat" style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.1); border:none; color:#f87171; opacity:0.6; cursor:pointer; font-size:18px; transition:0.3s; z-index:10; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;">✕</button>
+            ` : '';
+
+            // --- 6. TLAČÍTKA AKCÍ ---
+            let swapButtons = "";
+            if (m.isSwapRequest && m.status === "pending") {
+                if (isTarget) {
+                    swapButtons = `
+                        <div style="display:flex; gap:10px; margin-top:15px;">
+                            <button onclick="window.handleSwapAction('${msgId}', true)" style="flex:1; background:#22c55e; color:white; border:none; padding:12px; border-radius:14px; font-weight:900; cursor:pointer; font-size:14px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);">Přijmout</button>
+                            <button onclick="window.handleSwapAction('${msgId}', false)" style="flex:1; background:rgba(239, 68, 68, 0.15); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.3); padding:12px; border-radius:14px; font-weight:800; cursor:pointer; font-size:14px;">Odmítnout</button>
+                        </div>`;
+                } else if (isMe) {
+                    swapButtons = `
+                        <div style="display:flex; align-items:center; margin-top:12px; color:#f1c40f; font-size:12px; font-weight:600; letter-spacing:0.3px;">
+                            <span class="wait-dot"></span>Čeká se na vyjádření...
+                        </div>`;
+                }
+            }
+
+            html += `
+            <div class="msg ${cardClass}" id="msg-${msgId}" style="border-radius:22px; padding:18px; margin-bottom:15px; border: 1px solid rgba(255,255,255,0.08); background: rgba(15, 23, 42, 0.6); position: relative;">
+                ${deleteBtn}
+                <div style="line-height:1.6; color:#fff; font-size:14px; padding-right: 25px;">
+                    ${displayMessageText}
+                </div>
+                ${statusInfo}
+                ${swapButtons}
+                <div style="text-align:right; font-size:10px; opacity:0.2; margin-top:10px;">${time}</div>
+            </div>`;
+        });
+        document.getElementById("chatBox").innerHTML = html;
+        document.getElementById("chatBox").scrollTop = document.getElementById("chatBox").scrollHeight;
+    });
+}
+
+// --- FUNKCE PRO ZPĚTNOU VAZBU TLAČÍTEK ---
 const showBtnFeedback = (btnId, text, iconType = 'success') => {
     const btn = document.getElementById(btnId);
     if (!btn) return;
     const originalContent = btn.innerHTML;
     const originalBg = btn.style.background;
-
     const icons = {
         success: `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="3" fill="none" style="margin-right:8px;"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
         error: `<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="3" fill="none" style="margin-right:8px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`
     };
-
     btn.innerHTML = `<div style="display:flex; align-items:center; justify-content:center;">${icons[iconType]} ${text}</div>`;
     btn.style.background = (iconType === 'error') ? "#b91c1c" : "#15803d"; 
     btn.disabled = true;
-
-    setTimeout(() => {
-        btn.innerHTML = originalContent;
-        btn.style.background = originalBg;
-        btn.disabled = false;
-    }, 1500);
+    setTimeout(() => { btn.innerHTML = originalContent; btn.style.background = originalBg; btn.disabled = false; }, 1500);
 };
-    document.getElementById("submitChangeBtn").onclick = async () => {
-        const w = document.getElementById("workerSelect").value; const f = document.getElementById("posFrom").value;
-        const t = document.getElementById("posTo").value; const t1 = document.getElementById("timeFrom").value, t2 = document.getElementById("timeTo").value;
-        const d = document.getElementById("changeDate").value;
-        if(!w || !f || !t || !t1 || !t2 || !d) return showBtnFeedback("submitChangeBtn", "Vyplňte vše!", "error");
-       const msg = `<strong>${w}:</strong> ${f} ➔ ${t} (${t1}–${t2}) | ${new Date(d).toLocaleDateString('cs-CZ')}`;
-    await addDoc(collection(db, "chat"), { text: msg, senderEmail: auth.currentUser.email, topic: "zmeny", createdAt: serverTimestamp() });
+window.handleSwapAction = async (msgId, isAccepted) => {
+    const msgRef = doc(db, "chat", msgId);
+    const msgSnap = await getDoc(msgRef);
+    const m = msgSnap.data();
+
+    if (!isAccepted) {
+        await updateDoc(msgRef, { status: "rejected" });
+        if (window.showToast) showToast("Výměna byla zamítnuta", "error");
+        return;
+    }
+
+    try {
+        const d = m.swapDetails;
+        const shiftId = `${d.date}_${d.shift}`;
+        const shiftRef = doc(db, "shifts", shiftId);
+        const shiftSnap = await getDoc(shiftRef);
+
+        if (!shiftSnap.exists()) {
+            if (window.showToast) showToast("Směna již neexistuje", "error");
+            return;
+        }
+
+        let shiftData = shiftSnap.data();
+        let isNested = (shiftData.phases && shiftData.phases[d.phase]);
+        let source = isNested ? shiftData.phases[d.phase] : shiftData;
+
+        const getCleanID = (val) => {
+            if (!val) return "PRÁZDNO";
+            const id = (typeof val === 'string') ? val : (val.m || val.id || "");
+            return id.toString().toLowerCase().trim();
+        };
+
+        const realA = getCleanID(source[d.fromPos]); 
+        const realB = getCleanID(source[d.toPos]);   
+        const reqA = d.fromId.toString().toLowerCase().trim(); 
+        const reqB = d.toId.toString().toLowerCase().trim();   
+
+        // --- 1. ÚPRAVA: MODERNÍ TEXT POJISTKY ---
+       if (realA !== reqA || realB !== reqB) {
+    if (window.showToast) showToast("Výměna již není možná (změna v rozpisu)", "error");
     
-   document.getElementById("workerSelect").value = "";
-    document.getElementById("posFrom").value = ""; 
-    document.getElementById("posTo").value = "";
-    
-    // PŘIDÁNO: Vizuální potvrzení
-    showBtnFeedback("submitChangeBtn", "Odesláno");
+    await updateDoc(msgRef, { 
+        status: "rejected", 
+        // Přidáme příznak (system_error), aby to vykreslování poznalo
+        text: m.text + " (system_error)" 
+    });
+    return;
+}
+
+        // --- PROHOZENÍ ---
+        const temp = source[d.fromPos];
+        source[d.fromPos] = source[d.toPos];
+        source[d.toPos] = temp;
+
+        if (isNested) {
+            await updateDoc(shiftRef, { phases: shiftData.phases });
+        } else {
+            let updateObj = {};
+            updateObj[d.fromPos] = source[d.fromPos];
+            updateObj[d.toPos] = source[d.toPos];
+            await updateDoc(shiftRef, updateObj);
+        }
+
+        // --- 2. ÚPRAVA: ČISTÉ POTVRZENÍ (Už jen status, žádný text do DB) ---
+        await updateDoc(msgRef, { status: "approved" });
+        if (window.showToast) showToast("Rozpis byl úspěšně aktualizován", "success");
+
+    } catch (err) {
+        console.error("Chyba systému:", err);
+        if (window.showToast) showToast("Chyba při zápisu!", "error");
+    }
 };
 
-    document.getElementById("submitAbsenceBtn").onclick = async () => {
-        const w = document.getElementById("absWorkerSelect").value; const type = document.getElementById("absType").value;
-        const reason = (type === "Paragraf") ? ` (${document.getElementById("absReason").value})` : "";
-        const from = document.getElementById("absDateFrom").value; const to = document.getElementById("absDateTo").value;
-        if(!w || !from || !to) return showBtnFeedback("submitAbsenceBtn", "Vyplňte vše!", "error");
-        const dF = new Date(from).toLocaleDateString('cs-CZ'); const dT = new Date(to).toLocaleDateString('cs-CZ');
-        const range = (from === to) ? dF : `${dF} – ${dT}`;
-       await addDoc(collection(db, "chat"), { text: `<strong>${w}:</strong> ${type}${reason} | ${range}`, senderEmail: auth.currentUser.email, topic: "absence", createdAt: serverTimestamp() });
-    
-    // PŘIDÁNO: Vizuální potvrzení
+document.getElementById("submitAbsenceBtn").onclick = async () => {
+    const w = document.getElementById("absWorkerSelect").value; 
+    const type = document.getElementById("absType").value;
+    const reason = (type === "Paragraf") ? ` (${document.getElementById("absReason").value})` : "";
+    const from = document.getElementById("absDateFrom").value, to = document.getElementById("absDateTo").value;
+    if(!w || !from || !to) return showBtnFeedback("submitAbsenceBtn", "Vyplňte vše!", "error");
+    const dF = new Date(from).toLocaleDateString('cs-CZ'), dT = new Date(to).toLocaleDateString('cs-CZ');
+    const range = (from === to) ? dF : `${dF} – ${dT}`;
+    await addDoc(collection(db, "chat"), { text: `<strong>${w}:</strong> ${type}${reason} | ${range}`, senderEmail: auth.currentUser.email, topic: "absence", createdAt: serverTimestamp(), status: "pending" });
     showBtnFeedback("submitAbsenceBtn", "Žádost poslána");
 };
 
-    const handleSend = async () => {
-        const input = document.getElementById("msgInput"); const text = input.value.trim();
-        if (!text || !currentTopicId) return;
-        await addDoc(collection(db, "chat"), { text, senderEmail: auth.currentUser.email, topic: currentTopicId, createdAt: serverTimestamp() });
-        input.value = "";
-    };
-
-    document.getElementById("sendBtn").onclick = handleSend;
-    document.getElementById("msgInput").onkeypress = (e) => { if (e.key === "Enter") handleSend(); };
-    window.deleteMsg = async (msgId) => {
-    if (!confirm("Opravdu chcete tuto zprávu smazat?")) return;
-    try {
-        await deleteDoc(doc(db, "chat", msgId));
-    } catch (err) {
-        alert("Chyba při mazání: " + err.message);
-    }
+const handleSend = async () => {
+    const input = document.getElementById("msgInput"); const text = input.value.trim();
+    if (!text || !currentTopicId) return;
+    await addDoc(collection(db, "chat"), { text, senderEmail: auth.currentUser.email, topic: currentTopicId, createdAt: serverTimestamp() });
+    input.value = "";
 };
+
+document.getElementById("sendBtn").onclick = handleSend;
+document.getElementById("msgInput").onkeypress = (e) => { if (e.key === "Enter") handleSend(); };
+
+// --- LOGIKA SCHVALOVÁNÍ A MAZÁNÍ (EXPORT DO WINDOW) ---
 window.approveMsg = async (msgId) => {
     const el = document.querySelector(`#msg-${msgId} [onclick*="approveMsg"]`);
     if (!el.dataset.confirm) {
-        el.dataset.confirm = "true";
-        el.style.transform = "scale(1.5)"; // Vizuální potvrzení "opravdu?"
+        el.dataset.confirm = "true"; el.style.transform = "scale(1.5)";
         setTimeout(() => { delete el.dataset.confirm; el.style.transform = "scale(1)"; }, 3000);
         return;
     }
-    try {
-        await updateDoc(doc(db, "chat", msgId), { status: "approved" });
-    } catch (err) { console.error(err); }
+    try { await updateDoc(doc(db, "chat", msgId), { status: "approved" }); } catch (err) { console.error(err); }
 };
 
 window.rejectMsg = async (msgId) => {
     const el = document.querySelector(`#msg-${msgId} [onclick*="rejectMsg"]`);
     if (!el.dataset.confirm) {
-        el.dataset.confirm = "true";
-        el.style.transform = "scale(1.5)";
+        el.dataset.confirm = "true"; el.style.transform = "scale(1.5)";
         setTimeout(() => { delete el.dataset.confirm; el.style.transform = "scale(1)"; }, 3000);
         return;
     }
-    try {
-        await updateDoc(doc(db, "chat", msgId), { status: "rejected" });
-    } catch (err) { console.error(err); }
+    try { await updateDoc(doc(db, "chat", msgId), { status: "rejected" }); } catch (err) { console.error(err); }
 };
 
 window.deleteMsg = async (msgId) => {
-    // Najdeme tlačítko křížku pro konkrétní zprávu
     const el = document.querySelector(`#msg-${msgId} [onclick*="deleteMsg"]`);
     
-    // PRVNÍ KLIK: Tlačítko jen "vyskočí" jako potvrzení
     if (!el.dataset.confirm) {
+        // PRVNÍ KLIK: Tlačítko se zvýrazní a zvětší
         el.dataset.confirm = "true";
-        el.style.transform = "scale(1.8)"; // Zvětší se (vyskočí)
-        el.style.opacity = "1";            // Zvýrazní se průhlednost
+        el.style.transform = "scale(1.2)";
+        el.style.opacity = "1";
+        el.style.background = "rgba(239, 68, 68, 0.2)"; // Červený nádech podkladu
+        el.style.color = "#ff4d4d"; // Jasnější červená
         
-        // Pokud do 3 sekund neklikneš podruhé, vrátí se zpět
         setTimeout(() => { 
-            if (el.dataset.confirm) {
+            if (el && el.dataset.confirm) {
                 delete el.dataset.confirm; 
                 el.style.transform = "scale(1)"; 
                 el.style.opacity = "0.6"; 
+                el.style.background = "rgba(255,255,255,0.1)";
+                el.style.color = "#f87171";
             }
         }, 3000);
         return;
     }
 
-    // DRUHÝ KLIK: Proběhne smazání
+    // DRUHÝ KLIK: Smazání
     try {
         await deleteDoc(doc(db, "chat", msgId));
+        if (window.showToast) showToast("Zpráva byla smazána", "success");
     } catch (err) {
-        console.error("Chyba při mazání:", err);
+        if (window.showToast) showToast("Chyba při mazání", "error");
     }
 };
-window.selectTopic = selectTopic;
-window.showTopics = showTopics;
-window.toggleParagrafOptions = toggleParagrafOptions;
-window.handleSend = handleSend; // Pro jistotu, kdyby se volalo z HTML
-
-// Pokud máš v kódu tyto funkce, přidej i je:
-if (typeof approveMsg !== 'undefined') window.approveMsg = approveMsg;
-if (typeof rejectMsg !== 'undefined') window.rejectMsg = rejectMsg;
-if (typeof deleteMsg !== 'undefined') window.deleteMsg = deleteMsg;
-window.showTopics();
-
 </script>
 </body>
 </html>

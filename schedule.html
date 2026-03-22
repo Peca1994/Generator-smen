@@ -373,6 +373,54 @@ tbody td {
         padding-left: 5px !important;
         min-width: 45px !important;
     }
+    .swap-modal {
+    display: none; /* Skryté na začátku */
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85); /* Tmavé poloprůhledné pozadí */
+    z-index: 9999; /* Aby to bylo nad vším ostatním */
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px); /* Rozmaže pozadí za oknem */
+}
+
+/* Samotná karta uvnitř modálu */
+.swap-box {
+    background: #0f172a;
+    padding: 25px;
+    border-radius: 24px;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    text-align: center;
+}
+
+.swap-btn {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.swap-btn:hover {
+    background: #22c55e;
+}
+.highlight-found {
+    background-color: #f1c40f !important; /* Výrazná žlutá */
+    color: #000 !important;                /* Černý text pro kontrast */
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 900 !important;
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+    text-transform: uppercase;
+}
 </style>
 </head>
 
@@ -453,7 +501,23 @@ tbody td {
     </div>
 </div>
 </div>
+<div id="swapModal" class="swap-modal">
+    <div class="swap-box">
+        <h3 id="swapTitle" style="color:#2ecc71; margin-top:0; font-size:18px;">Výměna pozice</h3>
+        <p style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 20px;">
+            Vyber kolegu, kterému pošleš žádost o prohození:
+        </p>
+        
+        <div id="swapList" style="margin-bottom: 20px; max-height: 250px; overflow-y: auto;">
+            <!-- Sem JavaScript vloží tlačítka s lidmi -->
+        </div>
 
+        <button onclick="document.getElementById('swapModal').style.display='none'" 
+                style="width:100%; padding:14px; border-radius:12px; border:none; background:#334155; color:white; font-weight:800; cursor:pointer;">
+            Zavřít
+        </button>
+    </div>
+</div>
 <div class="card">
     <div class="table-wrapper">
         <table id="grid"></table>
@@ -464,10 +528,9 @@ tbody td {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, setDoc, getDoc }
-from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// Tvůj konfigurák ze screenshotu
+import { getFirestore, collection, getDocs, doc, getDoc, addDoc, serverTimestamp, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 const firebaseConfig = {
     apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
     authDomain: "generator-smen-9fba1.firebaseapp.com",
@@ -480,362 +543,276 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 const dateEl = document.getElementById("date");
 const shiftEl = document.getElementById("shift");
 const nameFilterEl = document.getElementById("nameFilter");
 const gridEl = document.getElementById("grid");
-function getContinuousShift() {
-    // 1. NASTAVENÍ: Vyber si pondělí, kdy jsi měl naposledy RANNÍ (např. 5. ledna 2026)
-    const anchorDate = new Date(2026, 0, 5); // Rok, Měsíc (0=leden), Den
-    const today = new Date();
-
-    // 2. Výpočet rozdílu v milisekundách a přepočet na celé týdny
-    const msDiff = today.getTime() - anchorDate.getTime();
-    const weeksDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24 * 7));
-
-    // 3. Pořadí směn v tvém cyklu (uprav si podle reality)
-    // Pokud se střídáte: Ranní -> Odpolední -> Noční
-    const shiftCycle = ["Ranní", "Odpolední", "Noční"];
-
-    // 4. Výpočet indexu (zbytek po dělení 3)
-    // Používáme modulo, které ošetří i záporná čísla (kdyby někdo koukal do historie)
-    let shiftIndex = weeksDiff % 3;
-    if (shiftIndex < 0) shiftIndex += 3;
-
-    return shiftCycle[shiftIndex];
-}
-
-// Funkce pro automatické vepsání do stránky
-function updateCurrentShift() {
-    const shiftName = getContinuousShift();
-    const displayEl = document.getElementById("currentShiftInfo");
-    
-    if (displayEl) {
-        displayEl.innerHTML = `Tento týden probíhá: <strong style="color:#22c55e;">${shiftName}</strong>`;
-    }
-}
-
-// Spustit po načtení stránky
-document.addEventListener("DOMContentLoaded", updateCurrentShift);
-// NASTAVENÍ DATA PRO KALENDÁŘ (Dnešek v ISO formátu)
-const today = new Date();
-const offset = today.getTimezoneOffset() * 60000;
-const localDate = new Date(today.getTime() - offset).toISOString().split('T')[0];
-dateEl.value = localDate;
-
-const POSITIONS = [
-    "DP-L", "DP-P", 
-    "ZRC-L", "ZRC-P", 
-    "T-L", "T-P", 
-    "AGR-LP", "AGR-PP", "AGR-PZ", "AGR-LZ", 
-    "MOT-L", "MOT-P", 
-    "LEP-LP", "LEP-PP", "LEP-Z", 
-    "REPRO-L", "REPRO-P", 
-    "VYP1-L", "VYP1-P", 
-    "VYP2-L", "VYP2-P", 
-    "PR-L", "PR-P", 
-    "ZAM-L", "ZAM-P", 
-    "VET", "VET2", "VET3",    // Seřazeno: VET3 je za VET2
-    "INST", "INST2", "INST3"  // Seřazeno: INST3 je za INST2
-];
 
 let workerMap = {}; 
+let allWorkersData = {}; 
 let phasesData = [];
+let currentUserEmp = null;
 
-// Načtení jmen (logika z employees.html)
-async function loadWorkers(){
+const POSITIONS = ["DP-L", "DP-P", "ZRC-L", "ZRC-P", "T-L", "T-P", "AGR-LP", "AGR-PP", "AGR-PZ", "AGR-LZ", "MOT-L", "MOT-P", "LEP-LP", "LEP-PP", "LEP-Z", "REPRO-L", "REPRO-P", "VYP1-L", "VYP1-P", "VYP2-L", "VYP2-P", "PR-L", "PR-P", "ZAM-L", "ZAM-P", "VET", "VET2", "VET3", "INST", "INST2", "INST3"];
+
+// 1. START A IDENTIFIKACE
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        const q = query(collection(db, "employees"), where("email", "==", user.email.toLowerCase().trim()));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+            currentUserEmp = { id: snap.docs[0].id, ...snap.docs[0].data() };
+        }
+        await loadWorkers();
+        setShiftAutomatically(); 
+    } else {
+        window.location.href = "index.html";
+    }
+});
+
+// 2. NAČÍTÁNÍ PRACOVNÍKŮ (OPRAVENO NA PŘEZDÍVKY)
+async function loadWorkers() {
     try {
         const snap = await getDocs(collection(db, "employees"));
-        workerMap = {};
+        workerMap = {}; allWorkersData = {};
         snap.forEach(d => {
             const e = d.data();
-            workerMap[d.id] = (e.fName || e.name || "") + " " + (e.lName || "");
+            // POUŽIJEME JEN PŘEZDÍVKU (fName)
+            workerMap[d.id] = e.fName || e.name || "Bez jména";
+            allWorkersData[d.id] = { id: d.id, ...e };
         });
     } catch (e) { console.error("Chyba loadWorkers:", e); }
 }
-function nastavitDnesekASmenu() {
-    const ted = new Date();
-    
-    // NASTAVENÍ DATA (dnešek)
-    const offset = ted.getTimezoneOffset() * 60000;
-    const localISO = (new Date(ted - offset)).toISOString().slice(0, 10);
-    const dateEl = document.getElementById("dateSelect"); // Zkontroluj si id v HTML
-    if (dateEl) dateEl.value = localISO;
 
-    // NASTAVENÍ SMĚNY (automatické střídání)
-    const msVTydnu = 604800000; 
-    const tydnyOdEpocha = Math.floor((ted.getTime() + 345600000) / msVTydnu);
-    const cyklus = tydnyOdEpocha % 3;
-
-    let nazevSmeny = "";
-    // Uprav hodnoty ("Ranní" atd.) přesně podle toho, jak je máš v <option> u tvého selectu!
-    if (cyklus === 0) nazevSmeny = "Ranní";
-    else if (cyklus === 1) nazevSmeny = "Noční"; 
-    else nazevSmeny = "Odpolední";
-
-    const shiftEl = document.getElementById("shiftSelect"); // Zkontroluj si id v HTML
-    if (shiftEl) {
-        shiftEl.value = nazevSmeny;
-    }
-}
-
-// 2. SPUŠTĚNÍ PŘI NAČTENÍ (Důležité pořadí!)
-async function init() {
-    nastavitDnesekASmenu(); // Nejdřív nastavíme políčka
-    await loadShift();      // Pak teprve loadShift() načte data z DB podle těch políček
-}
-
-// Zavolej init() místo samotného loadShift() na konci skriptu
-init();
-// Načtení konkrétní směny podle DATA a TYPU
-async function loadShift(){
-    if(!dateEl.value) return;
+// 3. NAČÍTÁNÍ SMĚNY (OPRAVENÝ INFO BOX DLE PDF)
+async function loadShift() {
+    if (!dateEl.value) return;
     const id = `${dateEl.value}_${shiftEl.value}`;
-
     try {
         const snap = await getDoc(doc(db, "shifts", id));
         const box = document.getElementById('shiftInfoBox');
         const details = document.getElementById('infoDetails');
 
-        if(!snap.exists()){
-            gridEl.innerHTML = "<tr><td colspan='5' style='padding:20px; opacity:0.5;'>Rozpis nenalezen.</td></tr>";
-            if(box) box.style.display = 'none';
-            phasesData = [];
-            return;
+        if (!snap.exists()) {
+            gridEl.innerHTML = "<tr><td colspan='5' style='padding:20px; opacity:0.5; text-align:center;'>Rozpis nenalezen.</td></tr>";
+            if (box) box.style.display = 'none';
+            phasesData = []; return;
         }
 
         const data = snap.data();
-
         if (data.info && details && box) {
-            // Styl pro hlavní kontejner (tmavý, průhledný se zeleným okrajem)
-            box.style.cssText = "display:block; margin: 15px auto; width: 95%; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 12px; padding: 12px 0;";
-
-            // Šablona pro sekci s celými slovy Začátek/Konec
+            box.style.cssText = "display:block; margin: 15px 0; background: rgba(0, 0, 0, 0.2); border-bottom: 1px solid rgba(34, 197, 94, 0.4); padding: 10px 0;";
+            
             const createSection = (label, start, end, isLast = false) => `
                 <div style="flex: 1; text-align: center; ${isLast ? '' : 'border-right: 1px solid rgba(34, 197, 94, 0.3);'} padding: 0 4px;">
                     <div style="font-size: 0.58rem; color: #22c55e; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">${label}</div>
                     <div style="display: flex; flex-direction: column; gap: 6px;">
                         <div>
                             <span style="display: block; font-size: 0.45rem; color: #999; text-transform: uppercase; margin-bottom: -2px;">Začátek</span>
-                            <span style="font-size: 1rem; color: #fff; font-weight: 700;">${start}</span>
+                            <span style="font-size: 1rem; color: #fff; font-weight: 700;">${start || '--:--'}</span>
                         </div>
                         <div>
                             <span style="display: block; font-size: 0.45rem; color: #999; text-transform: uppercase; margin-bottom: -2px;">Konec</span>
-                            <span style="font-size: 1rem; color: #fff; font-weight: 700;">${end}</span>
+                            <span style="font-size: 1rem; color: #fff; font-weight: 700;">${end || '--:--'}</span>
                         </div>
                     </div>
-                </div>
-            `;
+                </div>`;
 
             details.style.display = "flex";
-            details.style.justifyContent = "space-around";
-            details.style.alignItems = "flex-start";
-
             details.innerHTML = `
-             ${createSection('Fabia', data.info.fa.start, data.info.fa.end)}
-                ${createSection('Scala/Kamiq', data.info.sk.start, data.info.sk.end)}
-                ${createSection('Zásobník', data.info.za.start, data.info.za.end, true)}
-            `;
-            
-            box.style.display = 'block';
-        } else if(box) {
-            box.style.display = 'none';
+                ${createSection('Fabia', data.info.fa?.start, data.info.fa?.end)}
+                ${createSection('Scala/Kamiq', data.info.sk?.start, data.info.sk?.end)}
+                ${createSection('Zásobník', data.info.za?.start, data.info.za?.end, true)}`;
         }
-
         phasesData = data.phases || [];
         render();
-    } catch (e) { 
-        console.error("Chyba při načítání:", e);
-    }
+    } catch (e) { console.error("Chyba loadShift:", e); }
 }
+
+// 4. RENDER (TVŮJ VIZUÁL + KLIKÁNÍ)
 function render() {
     const filter = nameFilterEl.value.toLowerCase().trim();
     const s = shiftEl.value;
+    const labels = (s === "ranni") ? ["06:00-08:00", "08:05-10:15", "10:45-12:00", "12:05-14:00"] : (s === "odpo") ? ["14:00-16:00", "16:05-18:15", "18:45-20:00", "20:05-22:00"] : ["22:00-00:00", "00:05-02:15", "02:45-04:00", "04:05-06:00"];
+    const MERGED_GROUPS = { "VYP1-L": { others: ["VYP2-L"], label: "VÝPLNĚ L" }, "VYP1-P": { others: ["VYP2-P"], label: "VÝPLNĚ P" }, "VET": { others: ["VET2", "VET3"], label: "VĚTRAČKY" }, "INST": { others: ["INST2", "INST3"], label: "INSTALACE" } };
+    const skipped = new Set();
     
-    /* 1. DEFINICE ŠTÍTKŮ A SKUPIN */
-    const labels = (s === "ranni") 
-        ? ["06:00-08:00", "08:05-10:15", "10:45-12:00", "12:05-14:00"] 
-        : (s === "odpo") 
-        ? ["14:00-16:00", "16:05-18:15", "18:45-20:00", "20:05-22:00"] 
-        : ["22:00-00:00", "00:05-02:15", "02:45-04:00", "04:05-06:00"];
-
-    const MERGED_GROUPS = {
-        "VYP1-L": { others: ["VYP2-L"], label: "VÝPLNĚ L" },
-        "VYP1-P": { others: ["VYP2-P"], label: "VÝPLNĚ P" },
-        "VET":    { others: ["VET2", "VET3"], label: "VĚTRAČKY" },
-        "INST":   { others: ["INST2", "INST3"], label: "INSTALACE" }
-    };
-    
-    const skippedPositions = new Set();
-    let html = "<thead><tr><th style='color: rgba(255,255,255,0.4); font-size: 9px;'>Pozice</th>" + 
-               labels.map(l => `<th style='color: rgba(255,255,255,0.4); font-size: 9px;'>${l}</th>`).join('') + 
-               "</tr></thead><tbody>";
+    let html = "<thead><tr><th style='color:rgba(255,255,255,0.4); font-size:9px;'>Pozice</th>" + labels.map(l => `<th style='color:rgba(255,255,255,0.4); font-size:9px;'>${l}</th>`).join('') + "</tr></thead><tbody>";
 
     POSITIONS.forEach(pos => {
-        if (skippedPositions.has(pos)) return;
-
+        if (skipped.has(pos)) return;
         const group = MERGED_GROUPS[pos];
-        const subPositions = group ? [pos, ...group.others] : [pos];
-        if (group) group.others.forEach(p => skippedPositions.add(p));
+        const subPos = group ? [pos, ...group.others] : [pos];
+        if (group) group.others.forEach(p => skipped.add(p));
 
-        const labelToShow = group ? group.label : pos;
-
-        // --- SBĚR DAT PRO CELÝ ŘÁDEK (včetně pod-pozic) ---
-        let rowData = []; // [phase][subPosIdx]
-        let isRowOccupied = false;
-        let matchInRow = false;
-
+        let rowData = []; let match = false;
         for (let i = 0; i < 4; i++) {
-            let phaseSubData = [];
-            subPositions.forEach(sp => {
-                const entry = phasesData[i] ? phasesData[i][sp] : null;
-                let m = "", t = "";
-
-                if (entry) {
-                    if (typeof entry === 'string') {
-                        m = workerMap[entry] || "???";
-                    } else if (entry.m || entry.t) {
-                        m = entry.m ? (workerMap[entry.m] || "???") : "";
-                        t = entry.t ? (workerMap[entry.t] || "???") : "";
-                    }
-                }
-
-                if (m !== "" || t !== "") isRowOccupied = true;
-                
-                // Kontrola filtru
-                if (filter && (m.toLowerCase().includes(filter) || t.toLowerCase().includes(filter))) {
-                    matchInRow = true;
-                }
-                phaseSubData.push({ main: m, trainee: t });
+            let pD = [];
+            subPos.forEach(sp => {
+                const e = phasesData[i] ? phasesData[i][sp] : null;
+                let mId = typeof e === 'string' ? e : e?.m, tId = e?.t;
+                const mN = workerMap[mId] || "", tN = workerMap[tId] || "";
+                if (filter && (mN.toLowerCase().includes(filter) || tN.toLowerCase().includes(filter))) match = true;
+                pD.push({ mN, tN, mId, tId, sp });
             });
-            rowData.push(phaseSubData);
+            rowData.push(pD);
         }
+        if (filter && !match) return;
 
-        // Pokud hledáme a v řádku nic není, přeskočíme ho
-        if (filter && !matchInRow) return;
+        html += `<tr style="background:rgba(46,204,113,0.05); border-bottom:1px solid rgba(255,255,255,0.05);">
+            <td style="width:55px; text-align:center; font-weight:900; color:#2ecc71; font-size:8px;">${group ? group.label : pos}</td>`;
 
-        // Barvy řádku
-        const finalColor = isRowOccupied ? '#2ecc71' : '#ef4444';
-        const finalBg = isRowOccupied ? 'rgba(46, 204, 113, 0.05)' : 'rgba(239, 68, 68, 0.12)';
-        const rowHeight = subPositions.length * 24;
-
-        html += `<tr style="background: ${finalBg}; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <td style="width: 55px; text-align: center; border-right: 1px solid rgba(255,255,255,0.05); padding: 0;">
-                <span style="font-weight: 900; color: ${finalColor} !important; font-size: 8px; display: flex; align-items: center; justify-content: center; height: ${rowHeight}px; letter-spacing: 0.5px;">
-                    ${labelToShow}
-                </span>
-            </td>`;
-
-        // --- VYKRESLENÍ FÁZÍ (SLOUPCŮ) ---
         for (let i = 0; i < 4; i++) {
-            html += `<td style="padding: 0; vertical-align: middle;">`;
-            
-            rowData[i].forEach((c, idx) => {
-                const isLastInGroup = idx === subPositions.length - 1;
-                
-                if (!c.main && !c.trainee) {
-                    html += `<div style="height: 24px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.05); border-bottom: ${isLastInGroup ? 'none' : '1px solid rgba(255,255,255,0.03)'};">—</div>`;
-                } else {
-                    // Zvýraznění při hledání
-                    const isMainMatch = filter !== "" && c.main.toLowerCase().includes(filter);
-                    const isTraineeMatch = filter !== "" && c.trainee.toLowerCase().includes(filter);
-                    
-                    let mColor = (filter !== "" && !isMainMatch) ? "rgba(255,255,255,0.15)" : "#2ecc71";
-                    let tColor = (filter !== "" && !isTraineeMatch) ? "rgba(59, 130, 246, 0.2)" : "#3b82f6";
+            html += `<td style="padding:0;">`;
+            rowData[i].forEach(c => {
+    const isMe = c.mId === currentUserEmp?.id;
+    const filterValue = filter.toLowerCase();
 
-                    html += `
-                        <div style="height: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-bottom: ${isLastInGroup ? 'none' : '1px solid rgba(255,255,255,0.03)'}; text-transform: none !important;">
-                            <div style="color: ${mColor}; font-weight: 800; font-size: 10px; line-height: 1;">${c.main || "—"}</div>
-                            ${c.trainee ? `<div style="color: ${tColor}; font-weight: 700; font-size: 7px; margin-top: 1px;">+ ${c.trainee}</div>` : ''}
-                        </div>`;
-                }
-            });
+    // 1. Barva hlavního pracovníka (Zelená při shodě, jinak Bílá)
+    const isMatchedM = filterValue !== "" && c.mN.toLowerCase().includes(filterValue);
+    const colorM = isMatchedM ? "#00ff88" : "#ffffff";
+
+    // 2. Barva učně (Zelená při shodě, jinak Modrá)
+    const isMatchedT = filterValue !== "" && (c.tN || "").toLowerCase().includes(filterValue);
+    const colorT = isMatchedT ? "#00ff88" : "#3b82f6";
+
+    // --- KLÍČOVÁ ZMĚNA: ŽÁDNÉ PODTRŽENÍ, JEN ČISTÝ STYL ---
+    // Pokud jsi to ty (isMe), přidáme onclick a kurzor ruky, ale barvu řídí vyhledávač
+    const meAttributes = isMe 
+        ? `onclick="window.openSwapPicker(${i},'${c.sp}')" style="cursor:pointer; font-weight:800; font-size:10px; line-height:1; color:${colorM}; transition: color 0.2s;"` 
+        : `style="font-weight:800; font-size:10px; line-height:1; color:${colorM}; transition: color 0.2s;"`;
+    
+    html += `<div style="height:24px; display:flex; flex-direction:column; justify-content:center;">
+        <div ${meAttributes}>
+            ${c.mN || "—"}
+        </div>
+        ${c.tN ? `<div style="color:${colorT}; font-weight:700; font-size:7px; margin-top:1px; transition: color 0.2s;">+ ${c.tN}</div>` : ''}
+    </div>`;
+});
             html += `</td>`;
         }
         html += "</tr>";
     });
-
     gridEl.innerHTML = html + "</tbody>";
 }
+// 5. AUTOMATIKA DATA A SMĚNY (OPRAVENO DLE PDF)
+function setShiftAutomatically() {
+    const today = new Date();
+    const hours = today.getHours();
+    const anchorDate = new Date(2026, 2, 2); 
+    const getShift = (d) => {
+        const msDiff = d.getTime() - anchorDate.getTime();
+        const weeksDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24 * 7));
+        const shiftValues = ["noc", "odpo", "ranni"];
+        let index = weeksDiff % 3; if (index < 0) index += 3;
+        return shiftValues[index];
+    };
+    let dDate = new Date(today);
+    const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+    if (getShift(tomorrow) === "noc" && hours >= 12) dDate = tomorrow;
+    else if (hours >= 22) dDate = tomorrow;
+    
+    dateEl.value = (new Date(dDate - dDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
+    shiftEl.value = getShift(dDate);
+    loadShift();
+}
 
-// 3. AKTIVACE: Tohle zajistí, že se barva změní hned, jak dopíšeš písmeno
-nameFilterEl.oninput = () => render();
+// 6. LOGIKA VÝMĚNY (MODAL)
+window.openSwapPicker = (idx, myP) => {
+    const list = document.getElementById("swapList");
+    list.innerHTML = "";
+    let found = 0;
 
-// POSLUCHAČE - REAKCE KALENDÁŘE NA ZMĚNU
-dateEl.addEventListener("change", loadShift);
-shiftEl.addEventListener("change", loadShift);
-nameFilterEl.addEventListener("input", render);
+    Object.entries(phasesData[idx]).forEach(([pos, w]) => {
+        if (pos === myP) return;
+        const id = typeof w === 'string' ? w : w.m;
+        const k = allWorkersData[id];
 
-// SPUŠTĚNÍ PŘI NAČTENÍ
-(async () => {
-    await loadWorkers();
-    await loadShift();
-})();
-(function() {
-    function setShiftAutomatically() {
-        const today = new Date();
-        const hours = today.getHours();
-        const anchorDate = new Date(2026, 2, 2); // Pondělí 2. 3. 2026
-        
-        // Pomocná funkce pro výpočet směny pro jakýkoliv den
-        const getShiftForDate = (date) => {
-            const msDiff = date.getTime() - anchorDate.getTime();
-            const weeksDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24 * 7));
-            const shiftValues = ["noc", "odpo", "ranni"];
-            let index = weeksDiff % 3;
-            if (index < 0) index += 3;
-            return shiftValues[index];
-        };
-
-        let displayDate = new Date(today);
-        let shiftToSet = getShiftForDate(displayDate);
-
-        // --- CHYTRÁ LOGIKA PRO NOČNÍ (od 12:00) ---
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        const shiftTomorrow = getShiftForDate(tomorrow);
-
-        // Pravidlo: Pokud zítra začíná týden s NOČNÍ a dnes je už po 12:00,
-        // ukážeme jim rovnou ten zítřek a tu noční směnu.
-        if (shiftTomorrow === "noc" && hours >= 12) {
-            displayDate = tomorrow;
-            shiftToSet = "noc";
-        } 
-        // Pokud je po 22:00 večer, lidé už většinou chtějí vidět zítřek automaticky
-        else if (hours >= 22) {
-            displayDate = tomorrow;
-            shiftToSet = getShiftForDate(tomorrow);
-        }
-
-        const shiftSelect = document.getElementById("shift");
-        const dateInput = document.getElementById("date");
-
-        // 1. Nastavení data (ošetření časového pásma pro správný formát)
-        if (dateInput) {
-            const offset = displayDate.getTimezoneOffset() * 60000;
-            const localISO = (new Date(displayDate - offset)).toISOString().slice(0, 10);
-            dateInput.value = localISO;
-        }
-
-        // 2. Nastavení směny
-        if (shiftSelect) {
-            shiftSelect.value = shiftToSet;
-            shiftSelect.dispatchEvent(new Event('change'));
+        if (k?.email?.includes("@") && k.skills?.[myP] === 2) {
+            found++;
+            const b = document.createElement("button");
+            b.className = "swap-btn";
+            b.style.transition = "all 0.3s ease"; // Plynulá změna barev
             
-            // Spuštění loadu dat z databáze
-            if (typeof loadShift === "function") loadShift();
+            const originalHTML = `Vyměnit s: <b>${k.fName || k.name}</b> (${pos})`;
+            b.innerHTML = originalHTML;
+
+            b.onclick = () => {
+                if (!b.dataset.confirming) {
+                    // 1. KLIKNUTÍ: Moderní potvrzovací stav
+                    b.dataset.confirming = "true";
+                    b.innerHTML = `ODESLAT ŽÁDOST ➔`;
+                    b.style.background = "#22c55e"; // Sytě zelená
+                    b.style.color = "#fff";
+                    b.style.letterSpacing = "1px";
+                    b.style.fontWeight = "900";
+                    b.style.boxShadow = "0 0 15px rgba(34, 197, 94, 0.4)";
+
+                    // Reset po 3 vteřinách
+                    setTimeout(() => {
+                        if (b.dataset.confirming === "true") {
+                            delete b.dataset.confirming;
+                            b.innerHTML = originalHTML;
+                            b.style.background = "";
+                            b.style.color = "";
+                            b.style.letterSpacing = "";
+                            b.style.boxShadow = "";
+                        }
+                    }, 3000);
+                } else {
+    // 2. KLIKNUTÍ: Samotné odeslání - přidáme 'b' na konec
+    sendSwapRequest(idx, myP, pos, k, b); 
+}
+            };
+            list.appendChild(b);
         }
+    });
+
+    if (!found) alert("Nikdo vhodný k výměně nenalezen.");
+    else document.getElementById("swapModal").style.display = "flex";
+};
+
+async function sendSwapRequest(idx, myP, toP, k, btn) {
+    // 1. ŽÁDNÝ CONFIRM - hned odesíláme
+    try {
+        // Vizuální zpětná vazba, že se něco děje
+        btn.innerHTML = `ODESÍLÁM...`;
+        btn.disabled = true;
+
+        await addDoc(collection(db, "chat"), {
+            text: `žádost o prohození pozic`, // Text v chatu už řeší startChatListener dynamicky
+            senderEmail: auth.currentUser.email,
+            topic: "zmeny",
+            createdAt: serverTimestamp(),
+            isSwapRequest: true,
+            status: "pending",
+            targetEmail: k.email.toLowerCase().trim(),
+            swapDetails: { phase: idx, date: dateEl.value, shift: shiftEl.value, fromId: currentUserEmp.id, fromPos: myP, toId: k.id, toPos: toP }
+        });
+
+        // 2. ŽÁDNÝ ALERT - úspěch napíšeme na tlačítko
+        btn.innerHTML = `ODESLÁNO ✓`;
+        btn.style.background = "#22c55e";
+        
+        // Po vteřině a půl okno samo zmizí
+        setTimeout(() => {
+            document.getElementById("swapModal").style.display = "none";
+        }, 1500);
+
+    } catch (e) {
+        console.error(e);
+        btn.innerHTML = `CHYBA PŘI ODESLÁNÍ`;
+        btn.style.background = "#ef4444";
+        btn.disabled = false;
     }
+}
 
-    if (document.readyState === "complete") {
-        setShiftAutomatically();
-    } else {
-        window.addEventListener('load', setShiftAutomatically);
-    }
-})();
-
-
+dateEl.onchange = loadShift;
+shiftEl.onchange = loadShift;
+nameFilterEl.oninput = render;
 </script>
+</div>
 </body>
 </html>

@@ -1335,102 +1335,110 @@ genBtn.onclick = async () => {
 
 /* LOAD */
 
+let shiftUnsubscribe = null; // Globální proměnná pro odhlášení z předchozího sledování
+
 loadBtn.onclick = async () => {
     loadingEl.style.display = "flex";
+    
+    // 1. Nejprve načteme všechny zaměstnance (ti se nemění tak často)
     try {
-        const shiftId = dateEl.value + "_" + shiftEl.value;
-        const shiftSnap = await getDoc(doc(db, "shifts", shiftId));
-        
-        if (!shiftSnap.exists()) {
-            alert("Směna pro tento den a čas neexistuje.");
-            loadingEl.style.display = "none";
-            return;
-        }
-
-        const shiftData = shiftSnap.data();
-        // Načteme historický "otisk" statusů
-        currentShiftSnapshot = shiftData.statusSnapshot || {}; 
-        shiftInfo = shiftData.info || { sk:{start:"",end:""}, fa:{start:"",end:""}, za:{start:"",end:""} };
-
-        // Načtení všech zaměstnanců z DB
         const empSnap = await getDocs(collection(db, "employees"));
         allWorkersMap = {}; 
         const allWorkersArray = [];
 
         empSnap.forEach(docSnap => {
             const w = { id: docSnap.id.trim(), ...docSnap.data() };
-            
-            // --- KLÍČOVÁ ZMĚNA: HISTORICKÁ DATA VS NOVÁČCI ---
-            if (currentShiftSnapshot[w.id]) {
-                // Člověk v té době v systému byl -> vezmeme jeho tehdejší status
-                const historicalStatus = currentShiftSnapshot[w.id];
-                w.statusToday = historicalStatus;
-                w.status = historicalStatus;
-            } else {
-                // NOVÁČEK: Ve staré směně záznam nemá. 
-                // Dáme mu status 'off', aby nebyl automaticky náhradníkem, 
-                // ale v poli ho necháme, aby šel v docházce ručně zapnout.
-                w.statusToday = 'off'; 
-                w.status = 'off';
-            }
-
             allWorkersMap[w.id] = w;
             allWorkersArray.push(w);
         });
-
-        // Synchronizace s globální proměnnou workers
         window.workers = allWorkersArray;
 
-        // 1. REKONSTRUKCE TABULKY (Phases)
-        phases = shiftData.phases.map(ph => {
-            const o = {};
-            Object.entries(ph).forEach(([pos, val]) => {
-                if (typeof val === 'string') {
-                    const cleanId = val.trim();
-                    o[pos] = allWorkersMap[cleanId] ? { ...allWorkersMap[cleanId] } : null;
-                } else if (val && (val.m || val.t)) {
-                    const mainW = val.m ? allWorkersMap[val.m.trim()] : null;
-                    const traineeW = val.t ? allWorkersMap[val.t.trim()] : null;
-                    o[pos] = { main: mainW, trainee: traineeW };
-                } else {
-                    o[pos] = null;
-                }
-            });
-            return o;
-        });
+        // 2. Nastavíme ID směny a cestu
+        const shiftId = dateEl.value + "_" + shiftEl.value;
+        const shiftRef = doc(db, "shifts", shiftId);
 
-        // 2. VÝPOČET NÁHRADNÍKŮ (F1-F4) - OPRAVENÁ LOGIKA POROVNÁVÁNÍ
-        phaseReserves = phases.map((ph, phaseIdx) => {
-            const usedIdsInPhase = new Set();
-            Object.values(ph).forEach(w => { 
-                if (w) {
-                    if (w.id) usedIdsInPhase.add(w.id.trim()); 
-                    else {
-                        if (w.main && w.main.id) usedIdsInPhase.add(w.main.id.trim());
-                        if (w.trainee && w.trainee.id) usedIdsInPhase.add(w.trainee.id.trim());
+        // 3. Pokud už sledujeme jinou směnu, odpojíme se
+        if (shiftUnsubscribe) shiftUnsubscribe();
+
+        // 4. ZAPNEME ŽIVÉ SLEDOVÁNÍ SMĚNY (onSnapshot)
+        shiftUnsubscribe = onSnapshot(shiftRef, (snap) => {
+            if (!snap.exists()) {
+                alert("Směna pro tento den a čas neexistuje.");
+                loadingEl.style.display = "none";
+                return;
+            }
+
+            const shiftData = snap.data();
+            currentShiftSnapshot = shiftData.statusSnapshot || {}; 
+            shiftInfo = shiftData.info || { sk:{start:"",end:""}, fa:{start:"",end:""}, za:{start:"",end:""} };
+
+            // --- REKONSTRUKCE TABULKY (Phases) s novými daty z DB ---
+            phases = shiftData.phases.map(ph => {
+                const o = {};
+                Object.entries(ph).forEach(([pos, val]) => {
+                    if (typeof val === 'string') {
+                        const cleanId = val.trim();
+                        o[pos] = allWorkersMap[cleanId] ? { ...allWorkersMap[cleanId] } : null;
+                    } else if (val && (val.m || val.t)) {
+                        const mainW = val.m ? allWorkersMap[val.m.trim()] : null;
+                        const traineeW = val.t ? allWorkersMap[val.t.trim()] : null;
+                        o[pos] = { main: mainW, trainee: traineeW };
+                    } else {
+                        o[pos] = null;
                     }
+                });
+                return o;
+            });
+
+            // Aktualizace statusů u lokálních objektů workers (historický snapshot)
+            allWorkersArray.forEach(w => {
+                if (currentShiftSnapshot[w.id]) {
+                    const historicalStatus = currentShiftSnapshot[w.id];
+                    w.statusToday = historicalStatus;
+                    w.status = historicalStatus;
+                } else {
+                    w.statusToday = 'off'; 
+                    w.status = 'off';
                 }
             });
 
-            return allWorkersArray.filter(w => {
-                const isUsed = usedIdsInPhase.has(w.id.trim());
-                // Bere jen ty, co mají status 'work' (v práci)
-                const s = (w.statusToday || 'off').toString().toLowerCase().trim();
-                return !isUsed && (s === "work" || s === "v práci");
+            // --- VÝPOČET NÁHRADNÍKŮ ---
+            phaseReserves = phases.map((ph, phaseIdx) => {
+                const usedIdsInPhase = new Set();
+                Object.values(ph).forEach(w => { 
+                    if (w) {
+                        if (w.id) usedIdsInPhase.add(w.id.trim()); 
+                        else {
+                            if (w.main && w.main.id) usedIdsInPhase.add(w.main.id.trim());
+                            if (w.trainee && w.trainee.id) usedIdsInPhase.add(w.trainee.id.trim());
+                        }
+                    }
+                });
+
+                return allWorkersArray.filter(w => {
+                    const isUsed = usedIdsInPhase.has(w.id.trim());
+                    const s = (w.statusToday || 'off').toString().toLowerCase().trim();
+                    return !isUsed && (s === "work" || s === "v práci");
+                });
             });
+
+            console.log("Data směny byla synchronizována (možná proběhla výměna v chatu).");
+            
+            // Překreslíme tabulku s aktuálními daty
+            render(); 
+
+            if (typeof loadAttendance === "function") {
+                loadAttendance();
+            }
+            loadingEl.style.display = "none";
+        }, (error) => {
+            console.error("Chyba onSnapshot:", error);
+            loadingEl.style.display = "none";
         });
-
-        console.log("Směna úspěšně načtena.");
-        render(); 
-
-        if (typeof loadAttendance === "function") {
-            await loadAttendance();
-        }
-        loadingEl.style.display = "none";
 
     } catch (err) {
         console.error("Chyba při načítání:", err);
-        alert("Chyba při načítání dat.");
+        alert("Chyba při inicializaci směny.");
         loadingEl.style.display = "none";
     }
 };
