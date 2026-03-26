@@ -438,15 +438,27 @@ if (m.isSwapRequest && m.swapDetails) {
 
             // --- 3. DYNAMICKÝ TEXT ŽÁDOSTI ---
             let messageText = m.text; 
-            if (m.isSwapRequest) {
-                if (isMe) {
-                    messageText = `${infoTime} Tvoje žádost o prohození <span ${posStyle}>${m.swapDetails.fromPos}</span> za <span ${posStyle}>${m.swapDetails.toPos}</span> pro uživatele ${targetNick}`;
-                } else if (isTarget) {
-                    messageText = `${infoTime} <b style="font-size: 16px;">${senderNick}</b> tě žádá o prohození tvého <b ${posStyle}>${m.swapDetails.toPos}</b> za jeho <b ${posStyle}>${m.swapDetails.fromPos}</b>`;
-                } else {
-                    messageText = `${infoTime} Výměna pozic: <b>${senderNick}</b> (<span ${posStyle}>${m.swapDetails.fromPos}</span>) ➔ <b>${targetNick}</b> (<span ${posStyle}>${m.swapDetails.toPos}</span>)`;
-                }
-            }
+if (m.isSwapRequest) {
+    const posStyle = `style="font-size: 18px; color: #2ecc71; font-weight: 900;"`;
+    const details = m.swapDetails;
+
+    if (isMe) {
+        // TVOJE ŽÁDOST (Vpravo)
+        messageText = `${infoTime} Tvoje žádost o prohození:<br>
+                       <b>${senderNick}</b> (<span ${posStyle}>${details.fromPos}</span>) ➔ <span ${posStyle}>${details.toPos}</span><br>
+                       <b>${targetNick}</b> (<span ${posStyle}>${details.toPos}</span>) ➔ <span ${posStyle}>${details.fromPos}</span>`;
+    } else if (isTarget) {
+        // CIZÍ ŽÁDOST (Vlevo) - Teď uvidíš přesně kdo a kam!
+        messageText = `${infoTime} <b style="font-size: 16px;">${senderNick}</b> tě žádá o výměnu:<br>
+                       <b>${senderNick}</b> (<span ${posStyle}>${details.fromPos}</span>) ➔ <span ${posStyle}>${details.toPos}</span><br>
+                       <b>TY</b> (<span ${posStyle}>${details.toPos}</span>) ➔ <span ${posStyle}>${details.fromPos}</span>`;
+    } else {
+        // PRO OSTATNÍ (Admin atd.)
+        messageText = `${infoTime} Výměna pozic:<br>
+                       <b>${senderNick}</b> (<span ${posStyle}>${details.fromPos}</span>) ➔ <b>${targetNick}</b> (<span ${posStyle}>${details.toPos}</span>)<br>
+                       <b>${targetNick}</b> (<span ${posStyle}>${details.toPos}</span>) ➔ <b>${senderNick}</b> (<span ${posStyle}>${details.fromPos}</span>)`;
+    }
+}
 
             // --- 4. STAVOVÉ TEXTY ---
             let statusInfo = "";
@@ -563,9 +575,20 @@ window.handleSwapAction = async (msgId, isAccepted) => {
 }
 
         // --- PROHOZENÍ ---
-        const temp = source[d.fromPos];
-        source[d.fromPos] = source[d.toPos];
-        source[d.toPos] = temp;
+         const d1 = source[d.fromPos]; // Data pozice 1 (např. VYP1-L)
+        const d2 = source[d.toPos];   // Data pozice 2 (např. VYP2-L)
+
+        // Extrahujeme hlavní pracovníky (m)
+        const m1 = (typeof d1 === 'string') ? d1 : (d1.m || d1.id);
+        const m2 = (typeof d2 === 'string') ? d2 : (d2.m || d2.id);
+
+        // Extrahujeme učně (t), pokud na dané pozici jsou
+        const t1 = (typeof d1 === 'object') ? d1.t : null;
+        const t2 = (typeof d2 === 'object') ? d2.t : null;
+
+        // VYTVOŘÍME NOVÁ DATA: Prohodíme jen 'm', ale 't' vrátíme tam, kde byl
+        source[d.fromPos] = t1 ? { m: m2, t: t1 } : m2;
+        source[d.toPos] = t2 ? { m: m1, t: t2 } : m1;
 
         if (isNested) {
             await updateDoc(shiftRef, { phases: shiftData.phases });

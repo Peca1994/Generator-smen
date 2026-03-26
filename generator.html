@@ -870,7 +870,15 @@ const POSITIONS = [
     "VET", "VET2", "VET3",    // Seřazeno: VET3 je za VET2
     "INST", "INST2", "INST3"  // Seřazeno: INST3 je za INST2
 ];
+const skillMapping = {
+    // VÝPLNĚ - musí tam být VYP-L (s pomlčkou), aby to sedělo na tvou kartotéku
+    "VYP1-L": "VYP-L", "VYP2-L": "VYP-L",
+    "VYP1-P": "VYP-P", "VYP2-P": "VYP-P",
 
+    // INSTALACE a VĚTRÁČKY - tady je to v pořádku
+    "INST": "INST", "INST2": "INST", "INST3": "INST",
+    "VET": "VET", "VET2": "VET", "VET3": "VET"
+};
 /* DEFAULT ZAMČENÉ POZICE */
 
 const DEFAULT_LOCKED = new Set([
@@ -1167,12 +1175,27 @@ function buildPhase(act) {
   });
 
   // 3. MAPA SKILLŮ: Kdo co může dělat
+ const skillMapping = {
+    "VYP1-L": "VYP-L", "VYP2-L": "VYP-L",
+    "VYP1-P": "VYP-P", "VYP2-P": "VYP-P",
+    "VET": "VET", "VET2": "VET", "VET3": "VET",
+    "INST": "INST", "INST2": "INST", "INST3": "INST"
+  };
+
   const map = {};
   act.forEach(pos => {
+    // Zjistíme, co hledat v DB (např. pro 'VET2' hledáme 'VET')
+    const requiredSkill = skillMapping[pos] || pos;
+
     map[pos] = activeWorkers.filter(w => {
       if (!w.skills) return false;
-      if (typeof w.skills === 'object' && !Array.isArray(w.skills)) return w.skills[pos] === 2;
-      return Array.isArray(w.skills) && w.skills.includes(pos);
+      
+      // Hledáme level 2 (umí) pod zkratkou (např. VYP-L)
+      if (typeof w.skills === 'object' && !Array.isArray(w.skills)) {
+        return w.skills[requiredSkill] === 2;
+      }
+      // Podpora pro starší formát pole
+      return Array.isArray(w.skills) && w.skills.includes(requiredSkill);
     });
   });
 
@@ -1363,8 +1386,14 @@ loadBtn.onclick = async () => {
         // 4. ZAPNEME ŽIVÉ SLEDOVÁNÍ SMĚNY (onSnapshot)
         shiftUnsubscribe = onSnapshot(shiftRef, (snap) => {
             if (!snap.exists()) {
-                alert("Směna pro tento den a čas neexistuje.");
-                loadingEl.style.display = "none";
+                // --- OPRAVA: Místo alertu přepíšeme text přímo v loadingEl ---
+                loadingEl.innerHTML = `<span style="color: #ff4d4d; font-weight: 800; letter-spacing: 0.5px;">SMĚNA PRO TENTO DEN A ČAS NEEXISTUJE</span>`;
+                
+                // Po 3 vteřinách pruh schováme a vrátíme mu původní text pro příště
+                setTimeout(() => {
+                    loadingEl.style.display = "none";
+                    loadingEl.innerHTML = `<div class="spinner"></div><span>NAČÍTÁM DATA...</span>`;
+                }, 3000);
                 return;
             }
 
@@ -1694,73 +1723,77 @@ window.toggleLock=(pos)=>{
 
 /* PICK */
 
-let pickPhaseIndex,pickPosition;
+let pickPhaseIndex, pickPosition;
 
 window.pick = (phase, pos) => {
     pickPhaseIndex = phase;
     pickPosition = pos;
-
     const available = phaseReserves[phase] || [];
 
-    // 1. FILTR: KVALIFIKOVANÍ (Level 2 nebo starý formát)
+    // MAPOVÁNÍ: Vpravo musí být zkratka z tvého nového employees.html
+    const skillMapping = {
+        "VET": "VET", "VET2": "VET", "VET3": "VET",
+        "INST": "INST", "INST2": "INST", "INST3": "INST",
+        "VYP1-L": "VYP-L", "VYP2-L": "VYP-L", // OPRAVENO: pomlčka místo mezery
+        "VYP1-P": "VYP-P", "VYP2-P": "VYP-P"  // OPRAVENO: pomlčka místo mezery
+    };
+    const requiredSkill = skillMapping[pos] || pos;
+
+    // 1. FILTR: KVALIFIKOVANÍ (Level 2)
     const masters = available.filter(w => {
-        if (!w || !w.id) return false; // Pokud w neexistuje, přeskoč ho
-        
-        // Bezpečné získání pracovníka z mapy
-        const realWorker = (typeof allWorkersMap !== 'undefined' && allWorkersMap) ? allWorkersMap[w.id.trim()] : w;
+        if (!w || !w.id) return false;
+        const realWorker = (allWorkersMap && allWorkersMap[w.id.trim()]) || w;
         if (!realWorker) return false;
 
-        // Bezpečné získání statusu
         const sToday = (typeof currentShiftSnapshot !== 'undefined' && currentShiftSnapshot?.[w.id.trim()]) 
             ? currentShiftSnapshot[w.id.trim()] 
             : (realWorker.statusToday || realWorker.status || 'work');
-
+            
         if (sToday.toString().toLowerCase().trim() !== 'work') return false;
 
-        // Kontrola skillů
-        const lvl = (realWorker.skills && realWorker.skills[pos]) || 0;
-        const isOld = Array.isArray(realWorker.skills) && realWorker.skills.includes(pos);
+        // Kontrola skillu přes requiredSkill
+        const lvl = (realWorker.skills && realWorker.skills[requiredSkill]) || 0;
+        const isOld = Array.isArray(realWorker.skills) && realWorker.skills.includes(requiredSkill);
         return lvl === 2 || isOld;
     });
 
-    // 2. FILTR: ZAUČOVÁNÍ (Level 1)
+    // 2. FILTR: ZAUČOVÁNÍ (Level 1) - Nezapomeň opravit i tenhle filtr níže v kódu
     const trainees = available.filter(w => {
         if (!w || !w.id) return false;
-
-        const realWorker = (typeof allWorkersMap !== 'undefined' && allWorkersMap) ? allWorkersMap[w.id.trim()] : w;
+        const realWorker = (allWorkersMap && allWorkersMap[w.id.trim()]) || w;
         if (!realWorker) return false;
 
         const sToday = (typeof currentShiftSnapshot !== 'undefined' && currentShiftSnapshot?.[w.id.trim()]) 
             ? currentShiftSnapshot[w.id.trim()] 
             : (realWorker.statusToday || realWorker.status || 'work');
-
+            
         if (sToday.toString().toLowerCase().trim() !== 'work') return false;
         
-        return realWorker.skills && realWorker.skills[pos] === 1;
+        // OPRAVA: I tady musí být requiredSkill
+        return realWorker.skills && realWorker.skills[requiredSkill] === 1;
     });
 
-
-    // ... zbytek funkce pickTitle, html atd. zůstává stejný ...
+    // Zbytek vykreslování zůstává stejný
     pickTitle.innerText = "Pozice " + pos;
   
-  let html = `<div style="font-size:10px; color:#2ecc71; margin-bottom:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Kvalifikovaní:</div>`;
-  html += masters.map(w => {
-      const name = w.name.charAt(0).toUpperCase() + w.name.slice(1);
-      return `<button class="pickBtn" onclick="swapWorker('${w.id}', false)">${name}</button>`;
-  }).join("");
-
-  if (trainees.length > 0) {
-    html += `<div style="font-size:10px; color:#3b82f6; margin-top:15px; margin-bottom:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Zaučování (přidat k pozici):</div>`;
-    html += trainees.map(w => {
+    let html = `<div style="font-size:10px; color:#2ecc71; margin-bottom:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Kvalifikovaní:</div>`;
+    html += masters.map(w => {
         const name = w.name.charAt(0).toUpperCase() + w.name.slice(1);
-        return `<button class="pickBtn traineeBtn" style="border-color:#3b82f6; color:#3b82f6; background:rgba(59,130,246,0.1);" onclick="swapWorker('${w.id}', true)">+ ${name}</button>`;
+        return `<button class="pickBtn" onclick="swapWorker('${w.id}', false)">${name}</button>`;
     }).join("");
-  }
 
-  html += `<button class="pickBtn" style="background: #dc2626 !important; color: white !important; border: none !important; margin-top: 15px; font-weight: 800;" onclick="removeWorker()">Vyprázdnit pozici</button>`;
+    if (trainees.length > 0) {
+        html += `<div style="font-size:10px; color:#3b82f6; margin-top:15px; margin-bottom:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">Zaučování (přidat k pozici):</div>`;
+        html += trainees.map(w => {
+            const name = w.name.charAt(0).toUpperCase() + w.name.slice(1);
+            return `<button class="pickBtn traineeBtn" style="border-color:#3b82f6; color:#3b82f6; background:rgba(59,130,246,0.1);" onclick="swapWorker('${w.id}', true)">+ ${name}</button>`;
+        }).join("");
+    }
+
+    html += `<button class="pickBtn" style="background: #dc2626 !important; color: white !important; border: none !important; margin-top: 15px; font-weight: 800;" onclick="removeWorker()">Vyprázdnit pozici</button>`;
   
-  pickList.innerHTML = html;
-  pickModal.style.display = "flex";
+    pickList.innerHTML = html;
+    pickModal.style.display = "flex";
 };
 
 window.swapWorker = (wid, isTrainee) => {
