@@ -348,28 +348,44 @@ async function loadNicknames() {
     const snap = await getDocs(collection(db, "employees"));
     const wSelect = document.getElementById("workerSelect"); 
     const aSelect = document.getElementById("absWorkerSelect");
-    let namesArray = [];
     
+    // Získáme email aktuálně přihlášeného uživatele
+    const currentUserEmail = auth.currentUser?.email?.toLowerCase();
+    let myName = "";
+
     snap.forEach(docSnap => {
         const d = docSnap.data(); 
         const jmeno = d.fName || d.name || "Host";
         const email = d.email?.replace(/["']/g, '').trim().toLowerCase();
+        
         if (email) {
             allNicknames[email] = jmeno;
             userRoles[email] = d.role || "user"; 
+            
+            // Pokud se email v DB shoduje s přihlášeným uživatelem, uložíme si jeho jméno
+            if (email === currentUserEmail) {
+                myName = jmeno;
+            }
         }
-        namesArray.push(jmeno);
     });
-    
-    namesArray.sort((a, b) => a.localeCompare(b, 'cs'));
-    if (wSelect && aSelect) {
-        wSelect.innerHTML = aSelect.innerHTML = '<option value="">-- Vyber jméno --</option>';
-        namesArray.forEach(n => { 
-            wSelect.innerHTML += `<option value="${n}">${n}</option>`; 
-            aSelect.innerHTML += `<option value="${n}">${n}</option>`; 
-        });
-    }
 
+    // Funkce pro naplnění selectu
+    const fillSelect = (selectElement) => {
+        if (!selectElement) return;
+        
+        // Pokud jsme našli jméno uživatele, nabídneme mu jen jeho volbu
+        if (myName) {
+            selectElement.innerHTML = `<option value="${myName}">${myName}</option>`;
+        } else {
+            // Pokud uživatel v DB není (např. admin bez karty), necháme mu výběr nebo prázdno
+            selectElement.innerHTML = '<option value="">-- Jméno nenalezeno --</option>';
+        }
+    };
+
+    fillSelect(wSelect);
+    fillSelect(aSelect);
+
+    // Zbytek tvého kódu pro nastavení datumu
     const today = new Date();
     const offset = today.getTimezoneOffset() * 60000;
     const localISO = (new Date(today - offset)).toISOString().slice(0, 10);
@@ -377,6 +393,7 @@ async function loadNicknames() {
     if (document.getElementById("absDateFrom")) document.getElementById("absDateFrom").value = localISO;
     if (document.getElementById("absDateTo")) document.getElementById("absDateTo").value = localISO;
 }
+
 
 onAuthStateChanged(auth, async (u) => { 
     if (u) await loadNicknames(); 
