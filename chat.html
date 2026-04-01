@@ -426,7 +426,7 @@ function startChatListener(topicId) {
             const targetNick = allNicknames[m.targetEmail] || "Někdo";
             const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "...";
 
-            const posStyle = `style="font-size: 18px; color: #2ecc71; font-weight: 900;"`;
+            const posStyle = `style="font-size: 14px; color: #2ecc71; font-weight: 900;"`;
 
             // --- 1. BARVA KARTY ---
             let cardClass = "";
@@ -456,7 +456,7 @@ if (m.isSwapRequest && m.swapDetails) {
             // --- 3. DYNAMICKÝ TEXT ŽÁDOSTI ---
             let messageText = m.text; 
 if (m.isSwapRequest) {
-    const posStyle = `style="font-size: 18px; color: #2ecc71; font-weight: 900;"`;
+    const posStyle = `style="font-size: 14px; color: #2ecc71; font-weight: 900;"`;
     const details = m.swapDetails;
 
     if (isMe) {
