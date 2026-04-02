@@ -541,50 +541,56 @@ function startChatListener(topicId) {
 
 <div class="projects-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:15px; width:100%;">
     <!-- FABIA -->
-    <div style="background:rgba(255,255,255,0.04); padding:8px 4px; border-radius:15px; border:1px solid rgba(255,255,255,0.08); text-align:center;">
+    <div style="background:rgba(255,255,255,0.04); padding:10px 4px; border-radius:15px; border:1px solid rgba(255,255,255,0.08); text-align:center;">
         <label style="display:block; color:#777; font-size:8px; text-transform:uppercase; margin-bottom:6px; font-weight:900;">Fabia</label>
         <div style="display:flex; align-items:center; gap:3px;">
-            <input id="faStart" type="number" placeholder="Zač" value="${sData.info?.fa?.start || ''}" ${!isAdmin?'disabled':''} class="mini-input">
+            <input id="faStart" type="number" placeholder="" value="${sData.info?.fa?.start || ''}" ${!isAdmin?'disabled':''} class="mini-input">
             <span style="color:rgba(255,255,255,0.1); font-size:10px;">/</span>
-            <input id="faEnd" type="number" placeholder="Kon" value="${sData.info?.fa?.end || ''}" ${!isAdmin?'disabled':''} class="mini-input" style="color:#2ecc71;">
+            <input id="faEnd" type="number" placeholder="" value="${sData.info?.fa?.end || ''}" ${!isAdmin?'disabled':''} class="mini-input" style="color:#2ecc71;">
         </div>
     </div>
-
     <!-- SCALA / KAMIQ -->
-    <div style="background:rgba(255,255,255,0.04); padding:8px 4px; border-radius:15px; border:1px solid rgba(255,255,255,0.08); text-align:center;">
+    <div style="background:rgba(255,255,255,0.04); padding:10px 4px; border-radius:15px; border:1px solid rgba(255,255,255,0.08); text-align:center;">
         <label style="display:block; color:#777; font-size:8px; text-transform:uppercase; margin-bottom:6px; font-weight:900;">Scala/Kam</label>
         <div style="display:flex; align-items:center; gap:3px;">
-            <input id="skStart" type="number" placeholder="Zač" value="${sData.info?.sk?.start || ''}" ${!isAdmin?'disabled':''} class="mini-input">
+            <input id="skStart" type="number" placeholder="" value="${sData.info?.sk?.start || ''}" ${!isAdmin?'disabled':''} class="mini-input">
             <span style="color:rgba(255,255,255,0.1); font-size:10px;">/</span>
-            <input id="skEnd" type="number" placeholder="Kon" value="${sData.info?.sk?.end || ''}" ${!isAdmin?'disabled':''} class="mini-input" style="color:#2ecc71;">
+            <input id="skEnd" type="number" placeholder="" value="${sData.info?.sk?.end || ''}" ${!isAdmin?'disabled':''} class="mini-input" style="color:#2ecc71;">
         </div>
     </div>
-
     <!-- ZÁSOBNÍK -->
-    <div style="background:rgba(255,255,255,0.04); padding:8px 4px; border-radius:15px; border:1px solid rgba(255,255,255,0.08); text-align:center;">
+    <div style="background:rgba(255,255,255,0.04); padding:10px 4px; border-radius:15px; border:1px solid rgba(255,255,255,0.08); text-align:center;">
         <label style="display:block; color:#777; font-size:8px; text-transform:uppercase; margin-bottom:6px; font-weight:900;">Zásobník</label>
         <div style="display:flex; align-items:center; gap:3px;">
-            <input id="zaStart" type="number" placeholder="Zač" value="${sData.info?.za?.start || ''}" ${!isAdmin?'disabled':''} class="mini-input">
+            <input id="zaStart" type="number" placeholder="" value="${sData.info?.za?.start || ''}" ${!isAdmin?'disabled':''} class="mini-input">
             <span style="color:rgba(255,255,255,0.1); font-size:10px;">/</span>
-            <input id="zaEnd" type="number" placeholder="Kon" value="${sData.info?.za?.end || ''}" ${!isAdmin?'disabled':''} class="mini-input" style="color:#2ecc71;">
+            <input id="zaEnd" type="number" placeholder="" value="${sData.info?.za?.end || ''}" ${!isAdmin?'disabled':''} class="mini-input" style="color:#2ecc71;">
         </div>
     </div>
 </div>
 
-                ${isAdmin ? `
-                    <button onclick="window.saveProjects()" style="width:100%; background:#22c55e; border:none; padding:14px; border-radius:16px; color:white; font-weight:900; margin-bottom:20px; cursor:pointer; box-shadow:0 4px 15px rgba(34,197,94,0.3);">Uložit informace o směně</button>
-                    
-                    <div class="sqs-form-panel" style="margin-bottom:20px; display:grid; grid-template-columns: 80px 80px 1fr 110px 50px; gap:10px; background:rgba(255,255,255,0.05); padding:15px; border-radius:18px; border:1px solid rgba(255,255,255,0.1);">
-                        <input type="number" id="sqsTMB" placeholder="TMB" style="background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; padding:10px; font-weight:700; outline:none;">
-                        <select id="sqsSide" style="background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; padding:10px; outline:none; cursor:pointer;"><option>PP</option><option>PZ</option><option>LP</option><option>LZ</option></select>
-                        <input type="text" id="sqsDefect" placeholder="Zapsat závadu..." style="background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; padding:10px; outline:none;">
-                        <select id="sqsVinik" style="background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:#2ecc71; padding:10px; font-weight:700; outline:none; appearance:none; -webkit-appearance:none;">
-                            <option value="">Viník</option>
-                            ${['Svařovna','Lakovna','Montáž','Logistika','Lisovna','Dodavatel', 'Stroje a zařízení'].map(v=>`<option value="${v}">${v}</option>`).join('')}
-                        </select>
-                        <button onclick="window.addSQS('${window.currentSqsDate}', '${window.currentSqsShift}')" style="background:#22c55e; border:none; border-radius:12px; color:white; font-size:24px; font-weight:900; cursor:pointer;">+</button>
-                    </div>
-                ` : ''}
+${isAdmin ? `
+    <button onclick="window.saveProjects()" class="save-btn" style="width:100%; background:#22c55e; border:none; padding:12px; border-radius:14px; color:white; font-weight:900; margin-bottom:20px; cursor:pointer; font-size:14px;">Uložit informace o směně</button>
+    
+    <!-- 3. SQS FORMULÁŘ (Responzivní verze) -->
+    <div class="sqs-form-panel" style="margin-bottom:20px; background:rgba(255,255,255,0.05); padding:12px; border-radius:18px; border:1px solid rgba(255,255,255,0.1);">
+        <!-- Horní řada: TMB a Strana -->
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <input type="number" id="sqsTMB" placeholder="TMB" style="flex:1; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; padding:10px; font-weight:700; outline:none; font-size:14px;">
+            <select id="sqsSide" style="flex:1; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; padding:10px; outline:none; font-size:14px;"><option>PP</option><option>PZ</option><option>LP</option><option>LZ</option></select>
+        </div>
+        <!-- Prostřední řada: Závada -->
+        <input type="text" id="sqsDefect" placeholder="Zapsat závadu..." style="width:100%; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; padding:10px; outline:none; margin-bottom:8px; font-size:14px;">
+        <!-- Spodní řada: Viník a Tlačítko -->
+        <div style="display:flex; gap:8px;">
+            <select id="sqsVinik" style="flex:1; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:#2ecc71; padding:10px; font-weight:700; outline:none; appearance:none; font-size:14px;">
+                <option value="">Viník</option>
+                ${['Svařovna','Lakovna','Montáž','Logistika','Lisovna','Dodavatel','Stroje a zařízení'].map(v=>`<option value="${v}">${v}</option>`).join('')}
+            </select>
+            <button onclick="window.addSQS('${window.currentSqsDate}', '${window.currentSqsShift}')" style="width:60px; background:#22c55e; border:none; border-radius:12px; color:white; font-size:20px; font-weight:900; cursor:pointer;">+</button>
+        </div>
+    </div>
+` : ''}
 
                 <!-- 3. TABULKA ZÁVAD -->
                 <div class="sqs-table-wrapper" style="background:rgba(15, 23, 42, 0.6); border-radius:22px; padding:15px; border: 1px solid rgba(255,255,255,0.08); overflow:visible;">
