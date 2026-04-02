@@ -520,57 +520,53 @@ function startChatListener(topicId) {
                 </div>
 
                 <!-- 2. PLÁNY PROJEKTŮ -->
-                <!-- 2. PLÁNY PROJEKTŮ (Responzivní verze) -->
-<div class="projects-container" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; justify-content:center;">
+                <style>
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
     
-    <!-- Styl pro odstranění šipek a plynulé zalamování -->
-    <style>
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
-        
-        .project-card {
-            flex: 1 1 100px; /* Na PC vedle sebe, na mobilu se roztáhnou */
-            min-width: 100px; 
-            max-width: 150px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 10px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-        }
-        @media (max-width: 480px) {
-            .project-card { max-width: 100%; flex: 1 1 100%; } /* Na úplně malém mobilu budou pod sebou */
-        }
-    </style>
+    .mini-input {
+        width: 100%;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: #fff;
+        padding: 6px 2px; /* Zmenšený padding */
+        text-align: center;
+        font-weight: 800;
+        font-size: 13px; /* Menší písmo */
+        outline: none;
+    }
+</style>
 
+<div class="projects-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:15px; width:100%;">
     <!-- FABIA -->
-    <div class="project-card">
-        <label style="display:block; color:#888; font-size:9px; text-transform:uppercase; margin-bottom:8px; font-weight:900;">Fabia</label>
-        <div style="display:flex; align-items:center; gap:5px; justify-content:center;">
-            <input id="faStart" type="number" placeholder="Začátek" value="${sData.info?.fa?.start || ''}" ${!isAdmin?'disabled':''} class="plan-input">
-            <span style="color:rgba(255,255,255,0.1); font-weight:900;">/</span>
-            <input id="faEnd" type="number" placeholder="Konec" value="${sData.info?.fa?.end || ''}" ${!isAdmin?'disabled':''} class="plan-input" style="color:#2ecc71;">
+    <div style="background:rgba(255,255,255,0.04); padding:8px 4px; border-radius:15px; border:1px solid rgba(255,255,255,0.08); text-align:center;">
+        <label style="display:block; color:#777; font-size:8px; text-transform:uppercase; margin-bottom:6px; font-weight:900;">Fabia</label>
+        <div style="display:flex; align-items:center; gap:3px;">
+            <input id="faStart" type="number" placeholder="Zač" value="${sData.info?.fa?.start || ''}" ${!isAdmin?'disabled':''} class="mini-input">
+            <span style="color:rgba(255,255,255,0.1); font-size:10px;">/</span>
+            <input id="faEnd" type="number" placeholder="Kon" value="${sData.info?.fa?.end || ''}" ${!isAdmin?'disabled':''} class="mini-input" style="color:#2ecc71;">
         </div>
     </div>
 
     <!-- SCALA / KAMIQ -->
-    <div class="project-card">
-        <label style="display:block; color:#888; font-size:9px; text-transform:uppercase; margin-bottom:8px; font-weight:900;">Scala / Kamiq</label>
-        <div style="display:flex; align-items:center; gap:5px; justify-content:center;">
-            <input id="skStart" type="number" placeholder="Začátek" value="${sData.info?.sk?.start || ''}" ${!isAdmin?'disabled':''} class="plan-input">
-            <span style="color:rgba(255,255,255,0.1); font-weight:900;">/</span>
-            <input id="skEnd" type="number" placeholder="Konec" value="${sData.info?.sk?.end || ''}" ${!isAdmin?'disabled':''} class="plan-input" style="color:#2ecc71;">
+    <div style="background:rgba(255,255,255,0.04); padding:8px 4px; border-radius:15px; border:1px solid rgba(255,255,255,0.08); text-align:center;">
+        <label style="display:block; color:#777; font-size:8px; text-transform:uppercase; margin-bottom:6px; font-weight:900;">Scala/Kam</label>
+        <div style="display:flex; align-items:center; gap:3px;">
+            <input id="skStart" type="number" placeholder="Zač" value="${sData.info?.sk?.start || ''}" ${!isAdmin?'disabled':''} class="mini-input">
+            <span style="color:rgba(255,255,255,0.1); font-size:10px;">/</span>
+            <input id="skEnd" type="number" placeholder="Kon" value="${sData.info?.sk?.end || ''}" ${!isAdmin?'disabled':''} class="mini-input" style="color:#2ecc71;">
         </div>
     </div>
 
     <!-- ZÁSOBNÍK -->
-    <div class="project-card">
-        <label style="display:block; color:#888; font-size:9px; text-transform:uppercase; margin-bottom:8px; font-weight:900;">Zásobník</label>
-        <div style="display:flex; align-items:center; gap:5px; justify-content:center;">
-            <input id="zaStart" type="number" placeholder="Začátek" value="${sData.info?.za?.start || ''}" ${!isAdmin?'disabled':''} class="plan-input">
-            <span style="color:rgba(255,255,255,0.1); font-weight:900;">/</span>
-            <input id="zaEnd" type="number" placeholder="Konec" value="${sData.info?.za?.end || ''}" ${!isAdmin?'disabled':''} class="plan-input" style="color:#2ecc71;">
+    <div style="background:rgba(255,255,255,0.04); padding:8px 4px; border-radius:15px; border:1px solid rgba(255,255,255,0.08); text-align:center;">
+        <label style="display:block; color:#777; font-size:8px; text-transform:uppercase; margin-bottom:6px; font-weight:900;">Zásobník</label>
+        <div style="display:flex; align-items:center; gap:3px;">
+            <input id="zaStart" type="number" placeholder="Zač" value="${sData.info?.za?.start || ''}" ${!isAdmin?'disabled':''} class="mini-input">
+            <span style="color:rgba(255,255,255,0.1); font-size:10px;">/</span>
+            <input id="zaEnd" type="number" placeholder="Kon" value="${sData.info?.za?.end || ''}" ${!isAdmin?'disabled':''} class="mini-input" style="color:#2ecc71;">
         </div>
     </div>
 </div>
