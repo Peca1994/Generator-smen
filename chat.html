@@ -520,57 +520,56 @@ function startChatListener(topicId) {
                 </div>
 
                 <!-- 2. PLÁNY PROJEKTŮ -->
-                <div class="projects-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px;">
+                <!-- 2. PLÁNY PROJEKTŮ (Responzivní verze) -->
+<div class="projects-container" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; justify-content:center;">
     
-    <!-- Styl pro odstranění šipek (spin buttons) -->
+    <!-- Styl pro odstranění šipek a plynulé zalamování -->
     <style>
         input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            margin: 0; 
-        }
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
-        .plan-input {
-            width:100%; 
-            background:rgba(15,23,42,0.5); 
-            border:1px solid rgba(255,255,255,0.1); 
-            border-radius:10px; 
-            color:#fff; 
-            padding:12px; 
-            text-align:center; 
-            font-weight:900; 
-            outline:none;
-            transition: 0.3s;
+        
+        .project-card {
+            flex: 1 1 100px; /* Na PC vedle sebe, na mobilu se roztáhnou */
+            min-width: 100px; 
+            max-width: 150px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
         }
-        .plan-input:focus { border-color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
+        @media (max-width: 480px) {
+            .project-card { max-width: 100%; flex: 1 1 100%; } /* Na úplně malém mobilu budou pod sebou */
+        }
     </style>
 
     <!-- FABIA -->
-    <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:20px; border:1px solid rgba(255,255,255,0.1); text-align:center;">
-        <label style="display:block; color:#888; font-size:10px; text-transform:uppercase; margin-bottom:10px; font-weight:900; letter-spacing:1px;">Fabia</label>
-        <div style="display:flex; align-items:center; gap:8px;">
+    <div class="project-card">
+        <label style="display:block; color:#888; font-size:9px; text-transform:uppercase; margin-bottom:8px; font-weight:900;">Fabia</label>
+        <div style="display:flex; align-items:center; gap:5px; justify-content:center;">
             <input id="faStart" type="number" placeholder="Začátek" value="${sData.info?.fa?.start || ''}" ${!isAdmin?'disabled':''} class="plan-input">
-            <span style="color:rgba(255,255,255,0.2); font-weight:900;">/</span>
+            <span style="color:rgba(255,255,255,0.1); font-weight:900;">/</span>
             <input id="faEnd" type="number" placeholder="Konec" value="${sData.info?.fa?.end || ''}" ${!isAdmin?'disabled':''} class="plan-input" style="color:#2ecc71;">
         </div>
     </div>
 
     <!-- SCALA / KAMIQ -->
-    <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:20px; border:1px solid rgba(255,255,255,0.1); text-align:center;">
-        <label style="display:block; color:#888; font-size:10px; text-transform:uppercase; margin-bottom:10px; font-weight:900; letter-spacing:1px;">Scala / Kamiq</label>
-        <div style="display:flex; align-items:center; gap:8px;">
+    <div class="project-card">
+        <label style="display:block; color:#888; font-size:9px; text-transform:uppercase; margin-bottom:8px; font-weight:900;">Scala / Kamiq</label>
+        <div style="display:flex; align-items:center; gap:5px; justify-content:center;">
             <input id="skStart" type="number" placeholder="Začátek" value="${sData.info?.sk?.start || ''}" ${!isAdmin?'disabled':''} class="plan-input">
-            <span style="color:rgba(255,255,255,0.2); font-weight:900;">/</span>
+            <span style="color:rgba(255,255,255,0.1); font-weight:900;">/</span>
             <input id="skEnd" type="number" placeholder="Konec" value="${sData.info?.sk?.end || ''}" ${!isAdmin?'disabled':''} class="plan-input" style="color:#2ecc71;">
         </div>
     </div>
 
     <!-- ZÁSOBNÍK -->
-    <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:20px; border:1px solid rgba(255,255,255,0.1); text-align:center;">
-        <label style="display:block; color:#888; font-size:10px; text-transform:uppercase; margin-bottom:10px; font-weight:900; letter-spacing:1px;">Zásobník</label>
-        <div style="display:flex; align-items:center; gap:8px;">
+    <div class="project-card">
+        <label style="display:block; color:#888; font-size:9px; text-transform:uppercase; margin-bottom:8px; font-weight:900;">Zásobník</label>
+        <div style="display:flex; align-items:center; gap:5px; justify-content:center;">
             <input id="zaStart" type="number" placeholder="Začátek" value="${sData.info?.za?.start || ''}" ${!isAdmin?'disabled':''} class="plan-input">
-            <span style="color:rgba(255,255,255,0.2); font-weight:900;">/</span>
+            <span style="color:rgba(255,255,255,0.1); font-weight:900;">/</span>
             <input id="zaEnd" type="number" placeholder="Konec" value="${sData.info?.za?.end || ''}" ${!isAdmin?'disabled':''} class="plan-input" style="color:#2ecc71;">
         </div>
     </div>
