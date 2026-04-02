@@ -570,25 +570,29 @@ function startChatListener(topicId) {
 </div>
 
 ${isAdmin ? `
-    <button onclick="window.saveProjects()" class="save-btn" style="width:100%; background:#22c55e; border:none; padding:12px; border-radius:14px; color:white; font-weight:900; margin-bottom:20px; cursor:pointer; font-size:14px;">Uložit informace o směně</button>
+    <!-- Tlačítko Uložit plány -->
+    <button onclick="window.saveProjects()" style="width:100%; background:#22c55e; border:none; padding:10px; border-radius:12px; color:white; font-weight:900; margin-bottom:15px; cursor:pointer; font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Uložit plány</button>
     
-    <!-- 3. SQS FORMULÁŘ (Responzivní verze) -->
-    <div class="sqs-form-panel" style="margin-bottom:20px; background:rgba(255,255,255,0.05); padding:12px; border-radius:18px; border:1px solid rgba(255,255,255,0.1);">
-        <!-- Horní řada: TMB a Strana -->
-        <div style="display:flex; gap:8px; margin-bottom:8px;">
-            <input type="number" id="sqsTMB" placeholder="TMB" style="flex:1; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; padding:10px; font-weight:700; outline:none; font-size:14px;">
-            <select id="sqsSide" style="flex:1; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; padding:10px; outline:none; font-size:14px;"><option>PP</option><option>PZ</option><option>LP</option><option>LZ</option></select>
-        </div>
-        <!-- Prostřední řada: Závada -->
-        <input type="text" id="sqsDefect" placeholder="Zapsat závadu..." style="width:100%; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; padding:10px; outline:none; margin-bottom:8px; font-size:14px;">
-        <!-- Spodní řada: Viník a Tlačítko -->
-        <div style="display:flex; gap:8px;">
-            <select id="sqsVinik" style="flex:1; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:#2ecc71; padding:10px; font-weight:700; outline:none; appearance:none; font-size:14px;">
-                <option value="">Viník</option>
-                ${['Svařovna','Lakovna','Montáž','Logistika','Lisovna','Dodavatel','Stroje a zařízení'].map(v=>`<option value="${v}">${v}</option>`).join('')}
-            </select>
-            <button onclick="window.addSQS('${window.currentSqsDate}', '${window.currentSqsShift}')" style="width:60px; background:#22c55e; border:none; border-radius:12px; color:white; font-size:20px; font-weight:900; cursor:pointer;">+</button>
-        </div>
+    <!-- ÚZKÝ SQS PANEL -->
+    <div class="sqs-form-panel" style="margin-bottom:15px; display:flex; gap:4px; background:rgba(255,255,255,0.05); padding:8px; border-radius:15px; border:1px solid rgba(255,255,255,0.1); width:100%; box-sizing:border-box; align-items:center;">
+        
+        <!-- TMB (4 čísla = úzké) -->
+        <input type="number" id="sqsTMB" placeholder="TMB" style="width:15%; min-width:45px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px 4px; font-weight:700; outline:none; font-size:11px; text-align:center;">
+        
+        <!-- Strana (2 písmena = úzké) -->
+        <select id="sqsSide" style="width:12%; min-width:40px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px 2px; outline:none; cursor:pointer; font-size:11px; font-weight:700; text-align:center; -webkit-appearance:none;"><option>PP</option><option>PZ</option><option>LP</option><option>LZ</option></select>
+        
+        <!-- Závada (Hlavní prostor) -->
+        <input type="text" id="sqsDefect" placeholder="Závada..." style="flex:1; min-width:60px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px; outline:none; font-size:11px;">
+        
+        <!-- Viník (Zkrácené názvy pro úsporu místa) -->
+        <select id="sqsVinik" style="width:20%; min-width:65px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#2ecc71; padding:8px 2px; font-weight:900; outline:none; appearance:none; -webkit-appearance:none; font-size:10px; text-align:center;">
+            <option value="">Viník</option>
+            ${['Svařovna','Lakovna','Montáž','Logistika','Lisovna','Dodavatel','Stroje'].map(v=>`<option value="${v}">${v}</option>`).join('')}
+        </select>
+        
+        <!-- Plusko (Malé a úderné) -->
+        <button onclick="window.addSQS('${window.currentSqsDate}', '${window.currentSqsShift}')" style="width:32px; height:32px; background:#22c55e; border:none; border-radius:10px; color:white; font-size:18px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">+</button>
     </div>
 ` : ''}
 
