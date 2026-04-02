@@ -130,6 +130,50 @@
     margin-right: 8px;
     animation: pulse-wait 2s infinite;
 }
+ .projects-grid { 
+        display: grid; grid-template-columns: repeat(3, 1fr); 
+        gap: 10px; margin-bottom: 25px; 
+    }
+    .project-box { 
+        background: rgba(255, 255, 255, 0.05); padding: 10px; 
+        border-radius: 12px; border-bottom: 2px solid #22c55e; 
+    }
+    .project-box label { 
+        display: block; font-size: 10px; color: #22c55e; 
+        font-weight: 800; margin-bottom: 4px; text-transform: uppercase;
+    }
+    .project-box input { 
+        background: transparent; border: none; color: white; 
+        width: 100%; font-size: 14px; outline: none; font-weight: 600;
+    }
+
+    .sqs-table-wrapper { overflow-x: auto; margin-top: 15px; }
+    .sqs-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+    .sqs-table th { 
+        padding: 10px; text-align: left; font-size: 11px; 
+        opacity: 0.4; text-transform: uppercase; color: white; 
+    }
+    .sqs-table td { padding: 14px 10px; font-size: 14px; color: white; }
+    .sqs-row { border-radius: 12px; transition: 0.3s; }
+    
+    .sqs-select { 
+        background: #0f172a; color: white; border: 1px solid rgba(255,255,255,0.2); 
+        border-radius: 8px; padding: 5px; font-size: 12px; cursor: pointer;
+    }
+
+    .sqs-form-panel { 
+        background: rgba(255, 255, 255, 0.03); padding: 15px; 
+        border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.05); 
+        margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr 2fr auto; gap: 10px; 
+    }
+    .sqs-input { 
+        background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); 
+        color: white; padding: 10px; border-radius: 10px; outline: none;
+    }
+    .sqs-add-btn { 
+        background: #ffb100; color: #000; border: none; 
+        padding: 10px 20px; border-radius: 12px; font-weight: 900; cursor: pointer;
+    }
 </style>
 </head>
 <body>
@@ -213,13 +257,16 @@
     </div>
 
     <!-- Karta 3: Pokec -->
-    <div onclick="window.selectTopic('pokec', 'Společný prostor')" class="group cursor-pointer relative overflow-hidden rounded-[2.5rem] py-4 px-6 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 active:scale-95 transition-all">
-        <div class="mb-2 inline-flex p-3 bg-emerald-400/20 rounded-xl text-emerald-200">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        </div>
-        <h3 class="text-lg font-bold text-emerald-100 mb-1">Společný prostor</h3>
-        <p class="text-emerald-100/60 text-[10px]">Volná diskuse.</p>
+    <div onclick="window.selectTopic('pokec', 'SQS & Závady')" class="group cursor-pointer relative overflow-hidden rounded-[2.5rem] py-4 px-6 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/30 active:scale-95 transition-all">
+    <div class="mb-2 inline-flex p-3 bg-amber-400/20 rounded-xl text-amber-200">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 3v18h18"></path>
+            <path d="M18 9l-5 5-2-2-4 4"></path>
+        </svg>
     </div>
+    <h3 class="text-lg font-bold text-amber-100 mb-1">SQS & Závady</h3>
+    <p class="text-amber-100/60 text-[10px]">Informace o směně a sledování závad.</p>
+</div>
 </div>
 
 <div id="chatInterface">
@@ -250,13 +297,7 @@
 
     <div id="chatBox"></div>
 
-    <div class="chat-input-container">
-        <div class="chat-input-wrapper">
-            <input type="text" id="msgInput" placeholder="Napiš vzkaz...">
-            <button id="sendBtn" class="bg-[#22c55e] text-white w-11 h-11 rounded-full flex items-center justify-center">
-                <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z" /></svg>
-            </button>
-        </div>
+    
     </div>
 </div>
 
@@ -269,7 +310,8 @@ from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 import { 
     getFirestore, collection, getDocs, getDoc, addDoc, deleteDoc, updateDoc, 
-    doc, query, where, orderBy, onSnapshot, serverTimestamp
+    doc, query, where, orderBy, onSnapshot, serverTimestamp,
+    setDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     const firebaseConfig = {
         apiKey: "AIzaSyA2T9e79Hs9brEwffRoRpPZuVYT6p6g6uE",
@@ -301,7 +343,10 @@ const topicData = {
         icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><polyline points="21 3 21 8 16 8"></polyline></svg>' 
     },
     'absence': { desc: "Zde podávejte <strong>oficiální žádosti</strong> o dovolenou nebo paragraf.", icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="3"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>' },
-    'pokec': { desc: "Volná diskuse mimo pracovní témata. Prosíme o dodržování <strong>zásad slušného chování</strong>.", icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="3"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>' }
+    'pokec': { 
+    desc: "<strong>SQS Tracker & Závady</strong>. Sledujte aktuální závady a informace o směně.", 
+    icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffb100" stroke-width="3"><path d="M3 3v18h18"></path><path d="M18 9l-5 5-2-2-4 4"></path></svg>' 
+}
 };
 
 // --- INICIALIZACE FORMULÁŘŮ ---
@@ -343,6 +388,24 @@ window.showTopics = () => {
     document.getElementById("headerLabel").innerText = 'Týmový portál';
 };
 
+function getCurrentShiftInfo() {
+    const now = new Date();
+    const refDate = new Date("2026-03-02"); // Referenční pondělí (začátek cyklu - Ranní)
+    const diffDays = Math.floor((now - refDate) / (1000 * 60 * 60 * 24));
+    const cycle = Math.floor(diffDays / 7) % 3; 
+
+    let weekType = (cycle === 0) ? "Ranní" : (cycle === 1) ? "Odpolední" : "Noční";
+    let dStr = now.toISOString().split('T')[0]; // Výsledek: YYYY-MM-DD
+
+    // Logika pro noční překlopení (před 6:00 ráno vidíme data z "včerejšího" dne)
+    const totalMins = now.getHours() * 60 + now.getMinutes();
+    if (weekType === "Noční" && totalMins < 360) {
+        const prev = new Date(now);
+        prev.setDate(prev.getDate() - 1);
+        dStr = prev.toISOString().split('T')[0];
+    }
+    return { date: dStr, shift: weekType };
+}
 // --- DATA PRACOVNÍKŮ ---
 async function loadNicknames() {
     const snap = await getDocs(collection(db, "employees"));
@@ -402,128 +465,294 @@ onAuthStateChanged(auth, async (u) => {
 
 // --- HLAVNÍ POSLUCHAČ ZPRÁV ---
 function startChatListener(topicId) {
+    if (chatUnsubscribe) chatUnsubscribe();
     const q = query(collection(db, "chat"), where("topic", "==", topicId), orderBy("createdAt", "asc"));
     
-    // Definice časů pro jednotlivé směny
     const shiftTimes = {
         "ranni": ["06:00-08:00", "08:05-10:15", "10:45-12:00", "12:05-14:00"],
         "odpo": ["14:00-16:00", "16:05-18:15", "18:45-20:00", "20:05-22:00"],
         "noc": ["22:00-00:00", "00:05-02:15", "02:45-04:00", "04:05-06:00"]
     };
 
-    chatUnsubscribe = onSnapshot(q, (snapshot) => {
-        let html = "";
+    chatUnsubscribe = onSnapshot(q, async (snapshot) => {
+        const chatBox = document.getElementById("chatBox");
         const currentUserEmail = auth.currentUser?.email?.toLowerCase().trim();
         const isAdmin = userRoles[currentUserEmail] === "admin";
+        let html = "";
 
+        // --- VĚTEV A: SQS TRACKER (POKEC) ---
+       if (topicId === 'pokec') {
+    if (!window.currentSqsDate) {
+        const sInfo = getCurrentShiftInfo();
+        window.currentSqsDate = sInfo.date;
+        window.currentSqsShift = sInfo.shift;
+    }
+
+    // --- TADY JE TA OPRAVA: Převod na formát DB (odpo, ranni, nocni) ---
+    let dbS = window.currentSqsShift.toLowerCase();
+    if (dbS.includes('ranní')) dbS = 'ranni';
+    else if (dbS.includes('odpo')) dbS = 'odpo';
+    else if (dbS.includes('noční')) dbS = 'nocni';
+
+    const shiftId = `${window.currentSqsDate}_${dbS}`; // Teď už hledá správně např. _odpo
+    const sSnap = await getDoc(doc(db, "shifts", shiftId));
+    const sData = sSnap.exists() ? sSnap.data() : {};
+            
+            const sqsMsgs = snapshot.docs
+                .map(d => ({ id: d.id, ...d.data() }))
+                .filter(m => m.date === window.currentSqsDate && m.shift === window.currentSqsShift);
+
+            html = `
+                <!-- 1. VÝBĚR SMĚNY A DATA -->
+                <div style="text-align:center; margin-bottom:25px; display:flex; flex-direction:column; align-items:center; gap:12px;">
+                    <div style="display:flex; background:rgba(255,255,255,0.05); padding:4px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
+                        ${['Ranní', 'Odpolední', 'Noční'].map(s => `
+                            <div onclick="window.changeSqsView(null, '${s}')" 
+                                 style="padding:8px 16px; border-radius:10px; cursor:pointer; font-size:12px; font-weight:900; text-transform:uppercase; transition:0.2s;
+                                 background:${window.currentSqsShift === s ? '#2ecc71' : 'transparent'}; 
+                                 color:${window.currentSqsShift === s ? '#000' : '#666'};">
+                                ${s}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <input type="date" value="${window.currentSqsDate}" onchange="window.changeSqsView(this.value, null)"
+                        style="background:none; border:none; color:#fff; font-family:inherit; font-size:18px; font-weight:900; text-align:center; cursor:pointer; outline:none; text-transform:uppercase;">
+                </div>
+
+                <!-- 2. PLÁNY PROJEKTŮ -->
+                <div class="projects-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px;">
+    
+    <!-- Styl pro odstranění šipek (spin buttons) -->
+    <style>
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] { -moz-appearance: textfield; }
+        .plan-input {
+            width:100%; 
+            background:rgba(15,23,42,0.5); 
+            border:1px solid rgba(255,255,255,0.1); 
+            border-radius:10px; 
+            color:#fff; 
+            padding:12px; 
+            text-align:center; 
+            font-weight:900; 
+            outline:none;
+            transition: 0.3s;
+        }
+        .plan-input:focus { border-color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
+    </style>
+
+    <!-- FABIA -->
+    <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:20px; border:1px solid rgba(255,255,255,0.1); text-align:center;">
+        <label style="display:block; color:#888; font-size:10px; text-transform:uppercase; margin-bottom:10px; font-weight:900; letter-spacing:1px;">Fabia</label>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <input id="faStart" type="number" placeholder="Začátek" value="${sData.info?.fa?.start || ''}" ${!isAdmin?'disabled':''} class="plan-input">
+            <span style="color:rgba(255,255,255,0.2); font-weight:900;">/</span>
+            <input id="faEnd" type="number" placeholder="Konec" value="${sData.info?.fa?.end || ''}" ${!isAdmin?'disabled':''} class="plan-input" style="color:#2ecc71;">
+        </div>
+    </div>
+
+    <!-- SCALA / KAMIQ -->
+    <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:20px; border:1px solid rgba(255,255,255,0.1); text-align:center;">
+        <label style="display:block; color:#888; font-size:10px; text-transform:uppercase; margin-bottom:10px; font-weight:900; letter-spacing:1px;">Scala / Kamiq</label>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <input id="skStart" type="number" placeholder="Začátek" value="${sData.info?.sk?.start || ''}" ${!isAdmin?'disabled':''} class="plan-input">
+            <span style="color:rgba(255,255,255,0.2); font-weight:900;">/</span>
+            <input id="skEnd" type="number" placeholder="Konec" value="${sData.info?.sk?.end || ''}" ${!isAdmin?'disabled':''} class="plan-input" style="color:#2ecc71;">
+        </div>
+    </div>
+
+    <!-- ZÁSOBNÍK -->
+    <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:20px; border:1px solid rgba(255,255,255,0.1); text-align:center;">
+        <label style="display:block; color:#888; font-size:10px; text-transform:uppercase; margin-bottom:10px; font-weight:900; letter-spacing:1px;">Zásobník</label>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <input id="zaStart" type="number" placeholder="Začátek" value="${sData.info?.za?.start || ''}" ${!isAdmin?'disabled':''} class="plan-input">
+            <span style="color:rgba(255,255,255,0.2); font-weight:900;">/</span>
+            <input id="zaEnd" type="number" placeholder="Konec" value="${sData.info?.za?.end || ''}" ${!isAdmin?'disabled':''} class="plan-input" style="color:#2ecc71;">
+        </div>
+    </div>
+</div>
+
+                ${isAdmin ? `
+                    <button onclick="window.saveProjects()" style="width:100%; background:#22c55e; border:none; padding:14px; border-radius:16px; color:white; font-weight:900; margin-bottom:20px; cursor:pointer; box-shadow:0 4px 15px rgba(34,197,94,0.3);">Uložit informace o směně</button>
+                    
+                    <div class="sqs-form-panel" style="margin-bottom:20px; display:grid; grid-template-columns: 80px 80px 1fr 110px 50px; gap:10px; background:rgba(255,255,255,0.05); padding:15px; border-radius:18px; border:1px solid rgba(255,255,255,0.1);">
+                        <input type="number" id="sqsTMB" placeholder="TMB" style="background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; padding:10px; font-weight:700; outline:none;">
+                        <select id="sqsSide" style="background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; padding:10px; outline:none; cursor:pointer;"><option>PP</option><option>PZ</option><option>LP</option><option>LZ</option></select>
+                        <input type="text" id="sqsDefect" placeholder="Zapsat závadu..." style="background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:white; padding:10px; outline:none;">
+                        <select id="sqsVinik" style="background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:#2ecc71; padding:10px; font-weight:700; outline:none; appearance:none; -webkit-appearance:none;">
+                            <option value="">Viník</option>
+                            ${['Svařovna','Lakovna','Montáž','Logistika','Lisovna','Dodavatel', 'Stroje a zařízení'].map(v=>`<option value="${v}">${v}</option>`).join('')}
+                        </select>
+                        <button onclick="window.addSQS('${window.currentSqsDate}', '${window.currentSqsShift}')" style="background:#22c55e; border:none; border-radius:12px; color:white; font-size:24px; font-weight:900; cursor:pointer;">+</button>
+                    </div>
+                ` : ''}
+
+                <!-- 3. TABULKA ZÁVAD -->
+                <div class="sqs-table-wrapper" style="background:rgba(15, 23, 42, 0.6); border-radius:22px; padding:15px; border: 1px solid rgba(255,255,255,0.08); overflow:visible;">
+                    <table style="width:100%; border-collapse:collapse; font-size:13px; table-layout: fixed;">
+                        <thead>
+                            <tr style="color:#888; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <th style="width: 35px; padding-bottom: 10px;"></th>
+                                <th align="left" style="width: 60px; padding-bottom: 10px;">TMB</th>
+                                <th align="left" style="width: 60px; padding-bottom: 10px;">Strana</th>
+                                <th align="left" style="padding-bottom: 10px;">Závada</th>
+                                <th align="left" style="width: 110px; padding-bottom: 10px;">Viník</th>
+                                <th align="right" style="width: 170px; padding-bottom: 10px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sqsMsgs.map(m => {
+    const hasVinik = m.source && m.source !== "";
+    const isFixed = m.fixedBy && m.fixedBy !== "";
+    
+    // Logika barev (zůstává stejná)
+    let rowBg = 'rgba(239, 68, 68, 0.15)'; 
+    let rowBorder = '#ef4444';
+    if (hasVinik) { rowBg = 'rgba(34, 197, 94, 0.15)'; rowBorder = '#22c55e'; } 
+    else if (isFixed) { rowBg = 'rgba(241, 196, 15, 0.15)'; rowBorder = '#f1c40f'; }
+
+    return `
+    <!-- TADY JE TA OPRAVA: Přidáno id="msg-${m.id}" -->
+    <tr id="msg-${m.id}" style="background:${rowBg}; border-left: 4px solid ${rowBorder}; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <td style="padding: 12px 5px; width: 35px;">
+            ${isAdmin ? `<span onclick="window.deleteMsg('${m.id}')" style="color:#ef4444; cursor:pointer; font-weight:bold; font-size:18px; opacity:0.4; transition: 0.3s; display: inline-block;">✕</span>` : ''}
+        </td>
+        <td style="color:#ffb100; font-weight:900;">${m.tmb}</td>
+                                    <td style="color:#fff;">${m.side}</td>
+                                    <td style="color:#fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${m.defect}</td>
+                                    <td>
+                                        ${isAdmin ? `
+                                            <select onchange="window.updateVinik('${m.id}', this.value)" 
+                                                style="background:none; border:none; color:#fff; font-size: 12px; font-weight:700; outline:none; cursor:pointer; appearance:none; -webkit-appearance:none;">
+                                                <option value="" style="color:#000;">Vybrat</option>
+                                                ${['Svařovna','Lakovna','Montáž','Logistika','Lisovna','Dodavatel', 'Stroje a zařízení'].map(v=>`<option value="${v}" ${m.source===v?'selected':''} style="color:#000;">${v}</option>`).join('')}
+                                            </select>` : `<b style="color:#fff; font-size: 12px;">${m.source || '---'}</b>`}
+                                    </td>
+                                    <td align="right" style="padding-right: 10px;">
+                                        <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px;">
+                                            ${hasVinik ? `<b style="color:#2ecc71; font-size:16px; letter-spacing:1px;">[SQS]</b>` : ''}
+                                            ${isFixed ? `<span style="color:#fff; font-weight:800; font-size:11px;">✔ ${allNicknames[m.fixedBy.toLowerCase()] || 'Opraveno'}</span>` : 
+                                            `<button onclick="window.fixSqs('${m.id}')" style="background:rgba(255,255,255,0.1); color:#fff; border:none; padding:5px 12px; border-radius:8px; font-size:10px; cursor:pointer; font-weight:700;">RAZÍTKO</button>`}
+                                        </div>
+                                    </td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+            chatBox.innerHTML = html; 
+            return;
+        }
+
+        // --- VĚTEV B: ABSENCE A ZMĚNY ---
         snapshot.forEach((docSnap) => {
             const m = docSnap.data();
             const msgId = docSnap.id;
             const isMe = m.senderEmail === currentUserEmail;
             const isTarget = m.targetEmail === currentUserEmail;
-            
-            const senderNick = allNicknames[m.senderEmail] || "Někdo";
+            const senderNick = allNicknames[m.senderEmail] || m.user || "Někdo";
             const targetNick = allNicknames[m.targetEmail] || "Někdo";
             const time = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "...";
 
-            const posStyle = `style="font-size: 14px; color: #2ecc71; font-weight: 900;"`;
+            let cardClass = (m.status === "approved") ? "approved-bg" : (m.status === "rejected") ? "rejected-bg" : (isMe && !m.text?.includes(':')) ? "me" : "";
+            let contentHtml = "";
+            let actionButtons = "";
 
-            // --- 1. BARVA KARTY ---
-            let cardClass = "";
-            if (m.status === "approved") cardClass = "approved-bg";
-            else if (m.status === "rejected") cardClass = "rejected-bg";
-            else if (isMe) cardClass = "me";
-
-            // --- 2. ČASOVÉ INFO ŽÁDOSTI ---
-            let infoTime = "";
-if (m.isSwapRequest && m.swapDetails) {
-    const d = m.swapDetails;
-    // Formát data: 22. 3.
-    const czechDate = new Date(d.date).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
-    const shiftLabel = d.shift === "ranni" ? "Ranní" : d.shift === "odpo" ? "Odpo" : "Noční";
-    const exactTime = shiftTimes[d.shift] ? shiftTimes[d.shift][d.phase] : `${d.phase + 1}. část`;
+            // --- 1. LOGIKA PRO ABSENCE (Téma absence) ---
+            if (topicId === 'absence') {
+    // Použijeme tvé původní barvy karet z CSS
+    let cardClass = (m.status === "approved") ? "approved-bg" : (m.status === "rejected") ? "rejected-bg" : "";
     
-    // Moderní vyznění: Tučný text, žádné ikony, výrazná barva
-    infoTime = `
-        <div style="font-size: 12px; color: #fff; margin-bottom: 10px; letter-spacing: 0.5px;">
-            <b style="color: #2ecc71; text-transform: uppercase; font-weight: 900; font-size: 11px;">Změna:</b> 
-            <span style="font-weight: 800; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 6px; margin-left: 5px;">
-                ${czechDate} | ${shiftLabel} (${exactTime})
-            </span>
+    // Obsah karty - čistý text
+    contentHtml = `
+        <div style="color:#fff;">
+            <b style="font-size:16px; color:#f1c40f;">${senderNick}</b><br>
+            <div style="margin-top:5px; font-size:14px;">${m.text}</div>
         </div>`;
-}
 
-            // --- 3. DYNAMICKÝ TEXT ŽÁDOSTI ---
-            let messageText = m.text; 
-if (m.isSwapRequest) {
-    const posStyle = `style="font-size: 14px; color: #2ecc71; font-weight: 900;"`;
-    const details = m.swapDetails;
-
-    if (isMe) {
-        // TVOJE ŽÁDOST (Vpravo)
-        messageText = `${infoTime} Tvoje žádost o prohození:<br>
-                       <b>${senderNick}</b> (<span ${posStyle}>${details.fromPos}</span>) ➔ <span ${posStyle}>${details.toPos}</span><br>
-                       <b>${targetNick}</b> (<span ${posStyle}>${details.toPos}</span>) ➔ <span ${posStyle}>${details.fromPos}</span>`;
-    } else if (isTarget) {
-        // CIZÍ ŽÁDOST (Vlevo) - Teď uvidíš přesně kdo a kam!
-        messageText = `${infoTime} <b style="font-size: 16px;">${senderNick}</b> tě žádá o výměnu:<br>
-                       <b>${senderNick}</b> (<span ${posStyle}>${details.fromPos}</span>) ➔ <span ${posStyle}>${details.toPos}</span><br>
-                       <b>TY</b> (<span ${posStyle}>${details.toPos}</span>) ➔ <span ${posStyle}>${details.fromPos}</span>`;
-    } else {
-        // PRO OSTATNÍ (Admin atd.)
-        messageText = `${infoTime} Výměna pozic:<br>
-                       <b>${senderNick}</b> (<span ${posStyle}>${details.fromPos}</span>) ➔ <b>${targetNick}</b> (<span ${posStyle}>${details.toPos}</span>)<br>
-                       <b>${targetNick}</b> (<span ${posStyle}>${details.toPos}</span>) ➔ <b>${senderNick}</b> (<span ${posStyle}>${details.fromPos}</span>)`;
+    // Tlačítka pro Admina - s tvými barvami
+    if (isAdmin && (!m.status || m.status === "pending")) {
+        actionButtons = `
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button onclick="window.approveAbsence('${msgId}', true)" 
+                    style="flex:1; background:#22c55e; color:white; border:none; padding:12px; border-radius:14px; font-weight:900; cursor:pointer;">
+                    SCHVÁLIT
+                </button>
+                <button onclick="window.approveAbsence('${msgId}', false)" 
+                    style="flex:1; background:#ef4444; color:white; border:none; padding:12px; border-radius:14px; font-weight:900; cursor:pointer;">
+                    ZAMÍTNOUT
+                </button>
+            </div>`;
+    } else if (m.status) {
+        // Textový stav po schválení/zamítnutí
+        const statusColor = m.status === 'approved' ? '#2ecc71' : '#ef4444';
+        actionButtons = `<div style="margin-top:10px; font-weight:900; color:${statusColor}; font-size:12px;">
+            ${m.status === 'approved' ? '✓ SCHVÁLENO' : '✕ ZAMÍTNUTO'}
+        </div>`;
     }
 }
+            // --- 2. LOGIKA PRO ZMĚNY (Výměny) ---
+            else if (m.isSwapRequest) {
+                const posStyle = `style="font-size: 14px; color: #2ecc71; font-weight: 900;"`;
+                const d = m.swapDetails;
+                const czechDate = new Date(d.date).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
+                const shiftLabel = d.shift === "ranni" ? "Ranní" : d.shift === "odpo" ? "Odpo" : "Noční";
+                const exactTime = shiftTimes[d.shift] ? shiftTimes[d.shift][d.phase] : `${d.phase + 1}. část`;
+                
+                const infoTime = `<div style="font-size:12px; color:#fff; margin-bottom:10px;"><b style="color:#2ecc71; text-transform:uppercase; font-size:11px;">Změna:</b> <span style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:6px; margin-left:5px;">${czechDate} | ${shiftLabel} (${exactTime})</span></div>`;
 
-            // --- 4. STAVOVÉ TEXTY ---
-            let statusInfo = "";
-            if (m.status === "approved") {
-                statusInfo = `<div style="color:#2ecc71; font-size:12px; margin-top:10px; font-weight:700;">✓ Potvrzeno a změněno v rozpisu</div>`;
-            } else if (m.status === "rejected") {
-                const isSystemError = m.text.includes("(system_error)");
-                const statusText = isSystemError ? "Výměna nemohla být provedena kvůli změnám v rozpisu" : "Výměna byla zamítnuta";
-                statusInfo = `<div style="color:#ef4444; font-size:12px; margin-top:10px; font-weight:700;">✕ ${statusText}</div>`;
-            }
+                let swapText = "";
+if (isMe) {
+    // TVOJE ŽÁDOST (Z pohledu odesílatele)
+    swapText = `
+        ${infoTime} Tvoje žádost o prohození:<br>
+        <b>${senderNick}</b> (<span ${posStyle}>${d.fromPos}</span>) ➔ <span ${posStyle}>${d.toPos}</span><br>
+        <b>${targetNick}</b> (<span ${posStyle}>${d.toPos}</span>) ➔ <span ${posStyle}>${d.fromPos}</span>`;
+} else if (isTarget) {
+    // CIZÍ ŽÁDOST (Z pohledu toho, kdo má potvrdit)
+    swapText = `
+        ${infoTime} <b style="font-size: 16px;">${senderNick}</b> tě žádá o výměnu:<br>
+        <b>${senderNick}</b> (<span ${posStyle}>${d.fromPos}</span>) ➔ <span ${posStyle}>${d.toPos}</span><br>
+        <b>TY</b> (<span ${posStyle}>${d.toPos}</span>) ➔ <span ${posStyle}>${d.fromPos}</span>`;
+} else {
+    // PRO OSTATNÍ / ADMINY
+    swapText = `
+        ${infoTime} Výměna pozic:<br>
+        <b>${senderNick}</b> (<span ${posStyle}>${d.fromPos}</span>) ➔ <b>${targetNick}</b> (<span ${posStyle}>${d.toPos}</span>)<br>
+        <b>${targetNick}</b> (<span ${posStyle}>${d.toPos}</span>) ➔ <b>${senderNick}</b> (<span ${posStyle}>${d.fromPos}</span>)`;
+}
 
-            const displayMessageText = messageText.replace("(system_error)", "");
+contentHtml = `<div style="line-height:1.6; color:#fff; font-size:14px;">${swapText.replace("(system_error)", "")}</div>`;
 
-            // --- 5. ADMIN KŘÍŽEK ---
-            const deleteBtn = isAdmin ? `
-                <button onclick="window.deleteMsg('${msgId}')" title="Smazat" style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.1); border:none; color:#f87171; opacity:0.6; cursor:pointer; font-size:18px; transition:0.3s; z-index:10; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;">✕</button>
-            ` : '';
-
-            // --- 6. TLAČÍTKA AKCÍ ---
-            let swapButtons = "";
-            if (m.isSwapRequest && m.status === "pending") {
-                if (isTarget) {
-                    swapButtons = `
-                        <div style="display:flex; gap:10px; margin-top:15px;">
-                            <button onclick="window.handleSwapAction('${msgId}', true)" style="flex:1; background:#22c55e; color:white; border:none; padding:12px; border-radius:14px; font-weight:900; cursor:pointer; font-size:14px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);">Přijmout</button>
-                            <button onclick="window.handleSwapAction('${msgId}', false)" style="flex:1; background:rgba(239, 68, 68, 0.15); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.3); padding:12px; border-radius:14px; font-weight:800; cursor:pointer; font-size:14px;">Odmítnout</button>
-                        </div>`;
-                } else if (isMe) {
-                    swapButtons = `
-                        <div style="display:flex; align-items:center; margin-top:12px; color:#f1c40f; font-size:12px; font-weight:600; letter-spacing:0.3px;">
-                            <span class="wait-dot"></span>Čeká se na vyjádření...
-                        </div>`;
+                if (m.status === "pending" && isTarget) {
+                    actionButtons = `<div style="display:flex; gap:10px; margin-top:15px;"><button onclick="window.handleSwapAction('${msgId}', true)" style="flex:1; background:#22c55e; color:white; border:none; padding:12px; border-radius:14px; font-weight:900; cursor:pointer;">Přijmout</button><button onclick="window.handleSwapAction('${msgId}', false)" style="flex:1; background:rgba(239, 68, 68, 0.15); color:#ef4444; border:1px solid #ef4444; padding:12px; border-radius:14px; font-weight:800; cursor:pointer;">Odmítnout</button></div>`;
+                } else if (m.status === "pending" && isMe) {
+                    actionButtons = `<div style="display:flex; align-items:center; margin-top:12px; color:#f1c40f; font-size:12px; font-weight:600;"><span class="wait-dot"></span>Čeká se na vyjádření...</div>`;
                 }
             }
 
+            // --- 3. STAVOVÉ TEXTY (Společné) ---
+            if (m.status && !actionButtons) {
+                const isError = m.text?.includes("(system_error)");
+                const statusColor = m.status === 'approved' ? '#2ecc71' : '#ef4444';
+                const statusTxt = isError ? "Výměna nemohla být provedena (změna v rozpisu)" : (m.status === 'approved' ? "✓ Potvrzeno" : "✕ Zamítnuto");
+                actionButtons = `<div style="color:${statusColor}; font-size:12px; margin-top:10px; font-weight:700;">${statusTxt}</div>`;
+            }
+
             html += `
-            <div class="msg ${cardClass}" id="msg-${msgId}" style="border-radius:22px; padding:18px; margin-bottom:15px; border: 1px solid rgba(255,255,255,0.08); background: rgba(15, 23, 42, 0.6); position: relative;">
-                ${deleteBtn}
-                <div style="line-height:1.6; color:#fff; font-size:14px; padding-right: 25px;">
-                    ${displayMessageText}
-                </div>
-                ${statusInfo}
-                ${swapButtons}
+            <div class="msg ${cardClass}" id="msg-${msgId}" style="border-radius:22px; padding:18px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.08); background:rgba(15,23,42,0.6); position:relative;">
+                ${isAdmin ? `<button onclick="window.deleteMsg('${msgId}')" style="position:absolute; top:10px; right:10px; background:none; border:none; color:#f87171; cursor:pointer;">✕</button>` : ''}
+                ${contentHtml}
+                ${actionButtons}
                 <div style="text-align:right; font-size:10px; opacity:0.2; margin-top:10px;">${time}</div>
             </div>`;
         });
-        document.getElementById("chatBox").innerHTML = html;
-        document.getElementById("chatBox").scrollTop = document.getElementById("chatBox").scrollHeight;
+        chatBox.innerHTML = html;
+        chatBox.scrollTop = chatBox.scrollHeight;
     });
 }
 
@@ -639,14 +868,31 @@ document.getElementById("submitAbsenceBtn").onclick = async () => {
 };
 
 const handleSend = async () => {
-    const input = document.getElementById("msgInput"); const text = input.value.trim();
+    const input = document.getElementById("msgInput");
+    if (!input) return; // POJISTKA: Pokud input neexistuje, nepokračuj
+    
+    const text = input.value.trim();
     if (!text || !currentTopicId) return;
-    await addDoc(collection(db, "chat"), { text, senderEmail: auth.currentUser.email, topic: currentTopicId, createdAt: serverTimestamp() });
+    
+    await addDoc(collection(db, "chat"), { 
+        text, 
+        senderEmail: auth.currentUser.email, 
+        topic: currentTopicId, 
+        createdAt: serverTimestamp() 
+    });
     input.value = "";
 };
 
-document.getElementById("sendBtn").onclick = handleSend;
-document.getElementById("msgInput").onkeypress = (e) => { if (e.key === "Enter") handleSend(); };
+// TYTO ŘÁDKY UPRAV TAKTO (s podmínkou if):
+const btnS = document.getElementById("sendBtn");
+if (btnS) {
+    btnS.onclick = handleSend;
+}
+
+const inpM = document.getElementById("msgInput");
+if (inpM) {
+    inpM.onkeypress = (e) => { if (e.key === "Enter") handleSend(); };
+}
 
 // --- LOGIKA SCHVALOVÁNÍ A MAZÁNÍ (EXPORT DO WINDOW) ---
 window.approveMsg = async (msgId) => {
@@ -699,6 +945,225 @@ window.deleteMsg = async (msgId) => {
     } catch (err) {
         if (window.showToast) showToast("Chyba při mazání", "error");
     }
+};
+
+
+window.addSQS = async function(date, shift) {
+    const tmb = document.getElementById("sqsTMB").value;
+    const side = document.getElementById("sqsSide").value;
+    const defect = document.getElementById("sqsDefect").value;
+    const solver = allNicknames[auth.currentUser.email.toLowerCase()] || auth.currentUser.email;
+    if(!tmb || !defect) return alert("Vyplň TMB a závadu!");
+    await addDoc(collection(db, "chat"), { 
+        topic: 'pokec', tmb, side, defect, date, shift, solver, 
+        source: "", createdAt: serverTimestamp() 
+    });
+    document.getElementById("sqsTMB").value = "";
+    document.getElementById("sqsDefect").value = "";
+};
+
+window.updateVinik = async function(id, val) {
+    await updateDoc(doc(db, "chat", id), { source: val });
+};
+
+window.deleteMsg = async function(msgId) {
+    // 1. Najdeme prvek, na který uživatel klikl (křížek)
+    // Použijeme event.currentTarget, abychom měli jistotu, že máme ten správný prvek se stylem
+    const btn = event.currentTarget;
+
+    if (!btn) {
+        console.error("Chyba: Prvek pro smazání nenalezen.");
+        return;
+    }
+
+    // 2. PRVNÍ KLIK: Vizuální varování (Decentní červená a scale)
+    if (!btn.dataset.confirm) {
+        btn.dataset.confirm = "true";
+        btn.style.transition = "0.3s";
+        btn.style.transform = "scale(1.4)";
+        btn.style.opacity = "1";
+        btn.style.color = "#ef4444"; // Jasně červená
+        
+        // Pokud do 3 vteřin neklikneš znovu, vrátíme to zpět
+        setTimeout(() => { 
+            if (btn && btn.dataset.confirm) {
+                delete btn.dataset.confirm; 
+                btn.style.transform = "scale(1)"; 
+                btn.style.opacity = "0.4";
+                btn.style.color = ""; // Vrátí barvu z CSS
+            }
+        }, 3000);
+        return;
+    }
+
+    // 3. DRUHÝ KLIK: Samotné smazání z Firebase
+    try {
+        await deleteDoc(doc(db, "chat", msgId));
+        console.log("Smazáno z DB:", msgId);
+        
+        // Odstraníme řádek z tabulky hned, aby to bylo bleskové
+        const row = document.getElementById(`msg-${msgId}`);
+        if (row) row.style.display = "none";
+
+    } catch (err) {
+        console.error("Chyba při mazání:", err);
+        btn.innerText = "!"; // Signalizace chyby
+    }
+};
+
+window.approveAbsence = async function(msgId, isApproved) {
+    try { await updateDoc(doc(db, "chat", msgId), { status: isApproved ? "approved" : "rejected" }); } catch (err) { console.error(err); }
+};
+window.changeSqsView = function(newDate, newShift) {
+    if (newDate) window.currentSqsDate = newDate;
+    if (newShift) window.currentSqsShift = newShift;
+    // Vynutíme překreslení UI (onSnapshot se postará o zbytek)
+    startChatListener('pokec');
+};
+
+// UPRAV window.saveProjects, aby bralo tyto vybrané hodnoty:
+window.saveProjects = async () => {
+    const d = window.currentSqsDate;
+    let s = window.currentSqsShift;
+    // Najdeme tlačítko dynamicky, abychom mu mohli měnit barvy
+    const btn = document.querySelector('button[onclick="window.saveProjects()"]');
+    
+    if (!d || !s) return;
+
+    // Převod směny pro databázi (ranní -> ranni atd.)
+    let dbShift = s.toLowerCase();
+    if (dbShift.includes('ranní')) dbShift = 'ranni';
+    else if (dbShift.includes('odpo')) dbShift = 'odpo';
+    else if (dbShift.includes('noční')) dbShift = 'nocni';
+
+    const docId = `${d}_${dbShift}`;
+
+    const payload = {
+        info: {
+            fa: { 
+                start: document.getElementById("faStart").value || "--", 
+                end: document.getElementById("faEnd").value || "--" 
+            },
+            sk: { 
+                start: document.getElementById("skStart").value || "--", 
+                end: document.getElementById("skEnd").value || "--" 
+            },
+            za: { 
+                start: document.getElementById("zaStart").value || "--", 
+                end: document.getElementById("zaEnd").value || "--" 
+            }
+        }
+    };
+
+     try {
+        await setDoc(doc(db, "shifts", docId), payload, { merge: true });
+        
+        // --- ELEGANTNÍ ZELENÉ POTVRZENÍ ---
+        if (btn) {
+            const originalText = btn.innerText;
+            const originalBg = "#22c55e"; // Tvoje sytá zelená
+            const originalShadow = "0 4px 15px rgba(34,197,94,0.3)";
+
+            // 1. STAV PŘI ULOŽENÍ (Jemně zelený glass efekt)
+            btn.innerText = "Uloženo";
+            btn.style.background = "rgba(34, 197, 94, 0.15)"; // Průhledná verze tvé zelené
+            btn.style.boxShadow = "none";
+            btn.style.color = "#2ecc71"; // Jasnější zelená pro text
+            btn.style.borderColor = "rgba(34, 197, 94, 0.4)"; // Jemný zelený okraj
+            
+            setTimeout(() => {
+                // 2. NÁVRAT DO PŮVODNÍHO STAVU (Sytá zelená s glow efektem)
+                btn.innerText = originalText;
+                btn.style.background = originalBg;
+                btn.style.boxShadow = originalShadow;
+                btn.style.color = "white";
+                btn.style.borderColor = "transparent"; // Vrátíme původní vzhled bez okraje
+            }, 1500);
+        }
+        
+    } catch (e) {
+        console.error("Chyba při ukládání:", e);
+        if (btn) {
+            btn.innerText = "Chyba při ukládání";
+            btn.style.color = "#ef4444";
+        }
+    }
+};
+
+window.fixSqs = async function(id) {
+    const userEmail = auth.currentUser.email.toLowerCase();
+    await updateDoc(doc(db, "chat", id), { 
+        fixedBy: userEmail 
+    });
+};
+window.fixSqs = async function(id) {
+    const userEmail = auth.currentUser.email.toLowerCase();
+    // Pokud je již opraveno, tlačítko tam ani nebude, ale pro jistotu:
+    await updateDoc(doc(db, "chat", id), { 
+        fixedBy: userEmail 
+    });
+};
+window.updateVinik = async function(id, val) {
+    const userEmail = auth.currentUser.email.toLowerCase();
+    try {
+        await updateDoc(doc(db, "chat", id), { 
+            source: val,
+            fixedBy: userEmail // Zapíšeme jméno toho, kdo vybral viníka
+        });
+        if (window.showToast) showToast("Viník aktualizován", "success");
+    } catch (e) {
+        console.error("Chyba při update viníka:", e);
+    }
+};
+window.addSQS = async function(date, shift) {
+    const tmbEl = document.getElementById("sqsTMB");
+    const defectEl = document.getElementById("sqsDefect");
+    const vinikEl = document.getElementById("sqsVinik");
+    const btn = document.querySelector('button[onclick*="addSQS"]'); // Najdeme to zelené "+"
+
+    const tmb = tmbEl.value;
+    const side = document.getElementById("sqsSide").value;
+    const defect = defectEl.value;
+    const vinik = vinikEl.value;
+    const userEmail = auth.currentUser.email.toLowerCase();
+
+    // --- ELEGANTNÍ VAROVÁNÍ MÍSTO ALERTU ---
+    if(!tmb || !defect) {
+        if (btn) {
+            const originalText = btn.innerText;
+            const originalBg = "#22c55e"; // Tvoje zelená
+
+            btn.innerText = "!"; // Signalizace chyby
+            btn.style.background = "#ef4444"; // Červená
+            btn.style.boxShadow = "0 0 15px rgba(239, 68, 68, 0.5)";
+            
+            // Zvýrazníme prázdná pole červeným okrajem
+            if (!tmb) tmbEl.style.borderColor = "#ef4444";
+            if (!defect) defectEl.style.borderColor = "#ef4444";
+
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.background = originalBg;
+                btn.style.boxShadow = "";
+                tmbEl.style.borderColor = "";
+                defectEl.style.borderColor = "";
+            }, 2000);
+        }
+        return; // Zastavíme funkci, nic neposíláme do DB
+    }
+
+    // --- ZÁPIS DO DATABÁZE (pokud je vše OK) ---
+    await addDoc(collection(db, "chat"), { 
+        topic: 'pokec', tmb, side, defect, date, shift, 
+        source: vinik, 
+        fixedBy: vinik ? userEmail : "", 
+        createdAt: serverTimestamp() 
+    });
+    
+    // Vyčištění polí po úspěšném odeslání
+    tmbEl.value = "";
+    defectEl.value = "";
+    vinikEl.value = "";
 };
 </script>
 </body>

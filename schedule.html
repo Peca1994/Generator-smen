@@ -589,43 +589,54 @@ async function loadWorkers() {
 // 3. NAČÍTÁNÍ SMĚNY (OPRAVENÝ INFO BOX DLE PDF)
 async function loadShift() {
     if (!dateEl.value) return;
-    const id = `${dateEl.value}_${shiftEl.value}`;
+
+    // --- 1. OPRAVA ID: Sjednocení na ranni, odpo, nocni ---
+    let dbS = shiftEl.value.toLowerCase();
+    if (dbS.includes('ranní')) dbS = 'ranni';
+    else if (dbS.includes('odpo')) dbS = 'odpo';
+    else if (dbS.includes('noční')) dbS = 'nocni';
+
+    const id = `${dateEl.value}_${dbS}`; // Teď už hledá ve správném _odpo atd.
+    
     try {
         const snap = await getDoc(doc(db, "shifts", id));
         const box = document.getElementById('shiftInfoBox');
         const details = document.getElementById('infoDetails');
 
         if (!snap.exists()) {
-            gridEl.innerHTML = "<tr><td colspan='5' style='padding:20px; opacity:0.5; text-align:center;'>Rozpis nenalezen.</td></tr>";
+            gridEl.innerHTML = "<tr><td colspan='5' style='text-align:center; padding:20px; opacity:0.5;'>Rozpis nenalezen.</td></tr>";
             if (box) box.style.display = 'none';
-            phasesData = []; return;
+            return;
         }
 
         const data = snap.data();
-        if (data.info && details && box) {
-            box.style.cssText = "display:block; margin: 15px 0; background: rgba(0, 0, 0, 0.2); border-bottom: 1px solid rgba(34, 197, 94, 0.4); padding: 10px 0;";
+        
+        if (details && box) {
+            box.style.display = 'block';
             
             const createSection = (label, start, end, isLast = false) => `
                 <div style="flex: 1; text-align: center; ${isLast ? '' : 'border-right: 1px solid rgba(34, 197, 94, 0.3);'} padding: 0 4px;">
-                    <div style="font-size: 0.58rem; color: #22c55e; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">${label}</div>
-                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <div style="font-size: 0.58rem; color: #22c55e; font-weight: 800; text-transform: uppercase; margin-bottom: 8px;">${label}</div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
                         <div>
-                            <span style="display: block; font-size: 0.45rem; color: #999; text-transform: uppercase; margin-bottom: -2px;">Začátek</span>
-                            <span style="font-size: 1rem; color: #fff; font-weight: 700;">${start || '--:--'}</span>
+                            <span style="display: block; font-size: 0.45rem; color: #999;">ZAČÁTEK</span>
+                            <span style="font-size: 1rem; color: #fff; font-weight: 700;">${start || '--'}</span>
                         </div>
                         <div>
-                            <span style="display: block; font-size: 0.45rem; color: #999; text-transform: uppercase; margin-bottom: -2px;">Konec</span>
-                            <span style="font-size: 1rem; color: #fff; font-weight: 700;">${end || '--:--'}</span>
+                            <span style="display: block; font-size: 0.45rem; color: #999;">KONEC</span>
+                            <span style="font-size: 1rem; color: #2ecc71; font-weight: 700;">${end || '--'}</span>
                         </div>
                     </div>
                 </div>`;
 
-            details.style.display = "flex";
+            // --- 2. OPRAVA CESTY: Čteme z objektu info.fa atd. ---
             details.innerHTML = `
-                ${createSection('Fabia', data.info.fa?.start, data.info.fa?.end)}
-                ${createSection('Scala/Kamiq', data.info.sk?.start, data.info.sk?.end)}
-                ${createSection('Zásobník', data.info.za?.start, data.info.za?.end, true)}`;
+                ${createSection('Fabia', data.info?.fa?.start, data.info?.fa?.end)}
+                ${createSection('Scala/Kamiq', data.info?.sk?.start, data.info?.sk?.end)}
+                ${createSection('Zásobník', data.info?.za?.start, data.info?.za?.end, true)}
+            `;
         }
+
         phasesData = data.phases || [];
         render();
     } catch (e) { console.error("Chyba loadShift:", e); }
