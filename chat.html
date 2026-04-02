@@ -596,59 +596,58 @@ ${isAdmin ? `
     </div>
 ` : ''}
 
-                <!-- 3. TABULKA ZÁVAD -->
-                <div class="sqs-table-wrapper" style="background:rgba(15, 23, 42, 0.6); border-radius:22px; padding:15px; border: 1px solid rgba(255,255,255,0.08); overflow:visible;">
-                    <table style="width:100%; border-collapse:collapse; font-size:13px; table-layout: fixed;">
-                        <thead>
-                            <tr style="color:#888; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                                <th style="width: 35px; padding-bottom: 10px;"></th>
-                                <th align="left" style="width: 60px; padding-bottom: 10px;">TMB</th>
-                                <th align="left" style="width: 60px; padding-bottom: 10px;">Strana</th>
-                                <th align="left" style="padding-bottom: 10px;">Závada</th>
-                                <th align="left" style="width: 110px; padding-bottom: 10px;">Viník</th>
-                                <th align="right" style="width: 170px; padding-bottom: 10px;">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${sqsMsgs.map(m => {
-    const hasVinik = m.source && m.source !== "";
-    const isFixed = m.fixedBy && m.fixedBy !== "";
-    
-    // Logika barev (zůstává stejná)
-    let rowBg = 'rgba(239, 68, 68, 0.15)'; 
-    let rowBorder = '#ef4444';
-    if (hasVinik) { rowBg = 'rgba(34, 197, 94, 0.15)'; rowBorder = '#22c55e'; } 
-    else if (isFixed) { rowBg = 'rgba(241, 196, 15, 0.15)'; rowBorder = '#f1c40f'; }
+                <!-- 3. TABULKA ZÁVAD (Fixní šířka 100% bez rolování) -->
+<div class="sqs-table-wrapper" style="background:rgba(15, 23, 42, 0.6); border-radius:18px; padding:8px; border: 1px solid rgba(255,255,255,0.08); width:100%; box-sizing:border-box;">
+    <table style="width:100%; border-collapse:collapse; font-size:11px; table-layout: fixed;">
+        <thead>
+            <tr style="color:#666; font-size: 9px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <th style="width: 25px; padding-bottom: 8px;"></th>
+                <th align="left" style="width: 35px; padding-bottom: 8px;">TMB</th>
+                <th align="left" style="width: 30px; padding-bottom: 8px;">S</th>
+                <th align="left" style="padding-bottom: 8px;">Závada</th>
+                <th align="left" style="width: 70px; padding-bottom: 8px;">Viník</th>
+                <th align="right" style="width: 75px; padding-bottom: 8px;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${sqsMsgs.map(m => {
+                const hasVinik = m.source && m.source !== "";
+                const isFixed = m.fixedBy && m.fixedBy !== "";
+                
+                let rowBg = 'rgba(239, 68, 68, 0.1)'; 
+                let rowBorder = '#ef4444';
+                if (hasVinik) { rowBg = 'rgba(34, 197, 94, 0.1)'; rowBorder = '#22c55e'; } 
+                else if (isFixed) { rowBg = 'rgba(241, 196, 15, 0.1)'; rowBorder = '#f1c40f'; }
 
-    return `
-    <!-- TADY JE TA OPRAVA: Přidáno id="msg-${m.id}" -->
-    <tr id="msg-${m.id}" style="background:${rowBg}; border-left: 4px solid ${rowBorder}; border-bottom: 1px solid rgba(255,255,255,0.05);">
-        <td style="padding: 12px 5px; width: 35px;">
-            ${isAdmin ? `<span onclick="window.deleteMsg('${m.id}')" style="color:#ef4444; cursor:pointer; font-weight:bold; font-size:18px; opacity:0.4; transition: 0.3s; display: inline-block;">✕</span>` : ''}
-        </td>
-        <td style="color:#ffb100; font-weight:900;">${m.tmb}</td>
-                                    <td style="color:#fff;">${m.side}</td>
-                                    <td style="color:#fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${m.defect}</td>
-                                    <td>
-                                        ${isAdmin ? `
-                                            <select onchange="window.updateVinik('${m.id}', this.value)" 
-                                                style="background:none; border:none; color:#fff; font-size: 12px; font-weight:700; outline:none; cursor:pointer; appearance:none; -webkit-appearance:none;">
-                                                <option value="" style="color:#000;">Vybrat</option>
-                                                ${['Svařovna','Lakovna','Montáž','Logistika','Lisovna','Dodavatel', 'Stroje a zařízení'].map(v=>`<option value="${v}" ${m.source===v?'selected':''} style="color:#000;">${v}</option>`).join('')}
-                                            </select>` : `<b style="color:#fff; font-size: 12px;">${m.source || '---'}</b>`}
-                                    </td>
-                                    <td align="right" style="padding-right: 10px;">
-                                        <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px;">
-                                            ${hasVinik ? `<b style="color:#2ecc71; font-size:16px; letter-spacing:1px;">[SQS]</b>` : ''}
-                                            ${isFixed ? `<span style="color:#fff; font-weight:800; font-size:11px;">✔ ${allNicknames[m.fixedBy.toLowerCase()] || 'Opraveno'}</span>` : 
-                                            `<button onclick="window.fixSqs('${m.id}')" style="background:rgba(255,255,255,0.1); color:#fff; border:none; padding:5px 12px; border-radius:8px; font-size:10px; cursor:pointer; font-weight:700;">RAZÍTKO</button>`}
-                                        </div>
-                                    </td>
-                                </tr>`;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>`;
+                return `
+                <tr id="msg-${m.id}" style="background:${rowBg}; border-left: 2px solid ${rowBorder}; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                    <td style="padding: 8px 2px;">
+                        ${isAdmin ? `<span onclick="window.deleteMsg('${m.id}')" style="color:#ef4444; cursor:pointer; font-weight:bold; font-size:14px; opacity:0.5;">✕</span>` : ''}
+                    </td>
+                    <td style="color:#ffb100; font-weight:800; font-size:10px;">${m.tmb}</td>
+                    <td style="color:#ccc; font-size:10px;">${m.side}</td>
+                    <!-- Tady je klíč k zastavení roztahování: ořezání textu -->
+                    <td style="color:#fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right:4px;">${m.defect}</td>
+                    <td style="overflow: hidden;">
+                        ${isAdmin ? `
+                            <select onchange="window.updateVinik('${m.id}', this.value)" 
+                                style="background:none; border:none; color:#fff; font-size: 10px; font-weight:700; outline:none; width:100%; -webkit-appearance:none;">
+                                <option value="" style="color:#000;">Vybrat</option>
+                                ${['Svařovna','Lakovna','Montáž','Logistika','Lisovna','Dodavatel','Stroje'].map(v=>`<option value="${v}" ${m.source===v?'selected':''} style="color:#000;">${v}</option>`).join('')}
+                            </select>` : `<b style="color:#fff; font-size: 10px;">${m.source || '---'}</b>`}
+                    </td>
+                    <td align="right" style="padding-right: 4px;">
+                        <div style="display:flex; align-items:center; justify-content:flex-end; gap:4px;">
+                            ${hasVinik ? `<b style="color:#2ecc71; font-size:10px;">[SQS]</b>` : ''}
+                            ${isFixed ? `<span style="color:#fff; font-weight:700; font-size:9px;">✔ OK</span>` : 
+                            `<button onclick="window.fixSqs('${m.id}')" style="background:rgba(255,255,255,0.15); color:#fff; border:none; padding:4px 6px; border-radius:6px; font-size:9px; font-weight:800;">RAZÍTKO</button>`}
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('')}
+        </tbody>
+    </table>
+</div>`;
             chatBox.innerHTML = html; 
             return;
         }
