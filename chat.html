@@ -597,8 +597,15 @@ ${isAdmin ? `
 ` : ''}
 
                 <!-- 3. TABULKA ZÁVAD (Fixní šířka 100% bez rolování) -->
-<div class="sqs-table-wrapper" style="background:rgba(15, 23, 42, 0.6); border-radius:18px; padding:8px; border: 1px solid rgba(255,255,255,0.08); width:100%; box-sizing:border-box; max-height: 350px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
-    <table style="width:100%; border-collapse:collapse; font-size:11px; table-layout: fixed;">
+<div class="sqs-table-wrapper" style="
+    background: rgba(15, 23, 42, 0.6); 
+    border-radius: 18px; 
+    padding: 8px; 
+    border: 1px solid rgba(255,255,255,0.08); 
+    width: 100%; 
+    box-sizing: border-box;
+    overflow: visible; /* Tohle zajistí, že tabulka vyjede ven a natáhne stránku */
+">
         <thead>
             <tr style="color:#666; font-size: 9px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05);">
                 <th style="width: 25px; padding-bottom: 8px;"></th>
