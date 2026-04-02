@@ -596,16 +596,9 @@ ${isAdmin ? `
     </div>
 ` : ''}
 
-                <!-- 3. TABULKA ZÁVAD (Fixní šířka 100% bez rolování) -->
-<div class="sqs-table-wrapper" style="
-    background: rgba(15, 23, 42, 0.6); 
-    border-radius: 18px; 
-    padding: 8px; 
-    border: 1px solid rgba(255,255,255,0.08); 
-    width: 100%; 
-    box-sizing: border-box;
-    overflow: visible; /* Tohle zajistí, že tabulka vyjede ven a natáhne stránku */
-">
+               <!-- 3. TABULKA ZÁVAD (Natahuje se dolů s celou stránkou) -->
+<div class="sqs-table-wrapper" style="background:rgba(15, 23, 42, 0.6); border-radius:18px; padding:8px; border: 1px solid rgba(255,255,255,0.08); width:100%; box-sizing:border-box; margin-bottom: 50px;">
+    <table style="width:100%; border-collapse:collapse; font-size:11px; table-layout: fixed;">
         <thead>
             <tr style="color:#666; font-size: 9px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05);">
                 <th style="width: 25px; padding-bottom: 8px;"></th>
@@ -633,14 +626,13 @@ ${isAdmin ? `
                     </td>
                     <td style="color:#ffb100; font-weight:800; font-size:10px;">${m.tmb}</td>
                     <td style="color:#ccc; font-size:10px;">${m.side}</td>
-                    <!-- Tady je klíč k zastavení roztahování: ořezání textu -->
                     <td style="color:#fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right:4px;">${m.defect}</td>
                     <td style="overflow: hidden;">
                         ${isAdmin ? `
                             <select onchange="window.updateVinik('${m.id}', this.value)" 
                                 style="background:none; border:none; color:#fff; font-size: 10px; font-weight:700; outline:none; width:100%; -webkit-appearance:none;">
                                 <option value="" style="color:#000;">Vybrat</option>
-                                ${['Svařovna','Lakovna','Montáž','Logistika','Lisovna','Dodavatel','Stroje'].map(v=>`<option value="${v}" ${m.source===v?'selected':''} style="color:#000;">${v}</option>`).join('')}
+                                ${['Svařovna','Lakovna','Montáž','Logistika','Lisovna','Dodavatel','Stroje a zařízení'].map(v=>`<option value="${v}" ${m.source===v?'selected':''} style="color:#000;">${v}</option>`).join('')}
                             </select>` : `<b style="color:#fff; font-size: 10px;">${m.source || '---'}</b>`}
                     </td>
                     <td align="right" style="padding-right: 4px;">
@@ -656,6 +648,9 @@ ${isAdmin ? `
     </table>
 </div>`;
             chatBox.innerHTML = html; 
+            // Důležité: Uvolníme výšku kontejneru
+            chatBox.style.height = "auto";
+            chatBox.style.overflow = "visible";
             return;
         }
 
