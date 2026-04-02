@@ -597,19 +597,33 @@ ${isAdmin ? `
 ` : ''}
 
                <!-- 3. TABULKA ZÁVAD (Natahuje se dolů s celou stránkou) -->
-<div class="sqs-table-wrapper" style="background:rgba(15, 23, 42, 0.6); border-radius:18px; padding:8px; border: 1px solid rgba(255,255,255,0.08); width:100%; box-sizing:border-box; margin-bottom: 50px;">
-    <table style="width:100%; border-collapse:collapse; font-size:11px; table-layout: fixed;">
-        <thead>
-            <tr style="color:#666; font-size: 9px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <th style="width: 25px; padding-bottom: 8px;"></th>
-                <th align="left" style="width: 35px; padding-bottom: 8px;">TMB</th>
-                <th align="left" style="width: 30px; padding-bottom: 8px;">S</th>
-                <th align="left" style="padding-bottom: 8px;">Závada</th>
-                <th align="left" style="width: 70px; padding-bottom: 8px;">Viník</th>
-                <th align="right" style="width: 75px; padding-bottom: 8px;">Status</th>
-            </tr>
-        </thead>
-        <tbody>
+<table style="width:100%; border-collapse:collapse; font-size:11px; table-layout: fixed;">
+    <thead>
+        <tr style="color:#666; font-size: 8px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <th style="width: 22px; padding-bottom: 8px;"></th>
+            <th align="left" style="width: 32px; padding-bottom: 8px;">TMB</th>
+            <th align="left" style="width: 25px; padding-bottom: 8px;">S</th>
+            <th align="left" style="padding-bottom: 8px;">Závada</th> <!-- Tenhle sloupec teď vyhraje nejvíc místa -->
+            <th align="left" style="width: 45px; padding-bottom: 8px;">Viník</th>
+            <th align="right" style="width: 55px; padding-bottom: 8px;">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        ... 
+        <td style="overflow: hidden;">
+            ${isAdmin ? `
+                <select onchange="window.updateVinik('${m.id}', this.value)" 
+                    style="background:none; border:none; color:#fff; font-size: 9px; font-weight:700; outline:none; width:100%; -webkit-appearance:none; text-overflow: ellipsis;">
+                    <option value="" style="color:#000;">---</option>
+                    ${['Svařovna','Lakovna','Montáž','Logistika','Lisovna','Dodavatel','Stroje'].map(v=>`<option value="${v}" ${m.source===v?'selected':''} style="color:#000;">${v}</option>`).join('')}
+                </select>` : `<b style="font-size: 9px;">${m.source || '--'}</b>`}
+        </td>
+        <td align="right" style="padding-right: 2px;">
+            <div style="display:flex; align-items:center; justify-content:flex-end;">
+                ${isFixed ? `<span style="color:#fff; font-weight:800; font-size:8px;">✔ OK</span>` : 
+                `<button onclick="window.fixSqs('${m.id}')" style="background:rgba(255,255,255,0.15); color:#fff; border:none; padding:3px 5px; border-radius:5px; font-size:8px; font-weight:800; text-transform:uppercase;">Dát</button>`}
+            </div>
+        </td>
             ${sqsMsgs.map(m => {
                 const hasVinik = m.source && m.source !== "";
                 const isFixed = m.fixedBy && m.fixedBy !== "";
