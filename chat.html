@@ -631,7 +631,8 @@ ${isAdmin ? `
         
         <!-- TYP -->
 <select id="sqsType" style="width:45px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px 0; outline:none; cursor:pointer; font-size:10px; font-weight:700; text-align:center; -webkit-appearance:none; flex-shrink:0;">
-    <option value="" disabled selected>TYP</option>
+    <!-- ODSTRANĚNO disabled selected - TEĎ NA TO PŮJDE KLIKNOUT -->
+    <option value="">Typ</option>
     
     <!-- PRIORITNÍ ZÁVADY -->
     <optgroup label="NEJČASTĚJŠÍ" style="background: #1e293b; color: #22c55e; font-size: 9px;">
@@ -649,11 +650,11 @@ ${isAdmin ? `
 
        <!-- VINÍK (Formulář) -->
 <select id="sqsVinik" style="width:50px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#2ecc71; padding:8px 0; font-weight:900; outline:none; appearance:none; -webkit-appearance:none; font-size:10px; text-align:center; flex-shrink:0; cursor:pointer;">
-    <option value="" disabled selected>Viník</option>
+    <!-- ODSTRANĚNO disabled selected - TEĎ NA TO PŮJDE KLIKNOUT PRO NÁVRAT -->
+    <option value="">Viník</option>
     
     <optgroup label="NEJČASTĚJŠÍ" style="background: #1e293b; color: #2ecc71;">
         ${['Stroje a zařízení', 'Svařovna', 'Lakovna', 'Montáž', 'dodavatel'].map(topNaz => {
-            // Najdeme klíč (např. "LAKOVNA") pro daný název
             const entry = Object.entries(sqsViniciMap).find(([zk, naz]) => naz.toLowerCase() === topNaz.toLowerCase());
             if (!entry) return '';
             const [zk, naz] = entry;
@@ -729,7 +730,8 @@ ${isAdmin ? `
     <select onchange="window.updateVinik('${m.id}', this.value)" 
             style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; background: #1e293b; color: white;">
         
-        <option value="" disabled>Změnit...</option>
+        <!-- ODSTRANĚNO disabled - TEĎ NA TO PŮJDE KLIKNOUT PRO NÁVRAT -->
+       <option value="">-</option>
         
         <optgroup label="NEJČASTĚJŠÍ" style="background: #1e293b; color: #2ecc71;">
             ${['Stroje a zařízení', 'Svařovna', 'Lakovna', 'Montáž', 'dodavatel'].map(topNaz => {
@@ -1231,32 +1233,38 @@ window.fixSqs = async function(id) {
     }
 };
 window.updateVinik = async function(id, newVal) {
-    if (!newVal) return;
+    // ODSTRANĚNO: if (!newVal) return;  <-- Teď už prázdná hodnota projde
 
     const userEmail = auth.currentUser.email.toLowerCase();
     let displayName = userEmail;
 
-    // 1. ZÍSKÁNÍ JMÉNA AKTUÁLNÍHO ADMINA (RAZÍTKA)
-    try {
-        const q = query(collection(db, "employees"), where("email", "==", userEmail));
-        const snap = await getDocs(q);
-        if (!snap.empty) {
-            const empData = snap.docs[0].data();
-            displayName = empData.fName || empData.name || userEmail;
+    // 1. ZÍSKÁNÍ JMÉNA (Provedeme jen, pokud nastavujeme nového viníka)
+    if (newVal) {
+        try {
+            const q = query(collection(db, "employees"), where("email", "==", userEmail));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+                const empData = snap.docs[0].data();
+                displayName = empData.fName || empData.name || userEmail;
+            }
+        } catch (e) {
+            console.error("Chyba při získávání razítka:", e);
         }
-    } catch (e) {
-        console.error("Chyba při získávání razítka:", e);
     }
 
     // 2. AKTUALIZACE DOKUMENTU V FIREBASE
     try {
-        const docRef = doc(db, "chat", id);
+        // POZOR: Pokud už používáš novou kolekci "zavady", změň "chat" na "zavady"
+        const docRef = doc(db, "chat", id); 
+        
         await updateDoc(docRef, {
             source: newVal,
-            fixedBy: userEmail,       // Uloží e-mail toho, kdo udělal změnu
-            fixedByName: displayName  // Uloží přezdívku/jméno pro zobrazení ✔
+            // Pokud newVal existuje, dáme razítko. Pokud je prázdno (smazání), razítko odebereme.
+            fixedBy: newVal ? userEmail : "",       
+            fixedByName: newVal ? displayName : ""  
         });
-        console.log("Viník i razítko aktualizováno.");
+        
+        console.log(newVal ? "Viník i razítko aktualizováno." : "Viník smazán a závada nastavena jako NOK.");
     } catch (e) {
         console.error("Chyba při ukládání změny:", e);
     }
