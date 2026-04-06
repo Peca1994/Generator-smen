@@ -613,7 +613,10 @@ ${isAdmin ? `
         </style>
 
         <input type="text" id="sqsDefect" placeholder="Závada..." style="flex:1; min-width:60px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px; outline:none; font-size:11px;">
-        
+        <select id="sqsType" style="width:15%; min-width:50px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px 2px; outline:none; cursor:pointer; font-size:11px; font-weight:700; text-align:center; -webkit-appearance:none;">
+    <option value="">Typ</option>
+    ${Array.from({length: 40}, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}
+</select>
         <select id="sqsVinik" style="width:20%; min-width:65px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#2ecc71; padding:8px 2px; font-weight:900; outline:none; appearance:none; -webkit-appearance:none; font-size:10px; text-align:center;">
             <option value="">Viník</option>
             ${['Svařovna','Lakovna','Montáž','Logistika','Lisovna','Dodavatel','Stroje a zařízení'].map(v=>`<option value="${v}">${v}</option>`).join('')}
@@ -623,17 +626,18 @@ ${isAdmin ? `
     </div>
 ` : ''}
 
-               <!-- 3. TABULKA ZÁVAD (Natahuje se dolů s celou stránkou) -->
+<!-- 3. TABULKA ZÁVAD (Opravené pořadí a zarovnání) -->
 <div class="sqs-table-wrapper" style="background:rgba(15, 23, 42, 0.6); border-radius:18px; padding:8px; border: 1px solid rgba(255,255,255,0.08); width:100%; box-sizing:border-box; margin-bottom: 50px;">
    <table style="width:100%; border-collapse:collapse; font-size:11px; table-layout: fixed;">
     <thead>
-        <tr style="color:#666; font-size: 8px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <th style="width: 22px; padding-bottom: 8px;"></th>
-            <th align="left" style="width: 32px; padding-bottom: 8px;">TMB</th>
-            <th align="left" style="width: 25px; padding-bottom: 8px;">S</th>
-            <th align="left" style="padding-bottom: 8px;">Závada</th> <!-- Tenhle sloupec teď vyhraje nejvíc místa -->
-            <th align="left" style="width: 45px; padding-bottom: 8px;">Viník</th>
-            <th align="right" style="width: 55px; padding-bottom: 8px;">Status</th>
+        <tr style="color:#64748b; font-size: 9px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <th style="width: 25px; padding-bottom: 8px;"></th> <!-- Ikona smazání -->
+            <th align="left" style="width: 45px; padding-bottom: 8px;">TMB</th> 
+            <th align="left" style="width: 40px; padding-bottom: 8px;">Strana</th>
+            <th align="left" style="padding-bottom: 8px;">Závada</th> <!-- Pružný sloupec uprostřed -->
+            <th align="center" style="width: 35px; padding-bottom: 8px;">Typ</th> <!-- Zarovnáno na střed -->
+            <th align="left" style="width: 65px; padding-bottom: 8px;">Viník</th>
+            <th align="right" style="width: 60px; padding-bottom: 8px;">Status</th>
         </tr>
     </thead>
     <tbody>
@@ -648,25 +652,37 @@ ${isAdmin ? `
 
                 return `
                 <tr id="msg-${m.id}" style="background:${rowBg}; border-left: 2px solid ${rowBorder}; border-bottom: 1px solid rgba(255,255,255,0.03);">
-                    <td style="padding: 8px 2px;">
+                    <!-- 1. Smazat -->
+                    <td style="padding: 8px 2px; text-align:center;">
                         ${isAdmin ? `<span onclick="window.deleteMsg('${m.id}')" style="color:#ef4444; cursor:pointer; font-weight:bold; font-size:14px; opacity:0.5;">✕</span>` : ''}
                     </td>
+                    <!-- 2. TMB -->
                     <td style="color:#ffb100; font-weight:800; font-size:10px;">${m.tmb}</td>
-                    <td style="color:#ccc; font-size:10px;">${m.side}</td>
-                    <td style="color:#fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right:4px;">${m.defect}</td>
+                    <!-- 3. Strana -->
+                    <td style="color:#ccc; font-size:10px;">${m.side || '-'}</td>
+                    <!-- 4. Závada (Důležité: Teď je na správném místě) -->
+                    <td style="color:#fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right:8px; font-weight:700;">
+                        ${m.defect}
+                    </td>
+                    <!-- 5. Typ (Číslo 1-40) -->
+                    <td align="center" style="color:#ccc; font-size:10px; font-weight:800;">
+                        ${m.type || '--'}
+                    </td>
+                    <!-- 6. Viník -->
                     <td style="overflow: hidden;">
                         ${isAdmin ? `
                             <select onchange="window.updateVinik('${m.id}', this.value)" 
-                                style="background:none; border:none; color:#fff; font-size: 10px; font-weight:700; outline:none; width:100%; -webkit-appearance:none;">
+                                style="background:none; border:none; color:#fff; font-size: 10px; font-weight:700; outline:none; width:100%; -webkit-appearance:none; cursor:pointer;">
                                 <option value="" style="color:#000;">Vybrat</option>
                                 ${['Svařovna','Lakovna','Montáž','Logistika','Lisovna','Dodavatel','Stroje a zařízení'].map(v=>`<option value="${v}" ${m.source===v?'selected':''} style="color:#000;">${v}</option>`).join('')}
                             </select>` : `<b style="color:#fff; font-size: 10px;">${m.source || '---'}</b>`}
                     </td>
+                    <!-- 7. Status -->
                     <td align="right" style="padding-right: 4px;">
                         <div style="display:flex; align-items:center; justify-content:flex-end; gap:4px;">
                             ${hasVinik ? `<b style="color:#2ecc71; font-size:10px;">[SQS]</b>` : ''}
                             ${isFixed ? `<span style="color:#2ecc71; font-weight:700; font-size:9px;">✔ ${m.fixedByName || 'OK'}</span>` : 
-`<button onclick="window.fixSqs('${m.id}')" style="background:rgba(255,255,255,0.15); color:#fff; border:none; padding:4px 6px; border-radius:6px; font-size:9px; font-weight:800;">RAZÍTKO</button>`}
+                            `<button onclick="window.fixSqs('${m.id}')" style="background:rgba(255,255,255,0.15); color:#fff; border:none; padding:4px 6px; border-radius:6px; font-size:9px; font-weight:800;">RAZÍTKO</button>`}
                         </div>
                     </td>
                 </tr>`;
@@ -1141,11 +1157,13 @@ window.updateVinik = async function(id, val) {
 window.addSQS = async function(date, shift) {
     const tmbEl = document.getElementById("sqsTMB");
     const defectEl = document.getElementById("sqsDefect");
+    const typeEl = document.getElementById("sqsType"); // NOVÉ: Element pro typ závady
     const vinikEl = document.getElementById("sqsVinik");
     const btn = document.querySelector('button[onclick*="addSQS"]');
 
     const tmb = tmbEl.value;
     const defect = defectEl.value;
+    const type = typeEl ? typeEl.value : ""; // NOVÉ: Získání hodnoty typu (1-40)
     const vinik = vinikEl.value;
     const userEmail = auth.currentUser.email.toLowerCase();
 
@@ -1184,7 +1202,7 @@ window.addSQS = async function(date, shift) {
             const snap = await getDocs(q);
             if (!snap.empty) {
                 const empData = snap.docs[0].data();
-                displayName = empData.fname || empData.name || userEmail;
+                displayName = empData.fName || empData.name || userEmail;
             } else {
                 displayName = userEmail;
             }
@@ -1194,9 +1212,11 @@ window.addSQS = async function(date, shift) {
         }
     }
 
-    // --- ZÁPIS DO DATABÁZE ---
+    // --- ZÁPIS DO DATABÁZE (DOPLNĚN O 'type') ---
     await addDoc(collection(db, "chat"), { 
-        topic: 'pokec', tmb, side, defect, date, shift, 
+        topic: 'pokec', tmb, side, defect, 
+        type, // ZDE se zapisuje typ závady do Firebase
+        date, shift, 
         source: vinik, 
         fixedBy: vinik ? userEmail : "", 
         fixedByName: vinik ? displayName : "", 
@@ -1206,6 +1226,7 @@ window.addSQS = async function(date, shift) {
     // --- VYČIŠTĚNÍ POLÍ ---
     tmbEl.value = "";
     defectEl.value = "";
+    if(typeEl) typeEl.value = ""; // NOVÉ: Reset výběru typu
     vinikEl.value = "";
     // Resetujeme zelená tlačítka stran do původního stavu
     document.querySelectorAll('.side-btn').forEach(sBtn => sBtn.classList.remove('active'));
