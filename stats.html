@@ -407,11 +407,15 @@ async function loadAndCalculateStats() {
                 });
 
                 myEmps[d.id] = {
+                    // Ponecháme původní name, aby zbytek kódu nepadal
                     name: `${data.name} ${data.surname || ""}`,
+                    // Přidáme rozdělené části pro budoucí barevné odlišení
+                    firstName: data.name || "",
+                    lastName: data.surname || "",
                     totalHours: 0,
                     absentHours: 0,
                     positions: {},
-                    skillsCount: finalSkills.length // Tady je teď ten správný ponížený počet
+                    skillsCount: finalSkills.length
                 };
             }
         });
@@ -511,20 +515,13 @@ function renderAll() {
 
     // 1. SEŘAZENÍ CELÉHO SEZNAMU PODLE PŘÍJMENÍ (Před vykreslením)
     statsData.sort((a, b) => {
-        // Získáme příjmení (předpokládáme, že je v závorce nebo jako druhá část jména)
-        // Pokud máš jméno a příjmení v DB odděleně, je to ještě snazší.
-        // Tady to beru podle tvého formátu: "Jméno (Příjmení)"
-        const nameA = a.name.toLowerCase();
-        const nameB = b.name.toLowerCase();
-        
-        // Pokud máš příjmení v závorce, seřadíme to podle textu v ní:
-        const surnameA = nameA.includes('(') ? nameA.split('(')[1] : nameA;
-        const surnameB = nameB.includes('(') ? nameB.split('(')[1] : nameB;
-        
+        // Používáme lName (příjmení), které jsme si připravili
+        const surnameA = (a.lastName || "").toLowerCase();
+        const surnameB = (b.lastName || "").toLowerCase();
         return surnameA.localeCompare(surnameB);
     });
 
-    // 2. ŽEBŘÍČKY (HORNÍ KARTY) - Ty zůstávají seřazené podle výkonu
+    // 2. ŽEBŘÍČKY (HORNÍ KARTY)
     const top5 = [...statsData].sort((a, b) => b.totalHours - a.totalHours).slice(0, 5);
     renderRank("topAttendance", top5, "h", "#2ecc71", "totalHours");
 
@@ -537,53 +534,68 @@ function renderAll() {
     const masters = [...statsData].sort((a, b) => b.skillsCount - a.skillsCount).slice(0, 5);
     renderRank("masterOfSkills", masters, "", "#9b59b6", "skillsCount");
 
-    // 3. PODROBNÝ SEZNAM (Teď už poletí abecedně podle příjmení)
+    // 3. PODROBNÝ SEZNAM
     const listEl = document.getElementById("employeeStatsList");
     listEl.innerHTML = "";
     
-    statsData.filter(e => e.name.toLowerCase().includes(query)).forEach(e => {
+    statsData.filter(e => {
+        const full = `${e.firstName} ${e.lastName}`.toLowerCase();
+        return full.includes(query);
+    }).forEach(e => {
         const posHtml = Object.entries(e.positions)
             .sort((a,b) => b[1] - a[1])
             .map(([p, count]) => `<span style="font-size:11px; background:rgba(255,255,255,0.08); padding:3px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.1)">${p}: <b>${count}x</b></span>`)
             .join("");
 
+        // --- ÚPRAVA: RUČNÍ SLOŽENÍ JMÉNA SE ZÁVORKAMI A BARVOU ---
+        const formattedName = `
+            <span style="color:#ffffff;">${e.firstName}</span>
+            <span style="color:#ffb100; font-size:13px; font-weight:600; margin-left:4px; opacity:0.8;">(${e.lastName})</span>
+        `;
+
         listEl.innerHTML += `
     <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:15px; padding:18px;">
-        <div style="color:#ffb100; font-weight:800; font-size:16px; margin-bottom:4px;">${e.name}</div>
+        <div style="font-weight:800; font-size:16px; margin-bottom:4px;">${formattedName}</div>
         
         <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-bottom:12px; display:flex; flex-direction:column; gap:4px;">
-            <!-- ODPRACOVÁNO -->
             <div style="display:flex; justify-content:space-between;">
                 <span>Odpracováno:</span>
                 <span style="color:white; font-weight:700;">${e.totalHours} h</span>
             </div>
             
-            <!-- ABSENCE -->
             ${(e.absentHours || 0) > 0 ? `
             <div style="display:flex; justify-content:space-between; color:#e74c3c;">
                 <span>Absence:</span>
                 <span style="font-weight:700;">${e.absentHours} h</span>
             </div>` : ''}
 
-           <!-- 3. Dovednosti (Skills) - Smazáno slovo "operací" -->
-<div style="display:flex; justify-content:space-between; color:#9b59b6;">
-    <span>Dovednosti:</span>
-    <span style="font-weight:700;">${e.skillsCount}</span>
-</div>
+            <div style="display:flex; justify-content:space-between; color:#9b59b6;">
+                <span>Dovednosti:</span>
+                <span style="font-weight:700;">${e.skillsCount}</span>
+            </div>
         </div>
 
-        <!-- HISTORIE POZIC -->
         <div style="display:flex; flex-wrap:wrap; gap:6px;">${posHtml || '<i style="opacity:0.2; font-size:11px;">Žádná historie</i>'}</div>
     </div>`;
     });
 }
 
 function renderRank(id, data, unit, color, key) {
-    document.getElementById(id).innerHTML = data.map((e, i) => `
+    document.getElementById(id).innerHTML = data.map((e, i) => {
+        // POUŽIJEME ROZDĚLENÉ POLOŽKY (Stejně jako v renderAll)
+        // Jméno bílé, příjmení zlaté v závorce
+        const namePart = `<span style="color:white; font-weight:700;">${e.firstName}</span>`;
+        const surnamePart = `<span style="color:#ffb100; font-size:11px; opacity:0.7; font-weight:600;"> (${e.lastName})</span>`;
+        
+        return `
         <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:14px;">
-            <span style="opacity:0.8;">${i+1}. ${e.name}</span>
+            <span style="opacity:0.9;">
+                <span style="color:rgba(255,255,255,0.4); font-size:11px;">${i+1}.</span> 
+                ${namePart}${surnamePart}
+            </span>
             <b style="color:${color}">${e[key] || 0}${unit}</b>
-        </div>`).join("");
+        </div>`;
+    }).join("");
 }
 
 window.filterStats = () => renderAll();
