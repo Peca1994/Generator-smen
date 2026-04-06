@@ -424,10 +424,10 @@ function getCurrentShiftInfo() {
     tomorrow.setDate(today.getDate() + 1);
 
     // Překlápěcí logika z tvého Schedule
-    // Pokud je zítra noční a je po 12:00, nebo je po 22:00 obecně
+    // Pokud je zítra noční a je po 12:00, 
     if (getShiftType(tomorrow) === "Noční" && hours >= 12) {
         dDate = tomorrow;
-    } else if (hours >= 22) {
+    } else if (hours >= 24) {
         dDate = tomorrow;
     }
 
