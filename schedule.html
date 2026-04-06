@@ -739,7 +739,7 @@ function setShiftAutomatically() {
     let dDate = new Date(today);
     const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
     if (getShift(tomorrow) === "noc" && hours >= 12) dDate = tomorrow;
-    else if (hours >= 22) dDate = tomorrow;
+    else if (hours >= 24) dDate = tomorrow;
     
     dateEl.value = (new Date(dDate - dDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
     shiftEl.value = getShift(dDate);
