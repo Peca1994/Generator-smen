@@ -385,11 +385,9 @@ async function loadAndCalculateStats() {
                 const rawSkills = data.skills || {};
                 let uniqueSkillsSet = new Set();
 
-                // Převedeme skilly na sjednocené názvy bez čísel
                 if (typeof rawSkills === 'object' && !Array.isArray(rawSkills)) {
                     Object.entries(rawSkills).forEach(([sKey, lvl]) => {
                         if (lvl === 2) {
-                            // Sjednotíme: VYP1-L -> VYP-L, VET2 -> VET
                             const cleanName = sKey.toUpperCase().trim().replace(/[0-9]/g, "");
                             uniqueSkillsSet.add(cleanName);
                         }
@@ -401,19 +399,18 @@ async function loadAndCalculateStats() {
                     });
                 }
 
-                // Aplikujeme tvůj filtr (vyřazení VET, INST a ZAM z Master of Skills)
                 const finalSkills = [...uniqueSkillsSet].filter(s => {
                     return !(s.startsWith("VET") || s.startsWith("INST") || s === "ZAM-L" || s === "ZAM-P");
                 });
 
                 myEmps[d.id] = {
-                    // Ponecháme původní name, aby zbytek kódu nepadal
                     name: `${data.name} ${data.surname || ""}`,
-                    // Přidáme rozdělené části pro budoucí barevné odlišení
                     firstName: data.name || "",
                     lastName: data.surname || "",
                     totalHours: 0,
-                    absentHours: 0,
+                    absentHours: 0,      // Celková absence (ponecháno pro jistotu)
+                    unplannedAbsence: 0, // P+N (pro žebříček)
+                    vacationHours: 0,    // Dovolená (jen pro kartu)
                     positions: {},
                     skillsCount: finalSkills.length
                 };
@@ -431,13 +428,10 @@ async function loadAndCalculateStats() {
 
             if (currentPeriod !== 'all' && year !== currentPeriod) return;
 
-            // --- A) POČÍTÁNÍ HODIN ZE SNAPSHOTU (TATO ČÁST TI CHYBĚLA) ---
             const statusMap = shift.statusSnapshot || {};
             const workStatuses = ["work", "shitmaking", "loaned"];
-            const absentStatuses = ["paragraf", "vacation", "sick"];
-
+            
             Object.entries(statusMap).forEach(([empId, status]) => {
-                // Očištění ID od uvozovek pro správné párování
                 const cleanId = empId.replace(/"/g, '').trim();
                 
                 if (myEmps[cleanId]) {
@@ -445,7 +439,13 @@ async function loadAndCalculateStats() {
                     if (workStatuses.includes(s)) {
                         myEmps[cleanId].totalHours += 7.5;
                     } 
-                    else if (absentStatuses.includes(s)) {
+                    // ROZLIŠENÍ TYPU ABSENCE:
+                    else if (s === "paragraf" || s === "sick") {
+                        myEmps[cleanId].unplannedAbsence += 7.5;
+                        myEmps[cleanId].absentHours += 7.5;
+                    }
+                    else if (s === "vacation") {
+                        myEmps[cleanId].vacationHours += 7.5;
                         myEmps[cleanId].absentHours += 7.5;
                     }
                 }
@@ -453,46 +453,37 @@ async function loadAndCalculateStats() {
 
             // --- B) POČÍTÁNÍ POZIC Z PHASES ---
             const phases = shift.phases || [];
+            const POS_MAP = {
+                "VYP1-L": "VÝPLNĚ L", "VYP2-L": "VÝPLNĚ L",
+                "VYP1-P": "VÝPLNĚ P", "VYP2-P": "VÝPLNĚ P",
+                "VET":    "VĚTRAČKY", "VET2": "VĚTRAČKY", "VET3": "VĚTRAČKY",
+                "INST":   "INSTALACE", "INST2": "INSTALACE", "INST3": "INSTALACE"
+            };
 
-// --- PŘEKLADOVÁ MAPA PRO STATISTIKY ---
-const POS_MAP = {
-    "VYP1-L": "VÝPLNĚ L", "VYP2-L": "VÝPLNĚ L",
-    "VYP1-P": "VÝPLNĚ P", "VYP2-P": "VÝPLNĚ P",
-    "VET":    "VĚTRAČKY", "VET2": "VĚTRAČKY", "VET3": "VĚTRAČKY",
-    "INST":   "INSTALACE", "INST2": "INSTALACE", "INST3": "INSTALACE"
-};
-
-phases.forEach(phase => {
-    Object.entries(phase).forEach(([pos, val]) => {
-        let empId = null;
-        if (typeof val === 'string') {
-            empId = val.replace(/"/g, '').trim();
-        } else if (val && val.m) {
-            empId = val.m.replace(/"/g, '').trim();
-        }
-
-        if (empId && myEmps[empId]) {
-            // Pokud pozice patří do skupiny (např. VYP1-L), použijeme název skupiny (VÝPLNĚ L)
-            const displayPos = POS_MAP[pos] || pos;
-            
-            myEmps[empId].positions[displayPos] = (myEmps[empId].positions[displayPos] || 0) + 1;
-        }
-    });
-});
+            phases.forEach(phase => {
+                Object.entries(phase).forEach(([pos, val]) => {
+                    let empId = null;
+                    if (typeof val === 'string') {
+                        empId = val.replace(/"/g, '').trim();
+                    } else if (val && val.m) {
+                        empId = val.m.replace(/"/g, '').trim();
+                    }
+                    if (empId && myEmps[empId]) {
+                        const displayPos = POS_MAP[pos] || pos;
+                        myEmps[empId].positions[displayPos] = (myEmps[empId].positions[displayPos] || 0) + 1;
+                    }
+                });
+            });
         });
 
         updateYearSelect();
-
-        // 3. SEŘAZENÍ (Podle odpracovaných hodin, aby nahoře nebyli lidi s 0h)
         statsData = Object.values(myEmps).sort((a, b) => b.totalHours - a.totalHours);
-        
         renderAll();
 
     } catch (err) {
         console.error("Chyba při načítání statistik:", err);
     }
 }
-
 function updateYearSelect() {
     const select = document.getElementById("periodSelect");
     if (!select) return;
@@ -515,7 +506,6 @@ function renderAll() {
 
     // 1. SEŘAZENÍ CELÉHO SEZNAMU PODLE PŘÍJMENÍ (Před vykreslením)
     statsData.sort((a, b) => {
-        // Používáme lName (příjmení), které jsme si připravili
         const surnameA = (a.lastName || "").toLowerCase();
         const surnameB = (b.lastName || "").toLowerCase();
         return surnameA.localeCompare(surnameB);
@@ -525,11 +515,12 @@ function renderAll() {
     const top5 = [...statsData].sort((a, b) => b.totalHours - a.totalHours).slice(0, 5);
     renderRank("topAttendance", top5, "h", "#2ecc71", "totalHours");
 
+    // ÚPRAVA: Žebříček absencí bere už jen P+N (unplannedAbsence)
     const absenceList = [...statsData]
-        .filter(e => (e.absentHours || 0) > 0)
-        .sort((a, b) => (b.absentHours || 0) - (a.absentHours || 0))
+        .filter(e => (e.unplannedAbsence || 0) > 0)
+        .sort((a, b) => (b.unplannedAbsence || 0) - (a.unplannedAbsence || 0))
         .slice(0, 5);
-    renderRank("bottomAttendance", absenceList, "h", "#e74c3c", "absentHours");
+    renderRank("bottomAttendance", absenceList, "h", "#e74c3c", "unplannedAbsence");
 
     const masters = [...statsData].sort((a, b) => b.skillsCount - a.skillsCount).slice(0, 5);
     renderRank("masterOfSkills", masters, "", "#9b59b6", "skillsCount");
@@ -547,36 +538,47 @@ function renderAll() {
             .map(([p, count]) => `<span style="font-size:11px; background:rgba(255,255,255,0.08); padding:3px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.1)">${p}: <b>${count}x</b></span>`)
             .join("");
 
-        // --- ÚPRAVA: RUČNÍ SLOŽENÍ JMÉNA SE ZÁVORKAMI A BARVOU ---
         const formattedName = `
             <span style="color:#ffffff;">${e.firstName}</span>
             <span style="color:#ffb100; font-size:13px; font-weight:600; margin-left:4px; opacity:0.8;">(${e.lastName})</span>
         `;
 
         listEl.innerHTML += `
-    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:15px; padding:18px;">
-        <div style="font-weight:800; font-size:16px; margin-bottom:4px;">${formattedName}</div>
+<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:15px; padding:18px;">
+    <div style="font-weight:800; font-size:16px; margin-bottom:4px;">${formattedName}</div>
+    
+    <div style="font-size:12px; margin-bottom:12px; display:flex; flex-direction:column; gap:4px;">
         
-        <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-bottom:12px; display:flex; flex-direction:column; gap:4px;">
-            <div style="display:flex; justify-content:space-between;">
-                <span>Odpracováno:</span>
-                <span style="color:white; font-weight:700;">${e.totalHours} h</span>
-            </div>
-            
-            ${(e.absentHours || 0) > 0 ? `
-            <div style="display:flex; justify-content:space-between; color:#e74c3c;">
-                <span>Absence:</span>
-                <span style="font-weight:700;">${e.absentHours} h</span>
-            </div>` : ''}
-
-            <div style="display:flex; justify-content:space-between; color:#9b59b6;">
-                <span>Dovednosti:</span>
-                <span style="font-weight:700;">${e.skillsCount}</span>
-            </div>
+        <!-- ODPRACOVÁNO: Celé zelené -->
+        <div style="display:flex; justify-content:space-between; color:#2ecc71;">
+            <span>Odpracováno:</span>
+            <span style="font-weight:700;">${e.totalHours} h</span>
         </div>
+        
+        <!-- ABSENCE (Nemoc,Paragraf): Celé červené -->
+        ${(e.unplannedAbsence || 0) > 0 ? `
+        <div style="display:flex; justify-content:space-between; color:#e74c3c;">
+            <span>Absence (Nemoc,Paragraf):</span>
+            <span style="font-weight:700;">${e.unplannedAbsence} h</span>
+        </div>` : ''}
 
-        <div style="display:flex; flex-wrap:wrap; gap:6px;">${posHtml || '<i style="opacity:0.2; font-size:11px;">Žádná historie</i>'}</div>
-    </div>`;
+        <!-- DOVOLENÁ: Celé modré -->
+        ${(e.vacationHours || 0) > 0 ? `
+        <div style="display:flex; justify-content:space-between; color:#3498db;">
+            <span>Dovolená:</span>
+            <span style="font-weight:700;">${e.vacationHours} h</span>
+        </div>` : ''}
+
+        <!-- DOVEDNOSTI: Celé fialové -->
+        <div style="display:flex; justify-content:space-between; color:#9b59b6;">
+            <span>Dovednosti:</span>
+            <span style="font-weight:700;">${e.skillsCount}</span>
+        </div>
+    </div>
+
+    <!-- HISTORIE POZIC -->
+    <div style="display:flex; flex-wrap:wrap; gap:6px;">${posHtml || '<i style="opacity:0.2; font-size:11px;">Žádná historie</i>'}</div>
+</div>`;
     });
 }
 
