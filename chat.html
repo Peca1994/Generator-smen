@@ -1039,12 +1039,10 @@ window.changeSqsView = function(newDate, newShift) {
 window.saveProjects = async () => {
     const d = window.currentSqsDate;
     let s = window.currentSqsShift;
-    // Najdeme tlačítko dynamicky, abychom mu mohli měnit barvy
     const btn = document.querySelector('button[onclick="window.saveProjects()"]');
     
     if (!d || !s) return;
 
-    // Převod směny pro databázi (ranní -> ranni atd.)
     let dbShift = s.toLowerCase();
     if (dbShift.includes('ranní')) dbShift = 'ranni';
     else if (dbShift.includes('odpo')) dbShift = 'odpo';
@@ -1055,43 +1053,41 @@ window.saveProjects = async () => {
     const payload = {
         info: {
             fa: { 
-                start: document.getElementById("faStart").value || "--", 
-                end: document.getElementById("faEnd").value || "--" 
+                // Změněno z "--" na "" pro prázdné pole
+                start: document.getElementById("faStart").value || "", 
+                end: document.getElementById("faEnd").value || "" 
             },
             sk: { 
-                start: document.getElementById("skStart").value || "--", 
-                end: document.getElementById("skEnd").value || "--" 
+                start: document.getElementById("skStart").value || "", 
+                end: document.getElementById("skEnd").value || "" 
             },
             za: { 
-                start: document.getElementById("zaStart").value || "--", 
-                end: document.getElementById("zaEnd").value || "--" 
+                start: document.getElementById("zaStart").value || "", 
+                end: document.getElementById("zaEnd").value || "" 
             }
         }
     };
 
-     try {
+    try {
         await setDoc(doc(db, "shifts", docId), payload, { merge: true });
         
-        // --- ELEGANTNÍ ZELENÉ POTVRZENÍ ---
         if (btn) {
             const originalText = btn.innerText;
-            const originalBg = "#22c55e"; // Tvoje sytá zelená
+            const originalBg = "#22c55e"; 
             const originalShadow = "0 4px 15px rgba(34,197,94,0.3)";
 
-            // 1. STAV PŘI ULOŽENÍ (Jemně zelený glass efekt)
             btn.innerText = "Uloženo";
-            btn.style.background = "rgba(34, 197, 94, 0.15)"; // Průhledná verze tvé zelené
+            btn.style.background = "rgba(34, 197, 94, 0.15)"; 
             btn.style.boxShadow = "none";
-            btn.style.color = "#2ecc71"; // Jasnější zelená pro text
-            btn.style.borderColor = "rgba(34, 197, 94, 0.4)"; // Jemný zelený okraj
+            btn.style.color = "#2ecc71"; 
+            btn.style.borderColor = "rgba(34, 197, 94, 0.4)"; 
             
             setTimeout(() => {
-                // 2. NÁVRAT DO PŮVODNÍHO STAVU (Sytá zelená s glow efektem)
                 btn.innerText = originalText;
                 btn.style.background = originalBg;
                 btn.style.boxShadow = originalShadow;
                 btn.style.color = "white";
-                btn.style.borderColor = "transparent"; // Vrátíme původní vzhled bez okraje
+                btn.style.borderColor = "transparent"; 
             }, 1500);
         }
         
