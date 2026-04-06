@@ -604,47 +604,88 @@ function startChatListener(topicId) {
 </div>
 
 ${isAdmin ? `
+    <!-- Tlačítko pro plány -->
     <button onclick="window.saveProjects()" style="width:100%; background:#22c55e; border:none; padding:10px; border-radius:12px; color:white; font-weight:900; margin-bottom:15px; cursor:pointer; font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Uložit plány</button>
     
-    <div class="sqs-form-panel" style="margin-bottom:15px; display:flex; gap:4px; background:rgba(255,255,255,0.05); padding:8px; border-radius:15px; border:1px solid rgba(255,255,255,0.1); width:100%; box-sizing:border-box; align-items:center;">
+    <!-- HORNÍ FORMULÁŘ (Zápis) -->
+    <div class="sqs-form-panel" style="margin-bottom:15px; display:flex; gap:3px; background:rgba(255,255,255,0.05); padding:6px; border-radius:15px; border:1px solid rgba(255,255,255,0.1); width:100%; box-sizing:border-box; align-items:center;">
         
-        <input type="number" id="sqsTMB" placeholder="TMB" style="width:12%; min-width:45px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px 4px; font-weight:700; outline:none; font-size:11px; text-align:center;">
+        <!-- TMB -->
+        <input type="number" id="sqsTMB" placeholder="TMB" style="width:40px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px 0; font-weight:700; outline:none; font-size:10px; text-align:center; flex-shrink:0;">
         
-        <div id="sidePicker" style="display:flex; gap:2px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:2px;">
-            ${['PP','PZ','LP','LZ'].map(s => `<div onclick="this.classList.toggle('active');" class="side-btn" data-value="${s}" style="font-size:9px; font-weight:900; color:#555; padding:6px 4px; cursor:pointer; border-radius:5px; transition:0.2s; min-width:18px; text-align:center;">${s}</div>`).join('')}
+        <!-- STRANY: Grid 2x2 -->
+        <div id="sidePicker" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:1px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:2px; flex-shrink:0; border: 1px solid transparent;">
+            ${['PP','PZ','LP','LZ'].map(s => `
+                <div onclick="this.classList.toggle('active');" class="side-btn" data-value="${s}" 
+                     style="font-size:8px; font-weight:900; color:#555; padding:3px 2px; cursor:pointer; border-radius:3px; transition:0.2s; min-width:16px; text-align:center;">
+                     ${s}
+                </div>
+            `).join('')}
         </div>
-        <style>.side-btn.active { background: #22c55e !important; color: white !important; box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }</style>
+        <style>
+            .side-btn.active { background: #22c55e !important; color: white !important; box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+        </style>
 
-        <input type="text" id="sqsDefect" placeholder="Závada..." style="flex:1; min-width:60px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px; outline:none; font-size:11px;">
+        <!-- ZÁVADA: Jediné pružné pole (flex:1) -->
+        <input type="text" id="sqsDefect" placeholder="Závada..." style="flex:1; min-width:50px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px 5px; outline:none; font-size:11px;">
         
-        <select id="sqsType" style="width:15%; min-width:55px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px 2px; outline:none; cursor:pointer; font-size:11px; font-weight:700; text-align:center; -webkit-appearance:none;">
-            <option value="">Typ</option>
-            ${sqsTypesList.map((text, i) => `<option value="${i + 1}">${i + 1} - ${text}</option>`).join('')}
-        </select>
+        <!-- TYP -->
+<select id="sqsType" style="width:45px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px 0; outline:none; cursor:pointer; font-size:10px; font-weight:700; text-align:center; -webkit-appearance:none; flex-shrink:0;">
+    <option value="" disabled selected>TYP</option>
+    
+    <!-- PRIORITNÍ ZÁVADY -->
+    <optgroup label="NEJČASTĚJŠÍ" style="background: #1e293b; color: #22c55e; font-size: 9px;">
+        ${[1, 3, 5, 17, 35, 37].map(num => {
+            const text = sqsTypesList[num - 1] || "";
+            return `<option value="${num}" style="color: white; font-weight: bold;">${num} - ${text}</option>`;
+        }).join('')}
+    </optgroup>
 
-        <!-- HORNÍ SELECT: Při výběru celé názvy, ukládá zkratku -->
-        <select id="sqsVinik" style="width:20%; min-width:65px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#2ecc71; padding:8px 2px; font-weight:900; outline:none; appearance:none; -webkit-appearance:none; font-size:10px; text-align:center; cursor:pointer;">
-            <option value="">Viník</option>
-            ${Object.entries(sqsViniciMap).map(([zk, naz]) => `<option value="${zk}">${naz}</option>`).join('')}
-        </select>
-        
-        <button onclick="window.addSQS('${window.currentSqsDate}', '${window.currentSqsShift}')" style="width:32px; height:32px; background:#22c55e; border:none; border-radius:10px; color:white; font-size:18px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">+</button>
+    <!-- CELÝ SEZNAM -->
+    <optgroup label="VŠECHNY" style="background: #1e293b; color: #64748b;">
+        ${sqsTypesList.map((text, i) => `<option value="${i + 1}" style="color: white;">${i + 1} - ${text}</option>`).join('')}
+    </optgroup>
+</select>
+
+       <!-- VINÍK (Formulář) -->
+<select id="sqsVinik" style="width:50px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#2ecc71; padding:8px 0; font-weight:900; outline:none; appearance:none; -webkit-appearance:none; font-size:10px; text-align:center; flex-shrink:0; cursor:pointer;">
+    <option value="" disabled selected>Viník</option>
+    
+    <optgroup label="NEJČASTĚJŠÍ" style="background: #1e293b; color: #2ecc71;">
+        ${['Stroje a zařízení', 'Svařovna', 'Lakovna', 'Montáž', 'dodavatel'].map(topNaz => {
+            // Najdeme klíč (např. "LAKOVNA") pro daný název
+            const entry = Object.entries(sqsViniciMap).find(([zk, naz]) => naz.toLowerCase() === topNaz.toLowerCase());
+            if (!entry) return '';
+            const [zk, naz] = entry;
+            return `<option value="${zk}">${topNaz.charAt(0).toUpperCase() + topNaz.slice(1).toLowerCase()}</option>`;
+        }).join('')}
+    </optgroup>
+
+    <optgroup label="OSTATNÍ" style="background: #1e293b; color: #64748b;">
+        ${Object.entries(sqsViniciMap).map(([zk, naz]) => {
+            const formatNazev = naz.charAt(0).toUpperCase() + naz.slice(1).toLowerCase();
+            return `<option value="${zk}">${formatNazev}</option>`;
+        }).join('')}
+    </optgroup>
+</select>
+        <!-- TLAČÍTKO PŘIDAT -->
+        <button onclick="window.addSQS('${window.currentSqsDate}', '${window.currentSqsShift}')" style="width:30px; height:32px; background:#22c55e; border:none; border-radius:10px; color:white; font-size:18px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">+</button>
     </div>
 ` : ''}
 
+<!-- TABULKA ZÁVAD -->
 <div class="sqs-table-wrapper" style="background:rgba(15, 23, 42, 0.6); border-radius:18px; padding:8px; border: 1px solid rgba(255,255,255,0.08); width:100%; box-sizing:border-box; margin-bottom: 50px;">
-   <table style="width:100%; border-collapse:collapse; font-size:11px; table-layout: fixed;">
+   <table style="width:100%; border-collapse:collapse; font-size:11px; table-layout: fixed; border-spacing: 0; padding: 0; margin: 0;">
     <thead>
-        <tr style="color:#64748b; font-size: 9px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <th style="width: 25px; padding-bottom: 8px;"></th>
-            <th align="left" style="width: 45px; padding-bottom: 8px;">TMB</th> 
-            <th align="left" style="width: 40px; padding-bottom: 8px;">Strana</th>
-            <th align="left" style="padding-bottom: 8px;">Závada</th>
-            <th align="center" style="width: 35px; padding-bottom: 8px;">Typ</th>
-            <th align="left" style="width: 65px; padding-bottom: 8px;">Viník</th>
-            <th align="right" style="width: 60px; padding-bottom: 8px;">Status</th>
-        </tr>
-    </thead>
+    <tr style="color:#64748b; font-size: 9px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <th align="left" style="width: 38px; padding-bottom: 8px; padding-left: 4px;">TMB</th> 
+        <th align="center" style="width: 32px; padding-bottom: 8px;">S</th>
+        <th align="left" style="padding-bottom: 8px;">Závada</th> <!-- TENTO JE PRUŽNÝ -->
+        <th align="center" style="width: 30px; padding-bottom: 8px;">Typ</th>
+        <th align="center" style="width: 45px; padding-bottom: 8px;">Viník</th>
+        <th align="right" style="width: 50px; padding-bottom: 8px;">Stav</th>
+    </tr>
+</thead>
     <tbody>
     ${sqsMsgs.map(m => {
         const hasVinik = m.source && m.source !== "";
@@ -652,40 +693,91 @@ ${isAdmin ? `
         let rowBg = hasVinik ? 'rgba(34, 197, 94, 0.1)' : (isFixed ? 'rgba(241, 196, 15, 0.1)' : 'rgba(239, 68, 68, 0.1)');
         let rowBorder = hasVinik ? '#22c55e' : (isFixed ? '#f1c40f' : '#ef4444');
 
-        return `
-        <tr id="msg-${m.id}" style="background:${rowBg}; border-left: 2px solid ${rowBorder}; border-bottom: 1px solid rgba(255,255,255,0.03);">
-            <td style="padding: 8px 2px; text-align:center;">${isAdmin ? `<span onclick="window.deleteMsg('${m.id}')" style="color:#ef4444; cursor:pointer; font-weight:bold; font-size:14px; opacity:0.5;">✕</span>` : ''}</td>
-            <td style="color:#ffb100; font-weight:800; font-size:10px;">${m.tmb}</td>
-            <td style="color:#ccc; font-size:10px;">${m.side || '-'}</td>
-            <td style="color:#fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right:8px; font-weight:700;">${m.defect}</td>
-            <td align="center" style="color:#ccc; font-size:10px; font-weight:800;">${m.type || '--'}</td>
-            
-            <!-- OPRAVENÝ SLOUPEC: Viditelná zkratka, neviditelný select s celým jménem -->
-            <td style="overflow: hidden; text-align: center; width: 65px; position: relative;">
-                <b style="color:#fff; font-size: 10px; font-weight:800;">${m.source || '---'}</b>
-                ${isAdmin ? `
-                    <select onchange="window.updateVinik('${m.id}', this.value)" 
-                        style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; -webkit-appearance:none;">
-                        <option value="">Vybrat</option>
-                        ${Object.entries(sqsViniciMap).map(([zk, naz]) => `
-                            <option value="${zk}" ${m.source === zk ? 'selected' : ''}>
-                                ${naz}
-                            </option>
-                        `).join('')}
-                    </select>` : ''}
-            </td>
+        // Inteligentní rozdělení stran do mřížky
+        const sides = (m.side || "").split("+").filter(s => s);
+        const sideCols = sides.length > 2 ? 2 : 1;
 
-            <td align="right" style="padding-right: 4px;">
-                <div style="display:flex; align-items:center; justify-content:flex-end; gap:4px;">
-                    ${hasVinik ? `<b style="color:#2ecc71; font-size:10px;">[SQS]</b>` : ''}
-                    ${isFixed ? `<span style="color:#2ecc71; font-weight:700; font-size:9px;">✔ ${m.fixedByName || 'OK'}</span>` : `<button onclick="window.fixSqs('${m.id}')" style="background:rgba(255,255,255,0.15); color:#fff; border:none; padding:4px 6px; border-radius:6px; font-size:9px; font-weight:800;">RAZÍTKO</button>`}
-                </div>
-            </td>
-        </tr>`;
+        return `
+       <tr id="msg-${m.id}" style="background:${rowBg}; border-left: 2px solid ${rowBorder}; border-bottom: 1px solid rgba(255,255,255,0.03);">
+    <!-- TMB -->
+    <td style="width: 38px; padding-left: 4px; position: relative; vertical-align: middle;">
+        ${isAdmin ? `<span onclick="window.deleteMsg('${m.id}')" style="position:absolute; left:-2px; top:2px; color:#ef4444; cursor:pointer; font-size:10px; opacity:0.6;">✕</span>` : ''}
+        <span style="color:#ffb100; font-weight:800; font-size:10px; padding-left:6px;">${m.tmb}</span>
+    </td>
+
+    <!-- STRANY -->
+    <td align="center" style="width: 32px; padding: 4px 0; vertical-align: middle;">
+        <div style="display: grid; grid-template-columns: repeat(${sideCols}, 1fr); gap: 1px; justify-items: center; width: fit-content; margin: 0 auto;">
+            ${sides.map(s => `<span style="font-size: 8px; color: #ccc; font-weight: 800; background: rgba(255,255,255,0.05); padding: 1px 2px; border-radius: 2px; min-width: 14px; text-align: center;">${s}</span>`).join('')}
+        </div>
+    </td>
+
+    <!-- ZÁVADA (Teď už se opravdu roztáhne) -->
+    <td style="width: auto; color:#fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right:6px; font-weight:700; vertical-align: middle;">
+        ${m.defect}
+    </td>
+
+    <!-- TYP -->
+    <td align="center" style="width: 30px; color:#ccc; font-size:10px; font-weight:800; vertical-align: middle;">
+        ${m.type || '--'}
+    </td>
+    
+    <!-- VINÍK (Tabulka) -->
+<td style="width: 45px; overflow: hidden; text-align: center; position: relative; vertical-align: middle;">
+    <b style="color:#fff; font-size: 10px; font-weight:800;">${m.source || '---'}</b>
+    ${isAdmin ? `
+    <select onchange="window.updateVinik('${m.id}', this.value)" 
+            style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; background: #1e293b; color: white;">
+        
+        <option value="" disabled>Změnit...</option>
+        
+        <optgroup label="NEJČASTĚJŠÍ" style="background: #1e293b; color: #2ecc71;">
+            ${['Stroje a zařízení', 'Svařovna', 'Lakovna', 'Montáž', 'dodavatel'].map(topNaz => {
+                const entry = Object.entries(sqsViniciMap).find(([zk, naz]) => naz.toLowerCase() === topNaz.toLowerCase());
+                if (!entry) return '';
+                const [zk, naz] = entry;
+                return `<option value="${zk}" ${m.source === zk ? 'selected' : ''}>${topNaz.charAt(0).toUpperCase() + topNaz.slice(1).toLowerCase()}</option>`;
+            }).join('')}
+        </optgroup>
+
+        <optgroup label="OSTATNÍ" style="background: #1e293b; color: #64748b;">
+            ${Object.entries(sqsViniciMap).map(([zk, naz]) => {
+                const formatNazev = naz.charAt(0).toUpperCase() + naz.slice(1).toLowerCase();
+                return `<option value="${zk}" ${m.source === zk ? 'selected' : ''}>${formatNazev}</option>`;
+            }).join('')}
+        </optgroup>
+    </select>` : ''}
+</td>
+
+    <!-- STAV: Červené NOK dokud není opraveno -->
+<td align="right" style="padding-right: 6px; width: 75px; vertical-align: middle;">
+    <div style="display:flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 1px; min-height: 30px;">
+        
+        <!-- Malý štítek SQS pokud existuje viník -->
+        ${hasVinik ? `<span style="color:#2ecc71; font-size:8px; font-weight:900; line-height: 1;">[SQS]</span>` : ''}
+        
+        <div style="display: flex; align-items: center;">
+            ${isFixed ? 
+                /* 1. STAV: OPRAVENO (Zelená fajfka + přezdívka) */
+                `<span style="color:#2ecc71; font-weight:800; font-size:9px; white-space: nowrap;">✔ ${m.fixedByName || 'OK'}</span>` : 
+                
+                /* 2. STAV: NEOPRAVENO (Červené tlačítko NOK) */
+                `<button 
+    onclick="window.confirmFix('${m.id}', this)" 
+    data-step="1"
+    style="background:#ef4444; color:#fff; border:none; padding:4px 0; border-radius:6px; font-size:9px; font-weight:900; cursor:pointer; transition: all 0.3s ease; width: 60px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); flex-shrink: 0;">
+    NOK
+</button>`
+            }
+        </div>
+    </div>
+</td>
+</tr>`;
     }).join('')}
 </tbody>
     </table>
-</div>`;
+</div>
+            `;
             chatBox.innerHTML = html; 
             // Důležité: Uvolníme výšku kontejneru
             chatBox.style.height = "auto";
@@ -1138,16 +1230,35 @@ window.fixSqs = async function(id) {
         console.error("Chyba při razítkování:", e);
     }
 };
-window.updateVinik = async function(id, val) {
+window.updateVinik = async function(id, newVal) {
+    if (!newVal) return;
+
     const userEmail = auth.currentUser.email.toLowerCase();
+    let displayName = userEmail;
+
+    // 1. ZÍSKÁNÍ JMÉNA AKTUÁLNÍHO ADMINA (RAZÍTKA)
     try {
-        await updateDoc(doc(db, "chat", id), { 
-            source: val,
-            fixedBy: userEmail // Zapíšeme jméno toho, kdo vybral viníka
-        });
-        if (window.showToast) showToast("Viník aktualizován", "success");
+        const q = query(collection(db, "employees"), where("email", "==", userEmail));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+            const empData = snap.docs[0].data();
+            displayName = empData.fName || empData.name || userEmail;
+        }
     } catch (e) {
-        console.error("Chyba při update viníka:", e);
+        console.error("Chyba při získávání razítka:", e);
+    }
+
+    // 2. AKTUALIZACE DOKUMENTU V FIREBASE
+    try {
+        const docRef = doc(db, "chat", id);
+        await updateDoc(docRef, {
+            source: newVal,
+            fixedBy: userEmail,       // Uloží e-mail toho, kdo udělal změnu
+            fixedByName: displayName  // Uloží přezdívku/jméno pro zobrazení ✔
+        });
+        console.log("Viník i razítko aktualizováno.");
+    } catch (e) {
+        console.error("Chyba při ukládání změny:", e);
     }
 };
 window.addSQS = async function(date, shift) {
@@ -1155,7 +1266,7 @@ window.addSQS = async function(date, shift) {
     const defectEl = document.getElementById("sqsDefect");
     const typeEl = document.getElementById("sqsType");
     const vinikEl = document.getElementById("sqsVinik");
-    const sidePickerEl = document.getElementById("sidePicker"); // Načtení boxu se stranami
+    const sidePickerEl = document.getElementById("sidePicker");
     const btn = document.querySelector('button[onclick*="addSQS"]');
 
     const tmb = tmbEl.value;
@@ -1168,35 +1279,19 @@ window.addSQS = async function(date, shift) {
                              .map(el => el.getAttribute('data-value'));
     const side = activeSides.join('+');
 
-    // --- ROZŠÍŘENÁ KONTROLA: TMB, Závada, Typ a alespoň jedna Strana ---
+    // --- KONTROLA POLÍ ---
     if(!tmb || !defect || !type || activeSides.length === 0) {
         if (btn) {
+            // ... (zde zůstává tvůj kód pro vizuální upozornění na chybu)
             const originalText = btn.innerText;
-            const originalBg = "#22c55e"; 
             btn.innerText = "!";
             btn.style.background = "#ef4444";
-            btn.style.boxShadow = "0 0 15px rgba(239, 68, 68, 0.5)";
-
-            // Zčervenání všech chybějících polí
-            if (!tmb) tmbEl.style.borderColor = "#ef4444";
-            if (!defect) defectEl.style.borderColor = "#ef4444";
-            if (!type && typeEl) typeEl.style.borderColor = "#ef4444";
-            if (activeSides.length === 0 && sidePickerEl) sidePickerEl.style.borderColor = "#ef4444";
-
-            setTimeout(() => {
-                btn.innerText = originalText;
-                btn.style.background = originalBg;
-                btn.style.boxShadow = "";
-                tmbEl.style.borderColor = "";
-                defectEl.style.borderColor = "";
-                if(typeEl) typeEl.style.borderColor = "";
-                if(sidePickerEl) sidePickerEl.style.borderColor = "";
-            }, 2000);
+            setTimeout(() => { btn.innerText = originalText; btn.style.background = "#22c55e"; }, 2000);
         }
         return;
     }
 
-    let displayName = "";
+    let displayName = userEmail;
     if (vinik) {
         try {
             const q = query(collection(db, "employees"), where("email", "==", userEmail));
@@ -1204,31 +1299,73 @@ window.addSQS = async function(date, shift) {
             if (!snap.empty) {
                 const empData = snap.docs[0].data();
                 displayName = empData.fName || empData.name || userEmail;
-            } else {
-                displayName = userEmail;
             }
-        } catch (e) {
-            console.error("Chyba při získávání jména:", e);
-            displayName = userEmail;
-        }
+        } catch (e) { console.error("Chyba při získávání jména:", e); }
     }
 
-    // Zápis do databáze zůstává stejný
-    await addDoc(collection(db, "chat"), { 
-        topic: 'pokec', tmb, side, defect, 
-        type, 
-        date, shift, 
-        source: vinik, 
-        fixedBy: vinik ? userEmail : "", 
-        fixedByName: vinik ? displayName : "", 
-        createdAt: serverTimestamp() 
-    });
+    // --- NOVÝ ZÁPIS S PŘEHLEDNÝM ID ---
+    const now = new Date();
+    const timeStr = now.getHours().toString().padStart(2, '0') + "-" + 
+                    now.getMinutes().toString().padStart(2, '0') + "-" + 
+                    now.getSeconds().toString().padStart(2, '0');
     
-    tmbEl.value = "";
-    defectEl.value = "";
-    if(typeEl) typeEl.value = ""; 
-    vinikEl.value = "";
-    document.querySelectorAll('.side-btn').forEach(sBtn => sBtn.classList.remove('active'));
+    // ID formát: 2026-04-06_14-30-05_pokec
+    const customId = `${date}_${timeStr}_pokec`;
+
+    try {
+        await setDoc(doc(db, "chat", customId), { 
+            topic: 'pokec', 
+            tmb, 
+            side, 
+            defect, 
+            type, 
+            date, 
+            shift, 
+            source: vinik, 
+            fixedBy: vinik ? userEmail : "", 
+            fixedByName: vinik ? displayName : "", 
+            createdAt: serverTimestamp() 
+        });
+
+        // Vyčištění polí (tvůj původní kód)
+        tmbEl.value = "";
+        defectEl.value = "";
+        if(typeEl) typeEl.value = ""; 
+        vinikEl.value = "";
+        document.querySelectorAll('.side-btn').forEach(sBtn => sBtn.classList.remove('active'));
+        
+        console.log("Uloženo pod ID:", customId);
+    } catch (err) {
+        console.error("Chyba zápisu:", err);
+    }
+};
+window.confirmFix = function(id, btn) {
+    const step = btn.getAttribute('data-step');
+
+    if (step === "1") {
+        // 1. KROK: Tlačítko se změní na oranžové "OPRAVENO"
+        btn.innerText = "OPRAVENO";
+        btn.style.background = "#f59e0b"; // Oranžová (Amber)
+        btn.style.width = "70px"; // Trochu přidáme na šířce pro delší slovo
+        btn.style.fontSize = "6px"; // Mírně zmenšíme písmo, aby se to tam vešlo
+        btn.setAttribute('data-step', "2");
+
+        // RESET: Pokud do 3 sekund neklikne podruhé, skočí zpět na NOK
+        setTimeout(() => {
+            if (btn && btn.getAttribute('data-step') === "2") {
+                btn.innerText = "NOK";
+                btn.style.background = "#ef4444";
+                btn.style.width = "60px";
+                btn.style.fontSize = "9px";
+                btn.setAttribute('data-step', "1");
+            }
+        }, 3000);
+
+    } else {
+        // 2. KROK: Finální potvrzení a zápis razítka do Firebase
+        btn.style.opacity = "0.5";
+        window.fixSqs(id);
+    }
 };
 </script>
 </body>
