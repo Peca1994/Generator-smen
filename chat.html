@@ -389,22 +389,44 @@ window.showTopics = () => {
 };
 
 function getCurrentShiftInfo() {
-    const now = new Date();
-    const refDate = new Date("2026-03-02"); // Referenční pondělí (začátek cyklu - Ranní)
-    const diffDays = Math.floor((now - refDate) / (1000 * 60 * 60 * 24));
-    const cycle = Math.floor(diffDays / 7) % 3; 
+    const today = new Date();
+    const hours = today.getHours();
+    
+    // Identické nastavení jako v Schedule
+    const anchorDate = new Date(2026, 2, 2); // Pondělí 2.3.2026
+    
+    const getShiftType = (d) => {
+        const msDiff = d.getTime() - anchorDate.getTime();
+        const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+        const weeksDiff = Math.floor(daysDiff / 7);
+        
+        // V Schedule máš: ["noc", "odpo", "ranni"]
+        const shiftValues = ["Noční", "Odpolední", "Ranní"];
+        let index = weeksDiff % 3; 
+        if (index < 0) index += 3;
+        return shiftValues[index];
+    };
 
-    let weekType = (cycle === 0) ? "Ranní" : (cycle === 1) ? "Odpolední" : "Noční";
-    let dStr = now.toISOString().split('T')[0]; // Výsledek: YYYY-MM-DD
+    let dDate = new Date(today);
+    const tomorrow = new Date(today); 
+    tomorrow.setDate(today.getDate() + 1);
 
-    // Logika pro noční překlopení (před 6:00 ráno vidíme data z "včerejšího" dne)
-    const totalMins = now.getHours() * 60 + now.getMinutes();
-    if (weekType === "Noční" && totalMins < 360) {
-        const prev = new Date(now);
-        prev.setDate(prev.getDate() - 1);
-        dStr = prev.toISOString().split('T')[0];
+    // Překlápěcí logika z tvého Schedule
+    // Pokud je zítra noční a je po 12:00, nebo je po 22:00 obecně
+    if (getShiftType(tomorrow) === "Noční" && hours >= 12) {
+        dDate = tomorrow;
+    } else if (hours >= 22) {
+        dDate = tomorrow;
     }
-    return { date: dStr, shift: weekType };
+
+    // Formátování data pro Firebase (YYYY-MM-DD)
+    const dStr = new Date(dDate.getTime() - dDate.getTimezoneOffset() * 60000)
+                 .toISOString().split('T')[0];
+
+    return { 
+        date: dStr, 
+        shift: getShiftType(dDate) 
+    };
 }
 // --- DATA PRACOVNÍKŮ ---
 async function loadNicknames() {
@@ -544,54 +566,59 @@ function startChatListener(topicId) {
     <div style="background:rgba(255,255,255,0.04); padding:10px 4px; border-radius:15px; border:1px solid rgba(255,255,255,0.08); text-align:center;">
         <label style="display:block; color:#777; font-size:8px; text-transform:uppercase; margin-bottom:6px; font-weight:900;">Fabia</label>
         <div style="display:flex; align-items:center; gap:3px;">
-            <input id="faStart" type="number" placeholder="" value="${sData.info?.fa?.start || ''}" ${!isAdmin?'disabled':''} class="mini-input">
+            <input id="faStart" type="text" inputmode="numeric" placeholder="" value="${sData.info?.fa?.start || ''}" ${!isAdmin?'disabled':''} class="mini-input">
             <span style="color:rgba(255,255,255,0.1); font-size:10px;">/</span>
-            <input id="faEnd" type="number" placeholder="" value="${sData.info?.fa?.end || ''}" ${!isAdmin?'disabled':''} class="mini-input" style="color:#2ecc71;">
+            <input id="faEnd" type="text" inputmode="numeric" placeholder="" value="${sData.info?.fa?.end || ''}" ${!isAdmin?'disabled':''} class="mini-input" style="color:#2ecc71;">
         </div>
     </div>
     <!-- SCALA / KAMIQ -->
     <div style="background:rgba(255,255,255,0.04); padding:10px 4px; border-radius:15px; border:1px solid rgba(255,255,255,0.08); text-align:center;">
         <label style="display:block; color:#777; font-size:8px; text-transform:uppercase; margin-bottom:6px; font-weight:900;">Scala/Kam</label>
         <div style="display:flex; align-items:center; gap:3px;">
-            <input id="skStart" type="number" placeholder="" value="${sData.info?.sk?.start || ''}" ${!isAdmin?'disabled':''} class="mini-input">
+            <input id="skStart" type="text" inputmode="numeric" placeholder="" value="${sData.info?.sk?.start || ''}" ${!isAdmin?'disabled':''} class="mini-input">
             <span style="color:rgba(255,255,255,0.1); font-size:10px;">/</span>
-            <input id="skEnd" type="number" placeholder="" value="${sData.info?.sk?.end || ''}" ${!isAdmin?'disabled':''} class="mini-input" style="color:#2ecc71;">
+            <input id="skEnd" type="text" inputmode="numeric" placeholder="" value="${sData.info?.sk?.end || ''}" ${!isAdmin?'disabled':''} class="mini-input" style="color:#2ecc71;">
         </div>
     </div>
     <!-- ZÁSOBNÍK -->
     <div style="background:rgba(255,255,255,0.04); padding:10px 4px; border-radius:15px; border:1px solid rgba(255,255,255,0.08); text-align:center;">
         <label style="display:block; color:#777; font-size:8px; text-transform:uppercase; margin-bottom:6px; font-weight:900;">Zásobník</label>
         <div style="display:flex; align-items:center; gap:3px;">
-            <input id="zaStart" type="number" placeholder="" value="${sData.info?.za?.start || ''}" ${!isAdmin?'disabled':''} class="mini-input">
+            <input id="zaStart" type="text" inputmode="numeric" placeholder="" value="${sData.info?.za?.start || ''}" ${!isAdmin?'disabled':''} class="mini-input">
             <span style="color:rgba(255,255,255,0.1); font-size:10px;">/</span>
-            <input id="zaEnd" type="number" placeholder="" value="${sData.info?.za?.end || ''}" ${!isAdmin?'disabled':''} class="mini-input" style="color:#2ecc71;">
+            <input id="zaEnd" type="text" inputmode="numeric" placeholder="" value="${sData.info?.za?.end || ''}" ${!isAdmin?'disabled':''} class="mini-input" style="color:#2ecc71;">
         </div>
     </div>
 </div>
 
 ${isAdmin ? `
-    <!-- Tlačítko Uložit plány -->
+    <!-- Tlačítko Uložit plány ... ponechat stejné ... -->
     <button onclick="window.saveProjects()" style="width:100%; background:#22c55e; border:none; padding:10px; border-radius:12px; color:white; font-weight:900; margin-bottom:15px; cursor:pointer; font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Uložit plány</button>
     
-    <!-- ÚZKÝ SQS PANEL -->
     <div class="sqs-form-panel" style="margin-bottom:15px; display:flex; gap:4px; background:rgba(255,255,255,0.05); padding:8px; border-radius:15px; border:1px solid rgba(255,255,255,0.1); width:100%; box-sizing:border-box; align-items:center;">
         
-        <!-- TMB (4 čísla = úzké) -->
-        <input type="number" id="sqsTMB" placeholder="TMB" style="width:15%; min-width:45px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px 4px; font-weight:700; outline:none; font-size:11px; text-align:center;">
+        <input type="number" id="sqsTMB" placeholder="TMB" style="width:12%; min-width:45px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px 4px; font-weight:700; outline:none; font-size:11px; text-align:center;">
         
-        <!-- Strana (2 písmena = úzké) -->
-        <select id="sqsSide" style="width:12%; min-width:40px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px 2px; outline:none; cursor:pointer; font-size:11px; font-weight:700; text-align:center; -webkit-appearance:none;"><option>PP</option><option>PZ</option><option>LP</option><option>LZ</option></select>
-        
-        <!-- Závada (Hlavní prostor) -->
+        <!-- NOVÝ MULTI-SELECT STRAN -->
+        <div id="sidePicker" style="display:flex; gap:2px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:2px;">
+            ${['PP','PZ','LP','LZ'].map(s => `
+                <div onclick="this.classList.toggle('active');" class="side-btn" data-value="${s}" 
+                     style="font-size:9px; font-weight:900; color:#555; padding:6px 4px; cursor:pointer; border-radius:5px; transition:0.2s; min-width:18px; text-align:center;">
+                     ${s}
+                </div>
+            `).join('')}
+        </div>
+        <style>
+            .side-btn.active { background: rgba(34, 197, 94, 0.2); color: #22c55e !important; }
+        </style>
+
         <input type="text" id="sqsDefect" placeholder="Závada..." style="flex:1; min-width:60px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; padding:8px; outline:none; font-size:11px;">
         
-        <!-- Viník (Zkrácené názvy pro úsporu místa) -->
         <select id="sqsVinik" style="width:20%; min-width:65px; background:rgba(15,23,42,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#2ecc71; padding:8px 2px; font-weight:900; outline:none; appearance:none; -webkit-appearance:none; font-size:10px; text-align:center;">
             <option value="">Viník</option>
-            ${['Svařovna','Lakovna','Montáž','Logistika','Lisovna','Dodavatel','Stroje'].map(v=>`<option value="${v}">${v}</option>`).join('')}
+            ${['Svařovna','Lakovna','Montáž','Logistika','Lisovna','Dodavatel','Stroje a zařízení'].map(v=>`<option value="${v}">${v}</option>`).join('')}
         </select>
         
-        <!-- Plusko (Malé a úderné) -->
         <button onclick="window.addSQS('${window.currentSqsDate}', '${window.currentSqsShift}')" style="width:32px; height:32px; background:#22c55e; border:none; border-radius:10px; color:white; font-size:18px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;">+</button>
     </div>
 ` : ''}
@@ -638,8 +665,8 @@ ${isAdmin ? `
                     <td align="right" style="padding-right: 4px;">
                         <div style="display:flex; align-items:center; justify-content:flex-end; gap:4px;">
                             ${hasVinik ? `<b style="color:#2ecc71; font-size:10px;">[SQS]</b>` : ''}
-                            ${isFixed ? `<span style="color:#fff; font-weight:700; font-size:9px;">✔ OK</span>` : 
-                            `<button onclick="window.fixSqs('${m.id}')" style="background:rgba(255,255,255,0.15); color:#fff; border:none; padding:4px 6px; border-radius:6px; font-size:9px; font-weight:800;">RAZÍTKO</button>`}
+                            ${isFixed ? `<span style="color:#2ecc71; font-weight:700; font-size:9px;">✔ ${m.fixedByName || 'OK'}</span>` : 
+`<button onclick="window.fixSqs('${m.id}')" style="background:rgba(255,255,255,0.15); color:#fff; border:none; padding:4px 6px; border-radius:6px; font-size:9px; font-weight:800;">RAZÍTKO</button>`}
                         </div>
                     </td>
                 </tr>`;
@@ -953,25 +980,6 @@ window.deleteMsg = async (msgId) => {
     }
 };
 
-
-window.addSQS = async function(date, shift) {
-    const tmb = document.getElementById("sqsTMB").value;
-    const side = document.getElementById("sqsSide").value;
-    const defect = document.getElementById("sqsDefect").value;
-    const solver = allNicknames[auth.currentUser.email.toLowerCase()] || auth.currentUser.email;
-    if(!tmb || !defect) return alert("Vyplň TMB a závadu!");
-    await addDoc(collection(db, "chat"), { 
-        topic: 'pokec', tmb, side, defect, date, shift, solver, 
-        source: "", createdAt: serverTimestamp() 
-    });
-    document.getElementById("sqsTMB").value = "";
-    document.getElementById("sqsDefect").value = "";
-};
-
-window.updateVinik = async function(id, val) {
-    await updateDoc(doc(db, "chat", id), { source: val });
-};
-
 window.deleteMsg = async function(msgId) {
     // 1. Najdeme prvek, na který uživatel klikl (křížek)
     // Použijeme event.currentTarget, abychom měli jistotu, že máme ten správný prvek se stylem
@@ -1097,17 +1105,30 @@ window.saveProjects = async () => {
 };
 
 window.fixSqs = async function(id) {
+    if (!auth.currentUser) return;
     const userEmail = auth.currentUser.email.toLowerCase();
-    await updateDoc(doc(db, "chat", id), { 
-        fixedBy: userEmail 
-    });
-};
-window.fixSqs = async function(id) {
-    const userEmail = auth.currentUser.email.toLowerCase();
-    // Pokud je již opraveno, tlačítko tam ani nebude, ale pro jistotu:
-    await updateDoc(doc(db, "chat", id), { 
-        fixedBy: userEmail 
-    });
+
+    try {
+        // 1. Najdeme jméno (fname) v kolekci employees podle emailu
+        const q = query(collection(db, "employees"), where("email", "==", userEmail));
+        const snap = await getDocs(q);
+        let displayName = userEmail; // Záloha
+
+        if (!snap.empty) {
+            const empData = snap.docs[0].data(); // Nezapomeň na [0] u docs
+            displayName = empData.fname || empData.name || userEmail;
+        }
+
+        // 2. Zapíšeme do kolekce chat (kde máš SQS)
+        const docRef = doc(db, "chat", id);
+        await updateDoc(docRef, {
+            fixedBy: userEmail,
+            fixedByName: displayName, // TADY ukládáme to jméno pro zobrazení
+            solved: true
+        });
+    } catch (e) {
+        console.error("Chyba při razítkování:", e);
+    }
 };
 window.updateVinik = async function(id, val) {
     const userEmail = auth.currentUser.email.toLowerCase();
@@ -1125,25 +1146,26 @@ window.addSQS = async function(date, shift) {
     const tmbEl = document.getElementById("sqsTMB");
     const defectEl = document.getElementById("sqsDefect");
     const vinikEl = document.getElementById("sqsVinik");
-    const btn = document.querySelector('button[onclick*="addSQS"]'); // Najdeme to zelené "+"
+    const btn = document.querySelector('button[onclick*="addSQS"]');
 
     const tmb = tmbEl.value;
-    const side = document.getElementById("sqsSide").value;
     const defect = defectEl.value;
     const vinik = vinikEl.value;
     const userEmail = auth.currentUser.email.toLowerCase();
+
+    // --- NOVÉ: Posbíráme všechny vybrané strany z tlačítek ---
+    const activeSides = Array.from(document.querySelectorAll('.side-btn.active'))
+                             .map(el => el.getAttribute('data-value'));
+    const side = activeSides.join('+'); // Výsledek bude např. "PP+PZ"
 
     // --- ELEGANTNÍ VAROVÁNÍ MÍSTO ALERTU ---
     if(!tmb || !defect) {
         if (btn) {
             const originalText = btn.innerText;
-            const originalBg = "#22c55e"; // Tvoje zelená
-
-            btn.innerText = "!"; // Signalizace chyby
-            btn.style.background = "#ef4444"; // Červená
+            const originalBg = "#22c55e"; 
+            btn.innerText = "!";
+            btn.style.background = "#ef4444";
             btn.style.boxShadow = "0 0 15px rgba(239, 68, 68, 0.5)";
-            
-            // Zvýrazníme prázdná pole červeným okrajem
             if (!tmb) tmbEl.style.borderColor = "#ef4444";
             if (!defect) defectEl.style.borderColor = "#ef4444";
 
@@ -1155,21 +1177,42 @@ window.addSQS = async function(date, shift) {
                 defectEl.style.borderColor = "";
             }, 2000);
         }
-        return; // Zastavíme funkci, nic neposíláme do DB
+        return;
     }
 
-    // --- ZÁPIS DO DATABÁZE (pokud je vše OK) ---
+    // --- DOPLNĚNÁ LOGIKA PRO ZÍSKÁNÍ JMÉNA (RAZÍTKA) ---
+    let displayName = "";
+    if (vinik) {
+        try {
+            const q = query(collection(db, "employees"), where("email", "==", userEmail));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+                const empData = snap.docs[0].data();
+                displayName = empData.fname || empData.name || userEmail;
+            } else {
+                displayName = userEmail;
+            }
+        } catch (e) {
+            console.error("Chyba při získávání jména:", e);
+            displayName = userEmail;
+        }
+    }
+
+    // --- ZÁPIS DO DATABÁZE ---
     await addDoc(collection(db, "chat"), { 
         topic: 'pokec', tmb, side, defect, date, shift, 
         source: vinik, 
         fixedBy: vinik ? userEmail : "", 
+        fixedByName: vinik ? displayName : "", 
         createdAt: serverTimestamp() 
     });
     
-    // Vyčištění polí po úspěšném odeslání
+    // --- VYČIŠTĚNÍ POLÍ ---
     tmbEl.value = "";
     defectEl.value = "";
     vinikEl.value = "";
+    // Resetujeme zelená tlačítka stran do původního stavu
+    document.querySelectorAll('.side-btn').forEach(sBtn => sBtn.classList.remove('active'));
 };
 </script>
 </body>
