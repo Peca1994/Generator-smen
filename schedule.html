@@ -757,7 +757,7 @@ window.openSwapPicker = (idx, myP) => {
         const id = typeof w === 'string' ? w : w.m;
         const k = allWorkersData[id];
 
-        if (k?.email?.includes("@") && k.skills?.[myP] === 2) {
+        if (k?.email?.includes("@") && k.skills?.[myP] === 2 && currentUserEmp.skills?.[pos] === 2) {
             found++;
             const b = document.createElement("button");
             b.className = "swap-btn";
