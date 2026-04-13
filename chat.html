@@ -404,15 +404,15 @@ function getCurrentShiftInfo() {
     const today = new Date();
     const hours = today.getHours();
     
-    // Identické nastavení jako v Schedule
-    const anchorDate = new Date(2026, 2, 2); // Pondělí 2.3.2026
+    // Identické kotevní datum jako v Schedule
+    const anchorDate = new Date(2026, 2, 2); 
     
     const getShiftType = (d) => {
         const msDiff = d.getTime() - anchorDate.getTime();
         const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
         const weeksDiff = Math.floor(daysDiff / 7);
         
-        // V Schedule máš: ["noc", "odpo", "ranni"]
+        // Používáme stejné názvy jako v Schedule/Selectech
         const shiftValues = ["Noční", "Odpolední", "Ranní"];
         let index = weeksDiff % 3; 
         if (index < 0) index += 3;
@@ -423,15 +423,14 @@ function getCurrentShiftInfo() {
     const tomorrow = new Date(today); 
     tomorrow.setDate(today.getDate() + 1);
 
-    // Překlápěcí logika z tvého Schedule
-    // Pokud je zítra noční a je po 12:00, 
+    // Sjednocená překlápěcí logika:
+    // Pokud zítra začíná týden nočních a dnes je už po 12:00, 
+    // ukaž už data pro tu nadcházející noční směnu.
     if (getShiftType(tomorrow) === "Noční" && hours >= 12) {
-        dDate = tomorrow;
-    } else if (hours >= 24) {
         dDate = tomorrow;
     }
 
-    // Formátování data pro Firebase (YYYY-MM-DD)
+    // Formátování data pro Firebase (YYYY-MM-DD) bez posunu časového pásma
     const dStr = new Date(dDate.getTime() - dDate.getTimezoneOffset() * 60000)
                  .toISOString().split('T')[0];
 
@@ -867,19 +866,33 @@ contentHtml = `<div style="line-height:1.6; color:#fff; font-size:14px;">${swapT
 
             // --- 3. STAVOVÉ TEXTY (Společné) ---
             if (m.status && !actionButtons) {
-                const isError = m.text?.includes("(system_error)");
-                const statusColor = m.status === 'approved' ? '#2ecc71' : '#ef4444';
-                const statusTxt = isError ? "Výměna nemohla být provedena (změna v rozpisu)" : (m.status === 'approved' ? "✓ Potvrzeno" : "✕ Zamítnuto");
-                actionButtons = `<div style="color:${statusColor}; font-size:12px; margin-top:10px; font-weight:700;">${statusTxt}</div>`;
-            }
+    // Pokud je to schváleno, barva je vždy zelená, jinak červená
+    const statusColor = (m.status === 'approved') ? '#2ecc71' : '#ef4444';
+    
+    let statusTxt = "";
+    if (m.status === 'approved') {
+        statusTxt = "✓ Potvrzeno";
+    } else if (m.status === 'rejected') {
+        statusTxt = "✕ Zamítnuto";
+    } else {
+        // Sem to spadne, pokud by tam byl nějaký jiný status nebo ten system_error
+        statusTxt = "Výměna nemohla být provedena (změna v rozpisu)";
+    }
 
-            html += `
-            <div class="msg ${cardClass}" id="msg-${msgId}" style="border-radius:22px; padding:18px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.08); background:rgba(15,23,42,0.6); position:relative;">
-                ${isAdmin ? `<button onclick="window.deleteMsg('${msgId}')" style="position:absolute; top:10px; right:10px; background:none; border:none; color:#f87171; cursor:pointer;">✕</button>` : ''}
-                ${contentHtml}
-                ${actionButtons}
-                <div style="text-align:right; font-size:10px; opacity:0.2; margin-top:10px;">${time}</div>
-            </div>`;
+    actionButtons = `<div style="color:${statusColor}; font-size:12px; margin-top:10px; font-weight:700;">${statusTxt}</div>`;
+}
+
+// Oprava cardClass, aby se barva karty shodovala s textem
+if (m.status === "approved") cardClass = "approved-bg";
+else if (m.status === "rejected" || m.text?.includes("(system_error)")) cardClass = "rejected-bg";
+
+html += `
+<div class="msg ${cardClass}" id="msg-${msgId}" style="border-radius:22px; padding:18px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.08); background:rgba(15,23,42,0.6); position:relative;">
+    ${isAdmin ? `<button onclick="window.deleteMsg('${msgId}')" style="position:absolute; top:10px; right:10px; background:none; border:none; color:#f87171; cursor:pointer;">✕</button>` : ''}
+    ${contentHtml}
+    ${actionButtons}
+    <div style="text-align:right; font-size:10px; opacity:0.2; margin-top:10px;">${time}</div>
+</div>`;
         });
         chatBox.innerHTML = html;
         chatBox.scrollTop = chatBox.scrollHeight;
