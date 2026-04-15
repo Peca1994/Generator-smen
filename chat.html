@@ -525,7 +525,7 @@ function startChatListener(topicId) {
     let dbS = window.currentSqsShift.toLowerCase();
     if (dbS.includes('ranní')) dbS = 'ranni';
     else if (dbS.includes('odpo')) dbS = 'odpo';
-    else if (dbS.includes('noční')) dbS = 'nocni';
+    else if (dbS.includes('noční')) dbS = 'noc';
 
     const shiftId = `${window.currentSqsDate}_${dbS}`; // Teď už hledá správně např. _odpo
     const sSnap = await getDoc(doc(db, "shifts", shiftId));
@@ -1156,57 +1156,45 @@ window.saveProjects = async () => {
     let dbShift = s.toLowerCase();
     if (dbShift.includes('ranní')) dbShift = 'ranni';
     else if (dbShift.includes('odpo')) dbShift = 'odpo';
-    else if (dbShift.includes('noční')) dbShift = 'noc';
+    else if (dbShift.includes('noční')) dbShift = 'noc'; // Sjednoceno na tvé 'noc'
 
     const docId = `${d}_${dbShift}`;
 
     const payload = {
         info: {
             fa: { 
-                // Změněno z "--" na "" pro prázdné pole
-                start: document.getElementById("faStart").value || "", 
-                end: document.getElementById("faEnd").value || "" 
+                start: document.getElementById("faStart").value, 
+                end: document.getElementById("faEnd").value 
             },
             sk: { 
-                start: document.getElementById("skStart").value || "", 
-                end: document.getElementById("skEnd").value || "" 
+                start: document.getElementById("skStart").value, 
+                end: document.getElementById("skEnd").value 
             },
             za: { 
-                start: document.getElementById("zaStart").value || "", 
-                end: document.getElementById("zaEnd").value || "" 
+                start: document.getElementById("zaStart").value, 
+                end: document.getElementById("zaEnd").value 
             }
         }
     };
 
     try {
+        // Použijeme tvůj osvědčený setDoc, který ti fungoval
         await setDoc(doc(db, "shifts", docId), payload, { merge: true });
         
         if (btn) {
             const originalText = btn.innerText;
-            const originalBg = "#22c55e"; 
-            const originalShadow = "0 4px 15px rgba(34,197,94,0.3)";
-
-            btn.innerText = "Uloženo";
+            btn.innerText = "Uloženo ✓";
             btn.style.background = "rgba(34, 197, 94, 0.15)"; 
-            btn.style.boxShadow = "none";
             btn.style.color = "#2ecc71"; 
-            btn.style.borderColor = "rgba(34, 197, 94, 0.4)"; 
             
             setTimeout(() => {
                 btn.innerText = originalText;
-                btn.style.background = originalBg;
-                btn.style.boxShadow = originalShadow;
+                btn.style.background = "#22c55e";
                 btn.style.color = "white";
-                btn.style.borderColor = "transparent"; 
             }, 1500);
         }
-        
     } catch (e) {
-        console.error("Chyba při ukládání:", e);
-        if (btn) {
-            btn.innerText = "Chyba při ukládání";
-            btn.style.color = "#ef4444";
-        }
+        console.error("Chyba:", e);
     }
 };
 
@@ -1351,6 +1339,7 @@ window.addSQS = async function(date, shift) {
         console.error("Chyba zápisu:", err);
     }
 };
+
 window.confirmFix = function(id, btn) {
     const step = btn.getAttribute('data-step');
 
