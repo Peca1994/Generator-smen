@@ -594,7 +594,7 @@ async function loadShift() {
     let dbS = shiftEl.value.toLowerCase();
     if (dbS.includes('ranní')) dbS = 'ranni';
     else if (dbS.includes('odpo')) dbS = 'odpo';
-    else if (dbS.includes('noční')) dbS = 'nocni';
+    else if (dbS.includes('noční')) dbS = 'noc';
 
     const id = `${dateEl.value}_${dbS}`; // Teď už hledá ve správném _odpo atd.
     
