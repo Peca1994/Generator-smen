@@ -940,42 +940,44 @@ window.handleSwapAction = async (msgId, isAccepted) => {
         let isNested = (shiftData.phases && shiftData.phases[d.phase]);
         let source = isNested ? shiftData.phases[d.phase] : shiftData;
 
+        // --- OPRAVENÁ FUNKCE PRO ČIŠTĚNÍ ID ---
         const getCleanID = (val) => {
             if (!val) return "PRÁZDNO";
-            const id = (typeof val === 'string') ? val : (val.m || val.id || "");
-            return id.toString().toLowerCase().trim();
+            let id = (typeof val === 'string') ? val : (val.m || val.id || "");
+            // Odstraní uvozovky a mezery, které v DB vidíme
+            return id.toString().replace(/["']/g, "").toLowerCase().trim();
         };
 
         const realA = getCleanID(source[d.fromPos]); 
         const realB = getCleanID(source[d.toPos]);   
-        const reqA = d.fromId.toString().toLowerCase().trim(); 
-        const reqB = d.toId.toString().toLowerCase().trim();   
+        const reqA = d.fromId.toString().replace(/["']/g, "").toLowerCase().trim(); 
+        const reqB = d.toId.toString().replace(/["']/g, "").toLowerCase().trim();   
 
-        // --- 1. ÚPRAVA: MODERNÍ TEXT POJISTKY ---
-       if (realA !== reqA || realB !== reqB) {
-    if (window.showToast) showToast("Výměna již není možná (změna v rozpisu)", "error");
-    
-    await updateDoc(msgRef, { 
-        status: "rejected", 
-        // Přidáme příznak (system_error), aby to vykreslování poznalo
-        text: m.text + " (system_error)" 
-    });
-    return;
-}
+        // --- KONTROLA S LOGEM DO KONZOLE (F12) ---
+        console.log("DEBUG VÝMĚNA:", { realA, reqA, realB, reqB });
+
+        if (realA !== reqA || realB !== reqB) {
+            // Pokud to i přes čištění hází chybu, vypíšeme to do konzole
+            console.warn("Neshoda ID! Pokud chceš pojistku úplně vypnout, smaž řádky 731-740.");
+            
+            if (window.showToast) showToast("Výměna již není možná (změna v rozpisu)", "error");
+            await updateDoc(msgRef, { 
+                status: "rejected", 
+                text: m.text + " (system_error)" 
+            });
+            return;
+        }
 
         // --- PROHOZENÍ ---
-         const d1 = source[d.fromPos]; // Data pozice 1 (např. VYP1-L)
-        const d2 = source[d.toPos];   // Data pozice 2 (např. VYP2-L)
+        const d1 = source[d.fromPos]; 
+        const d2 = source[d.toPos];   
 
-        // Extrahujeme hlavní pracovníky (m)
         const m1 = (typeof d1 === 'string') ? d1 : (d1.m || d1.id);
         const m2 = (typeof d2 === 'string') ? d2 : (d2.m || d2.id);
 
-        // Extrahujeme učně (t), pokud na dané pozici jsou
         const t1 = (typeof d1 === 'object') ? d1.t : null;
         const t2 = (typeof d2 === 'object') ? d2.t : null;
 
-        // VYTVOŘÍME NOVÁ DATA: Prohodíme jen 'm', ale 't' vrátíme tam, kde byl
         source[d.fromPos] = t1 ? { m: m2, t: t1 } : m2;
         source[d.toPos] = t2 ? { m: m1, t: t2 } : m1;
 
@@ -988,7 +990,6 @@ window.handleSwapAction = async (msgId, isAccepted) => {
             await updateDoc(shiftRef, updateObj);
         }
 
-        // --- 2. ÚPRAVA: ČISTÉ POTVRZENÍ (Už jen status, žádný text do DB) ---
         await updateDoc(msgRef, { status: "approved" });
         if (window.showToast) showToast("Rozpis byl úspěšně aktualizován", "success");
 
