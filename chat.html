@@ -865,39 +865,55 @@ contentHtml = `<div style="line-height:1.6; color:#fff; font-size:14px;">${swapT
             }
 
             // --- 3. STAVOVÉ TEXTY (Společné) ---
-            if (m.status && !actionButtons) {
-    // Pokud je to schváleno, barva je vždy zelená, jinak červená
-    const statusColor = (m.status === 'approved') ? '#2ecc71' : '#ef4444';
-    
-    let statusTxt = "";
-    if (m.status === 'approved') {
-        statusTxt = "✓ Potvrzeno";
-    } else if (m.status === 'rejected') {
-        statusTxt = "✕ Zamítnuto";
-    } else {
-        // Sem to spadne, pokud by tam byl nějaký jiný status nebo ten system_error
-        statusTxt = "Výměna nemohla být provedena (změna v rozpisu)";
-    }
+            if (m.isSwapRequest && !actionButtons) {
+                let statusColor = "";
+                let statusTxt = "";
+                let icon = "";
 
-    actionButtons = `<div style="color:${statusColor}; font-size:12px; margin-top:10px; font-weight:700;">${statusTxt}</div>`;
-}
+                if (m.status === 'approved') {
+                    statusColor = '#2ecc71'; 
+                    statusTxt = "VÝMĚNA PROVEDENA";
+                    icon = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="3" fill="none" style="margin-right:6px;"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                } else if (m.status === 'rejected') {
+                    statusColor = '#ef4444';
+                    statusTxt = (m.systemError || m.text?.includes("(system_error)")) ? "EXPIROVANÁ ŽÁDOST" : "VÝMĚNA ZAMÍTNUTA";
+                    icon = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="3" fill="none" style="margin-right:6px;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+                } else if (m.status === 'pending') {
+                    statusColor = '#f1c40f'; 
+                    statusTxt = "ČEKÁ NA POTVRZENÍ";
+                    icon = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="3" fill="none" style="margin-right:6px; animation: spin 2s linear infinite;"><circle cx="12" cy="12" r="10" stroke-dasharray="31.4" stroke-dashoffset="10"></circle></svg>`;
+                }
 
-// Oprava cardClass, aby se barva karty shodovala s textem
-if (m.status === "approved") cardClass = "approved-bg";
-else if (m.status === "rejected" || m.text?.includes("(system_error)")) cardClass = "rejected-bg";
+                if (statusTxt) {
+                    actionButtons = `
+                        <div style="display:flex; align-items:center; color:${statusColor}; font-size:11px; margin-top:12px; font-weight:900; letter-spacing:0.5px; text-transform:uppercase; background:rgba(255,255,255,0.03); padding:6px 12px; border-radius:10px; width:fit-content; border:1px solid ${statusColor}33;">
+                            ${icon} ${statusTxt}
+                        </div>`;
+                }
+            }
 
-html += `
-<div class="msg ${cardClass}" id="msg-${msgId}" style="border-radius:22px; padding:18px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.08); background:rgba(15,23,42,0.6); position:relative;">
-    ${isAdmin ? `<button onclick="window.deleteMsg('${msgId}')" style="position:absolute; top:10px; right:10px; background:none; border:none; color:#f87171; cursor:pointer;">✕</button>` : ''}
-    ${contentHtml}
-    ${actionButtons}
-    <div style="text-align:right; font-size:10px; opacity:0.2; margin-top:10px;">${time}</div>
-</div>`;
-        });
+            // --- 4. FINÁLNÍ BARVA KARTY ---
+            if (m.isSwapRequest) {
+                if (m.status === "approved") cardClass = "approved-bg";
+                else if (m.status === "rejected") cardClass = "rejected-bg";
+                else if (isMe && m.status === "pending") cardClass = "me";
+                else cardClass = ""; 
+            }
+
+            // --- 5. GENEROVÁNÍ HTML ---
+            html += `
+            <div class="msg ${cardClass}" id="msg-${msgId}" style="border-radius:22px; padding:18px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.08); background:rgba(15,23,42,0.6); position:relative;">
+                ${isAdmin ? `<button onclick="window.deleteMsg('${msgId}')" style="position:absolute; top:10px; right:10px; background:none; border:none; color:#f87171; cursor:pointer; opacity:0.4;">✕</button>` : ''}
+                ${contentHtml}
+                ${actionButtons}
+                <div style="text-align:right; font-size:10px; opacity:0.2; margin-top:10px;">${time}</div>
+            </div>`;
+        }); // Konec forEach
+
         chatBox.innerHTML = html;
         chatBox.scrollTop = chatBox.scrollHeight;
-    });
-}
+    }); // Konec onSnapshot
+} // Konec funkce startChatListener
 
 // --- FUNKCE PRO ZPĚTNOU VAZBU TLAČÍTEK ---
 const showBtnFeedback = (btnId, text, iconType = 'success') => {
@@ -915,17 +931,34 @@ const showBtnFeedback = (btnId, text, iconType = 'success') => {
     setTimeout(() => { btn.innerHTML = originalContent; btn.style.background = originalBg; btn.disabled = false; }, 1500);
 };
 window.handleSwapAction = async (msgId, isAccepted) => {
+    // --- 1. OCHRANA PROTI DOUBLE-CLICKU ---
+    // Najdeme kontejner zprávy a jeho tlačítka
+    const msgEl = document.getElementById(`msg-${msgId}`);
+    const btns = msgEl ? msgEl.querySelectorAll('button') : [];
+    
+    // Okamžitě zablokujeme všechna tlačítka v této zprávě
+    btns.forEach(b => {
+        b.disabled = true;
+        b.style.opacity = "0.6";
+        b.style.cursor = "not-allowed";
+        // Tomu, na které se kliklo, dáme vědět, že pracujeme
+        if (isAccepted && b.innerText.includes("Přijmout")) {
+            b.innerHTML = `<span class="spin" style="display:inline-block; animation: spin 1s linear infinite; margin-right:8px;">↻</span> Zpracovávám...`;
+        }
+    });
+
     const msgRef = doc(db, "chat", msgId);
-    const msgSnap = await getDoc(msgRef);
-    const m = msgSnap.data();
-
-    if (!isAccepted) {
-        await updateDoc(msgRef, { status: "rejected" });
-        if (window.showToast) showToast("Výměna byla zamítnuta", "error");
-        return;
-    }
-
+    
     try {
+        const msgSnap = await getDoc(msgRef);
+        const m = msgSnap.data();
+
+        if (!isAccepted) {
+            await updateDoc(msgRef, { status: "rejected" });
+            if (window.showToast) showToast("Výměna byla zamítnuta", "error");
+            return;
+        }
+
         const d = m.swapDetails;
         const shiftId = `${d.date}_${d.shift}`;
         const shiftRef = doc(db, "shifts", shiftId);
@@ -940,11 +973,9 @@ window.handleSwapAction = async (msgId, isAccepted) => {
         let isNested = (shiftData.phases && shiftData.phases[d.phase]);
         let source = isNested ? shiftData.phases[d.phase] : shiftData;
 
-        // --- OPRAVENÁ FUNKCE PRO ČIŠTĚNÍ ID ---
         const getCleanID = (val) => {
             if (!val) return "PRÁZDNO";
             let id = (typeof val === 'string') ? val : (val.m || val.id || "");
-            // Odstraní uvozovky a mezery, které v DB vidíme
             return id.toString().replace(/["']/g, "").toLowerCase().trim();
         };
 
@@ -953,22 +984,19 @@ window.handleSwapAction = async (msgId, isAccepted) => {
         const reqA = d.fromId.toString().replace(/["']/g, "").toLowerCase().trim(); 
         const reqB = d.toId.toString().replace(/["']/g, "").toLowerCase().trim();   
 
-        // --- KONTROLA S LOGEM DO KONZOLE (F12) ---
-        console.log("DEBUG VÝMĚNA:", { realA, reqA, realB, reqB });
-
+        // --- 2. KONTROLA ID (Pojistka proti změnám v DB) ---
         if (realA !== reqA || realB !== reqB) {
-            // Pokud to i přes čištění hází chybu, vypíšeme to do konzole
-            console.warn("Neshoda ID! Pokud chceš pojistku úplně vypnout, smaž řádky 731-740.");
+            console.warn("Neshoda ID:", { realA, reqA, realB, reqB });
+            if (window.showToast) showToast("Výměna již není možná", "error");
             
-            if (window.showToast) showToast("Výměna již není možná (změna v rozpisu)", "error");
             await updateDoc(msgRef, { 
-                status: "rejected", 
-                text: m.text + " (system_error)" 
+                status: "rejected",
+                systemError: true 
             });
             return;
         }
 
-        // --- PROHOZENÍ ---
+        // --- 3. PROHOZENÍ POZIC ---
         const d1 = source[d.fromPos]; 
         const d2 = source[d.toPos];   
 
@@ -990,53 +1018,23 @@ window.handleSwapAction = async (msgId, isAccepted) => {
             await updateDoc(shiftRef, updateObj);
         }
 
+        // --- 4. FINÁLNÍ ZÁPIS ---
         await updateDoc(msgRef, { status: "approved" });
-        if (window.showToast) showToast("Rozpis byl úspěšně aktualizován", "success");
+        if (window.showToast) showToast("Rozpis úspěšně aktualizován", "success");
 
     } catch (err) {
         console.error("Chyba systému:", err);
         if (window.showToast) showToast("Chyba při zápisu!", "error");
+        
+        // V případě chyby tlačítka zase odblokujeme, aby to uživatel mohl zkusit znovu
+        btns.forEach(b => {
+            b.disabled = false;
+            b.style.opacity = "1";
+            b.style.cursor = "pointer";
+            if (b.innerHTML.includes("Zpracovávám")) b.innerText = "Přijmout";
+        });
     }
 };
-
-document.getElementById("submitAbsenceBtn").onclick = async () => {
-    const w = document.getElementById("absWorkerSelect").value; 
-    const type = document.getElementById("absType").value;
-    const reason = (type === "Paragraf") ? ` (${document.getElementById("absReason").value})` : "";
-    const from = document.getElementById("absDateFrom").value, to = document.getElementById("absDateTo").value;
-    if(!w || !from || !to) return showBtnFeedback("submitAbsenceBtn", "Vyplňte vše!", "error");
-    const dF = new Date(from).toLocaleDateString('cs-CZ'), dT = new Date(to).toLocaleDateString('cs-CZ');
-    const range = (from === to) ? dF : `${dF} – ${dT}`;
-    await addDoc(collection(db, "chat"), { text: `<strong>${w}:</strong> ${type}${reason} | ${range}`, senderEmail: auth.currentUser.email, topic: "absence", createdAt: serverTimestamp(), status: "pending" });
-    showBtnFeedback("submitAbsenceBtn", "Žádost poslána");
-};
-
-const handleSend = async () => {
-    const input = document.getElementById("msgInput");
-    if (!input) return; // POJISTKA: Pokud input neexistuje, nepokračuj
-    
-    const text = input.value.trim();
-    if (!text || !currentTopicId) return;
-    
-    await addDoc(collection(db, "chat"), { 
-        text, 
-        senderEmail: auth.currentUser.email, 
-        topic: currentTopicId, 
-        createdAt: serverTimestamp() 
-    });
-    input.value = "";
-};
-
-// TYTO ŘÁDKY UPRAV TAKTO (s podmínkou if):
-const btnS = document.getElementById("sendBtn");
-if (btnS) {
-    btnS.onclick = handleSend;
-}
-
-const inpM = document.getElementById("msgInput");
-if (inpM) {
-    inpM.onkeypress = (e) => { if (e.key === "Enter") handleSend(); };
-}
 
 // --- LOGIKA SCHVALOVÁNÍ A MAZÁNÍ (EXPORT DO WINDOW) ---
 window.approveMsg = async (msgId) => {

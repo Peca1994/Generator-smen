@@ -752,23 +752,51 @@ window.openSwapPicker = (idx, myP) => {
     list.innerHTML = "";
     let found = 0;
 
+    // --- CHYTRÁ POMOCNÁ FUNKCE PRO DOVEDNOSTI (Ignoruje čísla 1,2,3, mezery a pomlčky) ---
+    const hasSkill = (emp, targetPos) => {
+        if (!emp || !emp.skills) return false;
+        
+        // Vyčistíme název pozice pro porovnání (např. "VYP1-L" -> "vypl")
+        const cleanTarget = targetPos.toLowerCase().replace(/[123\s-]/g, "").trim();
+        
+        // Hledáme v skills zaměstnance klíč, který po vyčištění odpovídá
+        const foundKey = Object.keys(emp.skills).find(k => {
+            const cleanKey = k.toLowerCase().replace(/[123\s-]/g, "").trim();
+            return cleanKey === cleanTarget;
+        });
+
+        // Vracíme true pouze pokud má u dané pozice hodnotu 2
+        return emp.skills[foundKey] === 2;
+    };
+
     Object.entries(phasesData[idx]).forEach(([pos, w]) => {
         if (pos === myP) return;
-        const id = typeof w === 'string' ? w : w.m;
-        const k = allWorkersData[id];
 
-        if (k?.email?.includes("@") && k.skills?.[myP] === 2 && currentUserEmp.skills?.[pos] === 2) {
+        // 1. Získáme ID (email/přezdívku) pracovníka na pozici
+        const id = typeof w === 'string' ? w : w.m;
+        
+        // 2. Najdeme data pracovníka v našem seznamu všech zaměstnanců
+        const k = allWorkersData[id] || allWorkersData[id.toLowerCase()];
+
+        // 3. FILTR: Musí mít email A musí sedět oboustranně dovednosti
+        const hasEmail = k?.email && k.email.includes("@");
+        const canHeDoMyJob = hasSkill(k, myP);
+        const canIDoHisJob = hasSkill(currentUserEmp, pos);
+
+        if (hasEmail && canHeDoMyJob && canIDoHisJob) {
             found++;
             const b = document.createElement("button");
             b.className = "swap-btn";
-            b.style.transition = "all 0.3s ease"; // Plynulá změna barev
+            b.style.transition = "all 0.3s ease";
             
-            const originalHTML = `Vyměnit s: <b>${k.fName || k.name}</b> (${pos})`;
+            // Text tlačítka - použijeme fName, name nebo aspoň ID
+            const workerName = k.fName || k.name || k.surname || id;
+            const originalHTML = `Vyměnit s: <b>${workerName}</b> (${pos})`;
             b.innerHTML = originalHTML;
 
             b.onclick = () => {
                 if (!b.dataset.confirming) {
-                    // 1. KLIKNUTÍ: Moderní potvrzovací stav
+                    // PRVNÍ KLIK: Moderní potvrzovací stav
                     b.dataset.confirming = "true";
                     b.innerHTML = `ODESLAT ŽÁDOST ➔`;
                     b.style.background = "#22c55e"; // Sytě zelená
@@ -777,7 +805,7 @@ window.openSwapPicker = (idx, myP) => {
                     b.style.fontWeight = "900";
                     b.style.boxShadow = "0 0 15px rgba(34, 197, 94, 0.4)";
 
-                    // Reset po 3 vteřinách
+                    // Reset po 3 vteřinách, pokud neklikne podruhé
                     setTimeout(() => {
                         if (b.dataset.confirming === "true") {
                             delete b.dataset.confirming;
@@ -789,16 +817,19 @@ window.openSwapPicker = (idx, myP) => {
                         }
                     }, 3000);
                 } else {
-    // 2. KLIKNUTÍ: Samotné odeslání - přidáme 'b' na konec
-    sendSwapRequest(idx, myP, pos, k, b); 
-}
+                    // DRUHÝ KLIK: Samotné odeslání žádosti do Firebase
+                    sendSwapRequest(idx, myP, pos, k, b); 
+                }
             };
             list.appendChild(b);
         }
     });
 
-    if (!found) alert("Nikdo vhodný k výměně nenalezen.");
-    else document.getElementById("swapModal").style.display = "flex";
+    if (!found) {
+        alert("Nikdo vhodný k výměně nenalezen.\n(Systém nenašel nikoho s e-mailem a dovedností '2' pro vaši pozici)");
+    } else {
+        document.getElementById("swapModal").style.display = "flex";
+    }
 };
 
 async function sendSwapRequest(idx, myP, toP, k, btn) {
