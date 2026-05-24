@@ -1338,6 +1338,90 @@ window.addSQS = async function(date, shift) {
         console.error("Chyba zápisu:", err);
     }
 };
+document.getElementById("submitAbsenceBtn").addEventListener("click", async () => {
+    const workerSelect = document.getElementById("absWorkerSelect");
+    const typeSelect = document.getElementById("absType");
+    const reasonSelect = document.getElementById("absReason");
+    const dateFromInput = document.getElementById("absDateFrom");
+    const dateToInput = document.getElementById("absDateTo");
+    const btn = document.getElementById("submitAbsenceBtn");
+
+    const jmeno = workerSelect.value;
+    const typ = typeSelect.value;
+    const duvod = reasonSelect.value;
+    const dateFrom = dateFromInput.value;
+    const dateTo = dateToInput.value;
+
+    // 1. Kontrola vyplnění základních polí
+    if (!jmeno || !dateFrom || !dateTo) {
+        const origText = btn.innerText;
+        btn.innerText = "❌ Vyplňte všechna pole!";
+        btn.style.background = "#ef4444";
+        setTimeout(() => { 
+            btn.innerText = origText; 
+            btn.style.background = "#f59e0b"; 
+        }, 2000);
+        return;
+    }
+
+    // Zformátování textu, který se zobrazí v chatové kartě
+    let formatovanyText = `${typ === 'Paragraf' ? `⚠️ Paragraf (${duvod})` : '🌴 Dovolená'} od ${new Date(dateFrom).toLocaleDateString('cs-CZ')} do ${new Date(dateTo).toLocaleDateString('cs-CZ')}`;
+
+    // Tlačítko do stavu načítání
+    const origText = btn.innerText;
+    btn.innerText = "Odesílám...";
+    btn.disabled = true;
+
+    // Generování unikátního ID (např. 2026-05-24_18-45-00_absence)
+    const now = new Date();
+    const timeStr = now.getHours().toString().padStart(2, '0') + "-" + 
+                    now.getMinutes().toString().padStart(2, '0') + "-" + 
+                    now.getSeconds().toString().padStart(2, '0');
+    const customId = `${dateFrom}_${timeStr}_absence`;
+
+    try {
+        // 2. Zápis do Firebase do kolekce "chat"
+        await setDoc(doc(db, "chat", customId), {
+            topic: 'absence',
+            senderEmail: auth.currentUser.email.toLowerCase(),
+            user: jmeno,
+            text: formatovanyText,
+            status: 'pending', // Čeká na schválení adminem
+            createdAt: serverTimestamp(),
+            absenceDetails: {
+                worker: jmeno,
+                type: typ,
+                reason: typ === 'Paragraf' ? duvod : "",
+                dateFrom,
+                dateTo
+            }
+        });
+
+        // 3. Vizuální zpětná vazba - Úspěch
+        btn.innerText = "✓ Žádost odeslána";
+        btn.style.background = "#22c55e";
+
+        // Vyčištění formuláře po 1.5 sekundách
+        setTimeout(() => {
+            btn.innerText = origText;
+            btn.style.background = "#f59e0b";
+            btn.disabled = false;
+            
+            // Schováme formulář a vrátíme uživatele na výběr témat
+            window.showTopics();
+        }, 1500);
+
+    } catch (err) {
+        console.error("Chyba při odesílání absence:", err);
+        btn.innerText = "❌ Chyba serveru!";
+        btn.style.background = "#ef4444";
+        btn.disabled = false;
+        setTimeout(() => { 
+            btn.innerText = origText; 
+            btn.style.background = "#f59e0b"; 
+        }, 2000);
+    }
+});
 
 window.confirmFix = function(id, btn) {
     const step = btn.getAttribute('data-step');
