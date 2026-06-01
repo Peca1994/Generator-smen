@@ -555,7 +555,7 @@ let allWorkersData = {};
 let phasesData = [];
 let currentUserEmp = null;
 
-const POSITIONS = ["DP-L", "DP-P", "ZRC-L", "ZRC-P", "T-L", "T-P", "AGR-LP", "AGR-PP", "AGR-PZ", "AGR-LZ", "MOT-L", "MOT-P", "LEP-LP", "LEP-PP", "LEP-Z", "REPRO-L", "REPRO-P", "VYP1-L", "VYP1-P", "VYP2-L", "VYP2-P", "PR-L", "PR-P", "ZAM-L", "ZAM-P", "VET", "VET2", "VET3", "INST", "INST2", "INST3", "QRK"];
+const POSITIONS = ["DP-L", "DP-P", "ZRC-L", "ZRC-P", "T-L", "T-P", "AGR-LP", "AGR-PP", "AGR-PZ", "AGR-LZ", "MOT-L", "MOT-P", "LEP-LP", "LEP-PP", "LEP-Z", "REPRO-L", "REPRO-P", "VYP1-L", "VYP1-P", "VYP2-L", "VYP2-P", "PR-L", "PR-P", "ZAM-L", "ZAM-P", "VET", "VET2", "VET3", "INST", "INST2", "INST3", "QRK", "QRK2"];
 
 // 1. START A IDENTIFIKACE
 onAuthStateChanged(auth, async (user) => {
@@ -647,7 +647,7 @@ function render() {
     const filter = nameFilterEl.value.toLowerCase().trim();
     const s = shiftEl.value;
     const labels = (s === "ranni") ? ["06:00-08:00", "08:05-10:15", "10:45-12:00", "12:05-14:00"] : (s === "odpo") ? ["14:00-16:00", "16:05-18:15", "18:45-20:00", "20:05-22:00"] : ["22:00-00:00", "00:05-02:15", "02:45-04:00", "04:05-06:00"];
-    const MERGED_GROUPS = { "VYP1-L": { others: ["VYP2-L"], label: "VÝPLNĚ L" }, "VYP1-P": { others: ["VYP2-P"], label: "VÝPLNĚ P" }, "VET": { others: ["VET2", "VET3"], label: "VĚTRAČKY" }, "INST": { others: ["INST2", "INST3"], label: "INSTALACE" } };
+    const MERGED_GROUPS = { "VYP1-L": { others: ["VYP2-L"], label: "VÝPLNĚ L" }, "VYP1-P": { others: ["VYP2-P"], label: "VÝPLNĚ P" }, "VET": { others: ["VET2", "VET3"], label: "VĚTRAČKY" }, "INST": { others: ["INST2", "INST3"], label: "INSTALACE" },"QRK1": { others: ["QRK2"], label: "QRK" } };
     const skipped = new Set();
     
     let html = "<thead><tr><th style='color:rgba(255,255,255,0.4); font-size:9px;'>Pozice</th>" + labels.map(l => `<th style='color:rgba(255,255,255,0.4); font-size:9px;'>${l}</th>`).join('') + "</tr></thead><tbody>";
@@ -757,7 +757,7 @@ window.openSwapPicker = (idx, myP) => {
         if (!emp || !emp.skills) return false;
         
         // Vyčistíme název pozice pro porovnání (např. "VYP1-L" -> "vypl")
-        const cleanTarget = targetPos.toLowerCase().replace(/[123\s-]/g, "").trim();
+        const cleanTarget = targetPos.toLowerCase().replace(/[1234\s-]/g, "").trim();
         
         // Hledáme v skills zaměstnance klíč, který po vyčištění odpovídá
         const foundKey = Object.keys(emp.skills).find(k => {
