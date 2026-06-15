@@ -730,12 +730,16 @@ function setShiftAutomatically() {
     const hours = today.getHours();
     const anchorDate = new Date(2026, 2, 2); 
     const getShift = (d) => {
-        const msDiff = d.getTime() - anchorDate.getTime();
-        const weeksDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24 * 7));
-        const shiftValues = ["noc", "odpo", "ranni"];
-        let index = weeksDiff % 3; if (index < 0) index += 3;
-        return shiftValues[index];
-    };
+  // VYČIŠTĚNÍ ČASU: Vytvoříme nový objekt data s čistou půlnocí z lokálního času
+  const cleanDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  
+  const msDiff = cleanDate.getTime() - anchorDate.getTime();
+  const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+  const weeksDiff = Math.floor(daysDiff / 7);
+  const shiftValues = ["noc", "odpo", "ranni"];
+  let index = weeksDiff % 3; if (index < 0) index += 3;
+  return shiftValues[index];
+};
     let dDate = new Date(today);
     const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
     if (getShift(tomorrow) === "noc" && hours >= 12) dDate = tomorrow;

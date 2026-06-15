@@ -1152,141 +1152,131 @@ const getGenericPos = (p) => {
 let fixedQRKWorkers = null;
 
 function buildPhase(act, historicalStats) {
-  // 1. FILTR: Kdo je dnes v práci
-  const activeWorkers = workers.filter(w => {
-    const s = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
-    return s.includes('work') || s.includes('prác') || s.includes('prac');
-  });
+ // 1. FILTR: Kdo je dnes v práci
+ const activeWorkers = workers.filter(w => {
+   const s = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
+   return s.includes('work') || s.includes('prác') || s.includes('prac');
+ });
+ if (!act || !activeWorkers || activeWorkers.length < act.length) return null;
 
-  if (!act || !activeWorkers || activeWorkers.length < act.length) return null;
+ // --- SPECIÁLNÍ LOGIKA PRO QRK (FIXACE NA CELÝ DEN) ---
+ const hasQRK1 = act.includes("QRK1");
+ const hasQRK2 = act.includes("QRK2");
+ if ((hasQRK1 || hasQRK2) && (phases.length === 0 || !fixedQRKWorkers)) {
+   let qrkCandidates = activeWorkers.filter(w => w.skills && w.skills["QRK"] === 2);
+   qrkCandidates.sort(() => Math.random() - 0.5);
+   fixedQRKWorkers = {
+     qrk1: qrkCandidates[0] || null,
+     qrk2: qrkCandidates[1] || null
+   };
+ }
 
-  // --- 🌟 SPECIÁLNÍ LOGIKA PRO QRK (FIXACE NA CELÝ DEN) ---
-  const hasQRK1 = act.includes("QRK1");
-  const hasQRK2 = act.includes("QRK2");
+ // 2. HISTORIE: Co už se dnes reálně odpracovalo v předchozích fázích
+ const dailyHistory = {}; 
+ phases.forEach(p => {
+   Object.entries(p).forEach(([pos, worker]) => {
+     const wId = worker?.id || worker?.main?.id;
+     if (wId) {
+       const gen = getGenericPos(pos);
+       dailyHistory[`${wId}_${gen}`] = (dailyHistory[`${wId}_${gen}`] || 0) + 1;
+     }
+   });
+ });
 
-  // Pokud generujeme úplně první fázi (phases.length === 0), vybereme lidi pro QRK
-  if ((hasQRK1 || hasQRK2) && (phases.length === 0 || !fixedQRKWorkers)) {
-    // Najdeme lidi v práci, co umí QRK na level 2
-    let qrkCandidates = activeWorkers.filter(w => w.skills && w.skills["QRK"] === 2);
+ // 3. MAPA SKILLŮ: Kdo co může dělat
+ const skillMapping = {
+   "VYP1-L": "VYP-L", "VYP2-L": "VYP-L",
+   "VYP1-P": "VYP-P", "VYP2-P": "VYP-P",
+   "VET": "VET", "VET2": "VET", "VET3": "VET",
+   "INST": "INST", "INST2": "INST", "INST3": "INST",
+   "QRK1": "QRK", "QRK2": "QRK"
+ };
 
-    // Seřadíme je podle včerejší historie - přednost dostane ten, kdo na QRK dlouho neseděl
-    qrkCandidates.sort((a, b) => {
-      const pastA = historicalStats?.[a.id]?.["QRK"] || 0;
-      const pastB = historicalStats?.[b.id]?.["QRK"] || 0;
-      return pastA - pastB;
-    });
+ const normalPositions = act.filter(p => p !== "QRK1" && p !== "QRK2");
+ const map = {};
+ normalPositions.forEach(pos => {
+   const requiredSkill = skillMapping[pos] || pos;
+   map[pos] = activeWorkers.filter(w => {
+     if (!w.skills) return false;
+     
+     if (fixedQRKWorkers) {
+       if (fixedQRKWorkers.qrk1 && w.id === fixedQRKWorkers.qrk1.id) return false;
+       if (fixedQRKWorkers.qrk2 && w.id === fixedQRKWorkers.qrk2.id) return false;
+     }
+     if (typeof w.skills === 'object' && !Array.isArray(w.skills)) {
+       return w.skills[requiredSkill] === 2;
+     }
+     return Array.isArray(w.skills) && w.skills.includes(requiredSkill);
+   });
+ });
 
-    fixedQRKWorkers = {
-      qrk1: qrkCandidates[0] || null,
-      qrk2: qrkCandidates[1] || null
-    };
-  }
+ // 4. GENEROVÁNÍ: Pouze 200 pokusů, protože kód filtruje inteligentně a poběží bleskově
+ let bestResult = null;
+ let minScore = Infinity;
+ 
+ for (let i = 0; i < 1000; i++) {
+   const shuffledPos = [...normalPositions].sort(() => Math.random() - 0.5);
+   const attempt = runSmartAttempt(shuffledPos, map, dailyHistory);
+   
+   if (!attempt) continue;
+   let currentScore = 0;
+   let hardViolation = false;
+   
+   for (const pos in attempt) {
+     const wId = attempt[pos].id;
+     const currentGen = getGenericPos(pos);
+     const lastPos = lastPosByWorker[wId];
+     
+     // Spoření celkových master skillů (úroveň 2)
+     const totalSkills = Object.keys(attempt[pos].skills || {}).filter(k => attempt[pos].skills[k] === 2).length;
+     
+     // NEPRŮSTŘELNÉ PRAVIDLO 1: Pokud umíš víc než 1 věc, NESMÍŠ jít na stejnou pozici HNED PO SOBĚ
+     if (lastPos && getGenericPos(lastPos) === currentGen) {
+       if (totalSkills > 1) {
+         hardViolation = true; // Označíme pokus za neplatný
+         break;
+       }
+     }
+     
+     // PRAVIDLO 2: Kontrola celodenní historie (střídání pro lidi s mnoha skilly)
+     const usedToday = dailyHistory[`${wId}_${currentGen}`] || 0;
+     if (usedToday > 0) {
+       if (totalSkills >= 5) {
+         currentScore += (usedToday * 50000); // Vyšší postih pro lidi s 5+ skilly (nutí je rotovat)
+       } else if (totalSkills >= 3) {
+         currentScore += (usedToday * 10000); // Mírný postih pro lidi se 3-4 skilly
+       } else if (totalSkills === 2) {
+         currentScore += (usedToday * 1000);  // Minimální postih pro lidi se 2 skilly, aby se mohli střídat
+       }
+     }
+     
+     // Systémová optimalizace: Šetři univerzály, přednostně obsazuj lidi s méně skilly
+     currentScore += (totalSkills * 10);
+     currentScore += Math.floor(Math.random() * 5);
+   }
+   
+   // Pokud pokus porušil pravidlo "hned po sobě", úplně ho zahodíme
+   if (hardViolation) continue;
+   
+   if (currentScore < minScore) {
+     minScore = currentScore;
+     bestResult = attempt;
+   }
+ }
 
-  // 2. HISTORIE: Co už se dnes odpracovalo
-  const dailyHistory = {}; 
-  phases.forEach(p => {
-    Object.entries(p).forEach(([pos, worker]) => {
-      const wId = worker?.id || worker?.main?.id;
-      if (wId) {
-        const gen = getGenericPos(pos);
-        dailyHistory[`${wId}_gen}`] = (dailyHistory[`${wId}_gen}`] || 0) + 1;
-      }
-    });
-  });
-
-  // 3. MAPA SKILLŮ: Kdo co může dělat
-  const skillMapping = {
-    "VYP1-L": "VYP-L", "VYP2-L": "VYP-L",
-    "VYP1-P": "VYP-P", "VYP2-P": "VYP-P",
-    "VET": "VET", "VET2": "VET", "VET3": "VET",
-    "INST": "INST", "INST2": "INST", "INST3": "INST",
-    "QRK1": "QRK", "QRK2": "QRK" // <-- Přidáno mapování pro QRK pozice
-  };
-
-  // Vytvoříme seznam pozic bez QRK, které budeme generovat algoritmem
-  const normalPositions = act.filter(p => p !== "QRK1" && p !== "QRK2");
-
-  const map = {};
-  normalPositions.forEach(pos => {
-    const requiredSkill = skillMapping[pos] || pos;
-
-    map[pos] = activeWorkers.filter(w => {
-      if (!w.skills) return false;
-      
-      // 🌟 OCHRANA: Lidé zamčení na QRK nesmí být dostupní pro ostatní pozice linky!
-      if (fixedQRKWorkers) {
-        if (fixedQRKWorkers.qrk1 && w.id === fixedQRKWorkers.qrk1.id) return false;
-        if (fixedQRKWorkers.qrk2 && w.id === fixedQRKWorkers.qrk2.id) return false;
-      }
-
-      if (typeof w.skills === 'object' && !Array.isArray(w.skills)) {
-        return w.skills[requiredSkill] === 2;
-      }
-      return Array.isArray(w.skills) && w.skills.includes(requiredSkill);
-    });
-  });
-
-  // 4. GENEROVÁNÍ: Zkusíme 500 úplně náhodných pokusů pro ZBYTEK linky
-  let bestResult = null;
-  let minScore = Infinity;
-
-  for (let i = 0; i < 500; i++) {
-    const shuffledPos = [...normalPositions].sort(() => Math.random() - 0.5);
-    const attempt = runSmartAttempt(shuffledPos, map, dailyHistory);
-    
-    if (!attempt) continue;
-
-    let currentScore = 0;
-    for (const pos in attempt) {
-      const wId = attempt[pos].id;
-      const currentGen = getGenericPos(pos);
-      const lastPos = lastPosByWorker[wId];
-      
-      // Zjistíme celkový počet skillů, které pracovník ovládá na level 2
-      const totalSkills = Object.keys(attempt[pos].skills || {}).filter(k => attempt[pos].skills[k] === 2).length;
-
-      // 1. Obří pokuta za opakování stejné věci hned po sobě
-      if (lastPos && getGenericPos(lastPos) === currentGen) {
-        // Pokud je to specialista s 1 skillem, pokutu ignorujeme (nemá kam jinam jít)
-        if (totalSkills > 1) {
-          currentScore += 1000000;
-        }
-      }
-      
-      // 2. Pokuta za to, že už tam dnes byl (podporuje rotaci ob fázi, např. vzor A-B-A-B)
-      const usedToday = dailyHistory[`${wId}_${currentGen}`] || 0;
-      currentScore += (usedToday * 50000);
-      
-      // 🌟 3. NOVÁ POKUTA ZA HISTORII Z MINULÝCH DNÍ (Zohledňuje i ruční výměny)
-      // Pokud na této pozici seděl minulé dny často, dostane mírný postih, aby dostal šanci někdo jiný
-      const usedInHistory = historicalStats?.[wId]?.[currentGen] || 0;
-      currentScore += (usedInHistory * 15000);
-
-      // Bonus za náhodu
-      currentScore += Math.floor(Math.random() * 100);
-    }
-
-    if (currentScore < minScore) {
-      minScore = currentScore;
-      bestResult = attempt;
-    }
-  }
-
-  // 5. SLOUČENÍ: Pokud máme výsledek pro linku, přidáme k němu napevno lidi z QRK
-  if (bestResult) {
-    // Ručně vepíšeme zafixované lidi na QRK do výsledné mapy této fáze
-    if (hasQRK1 && fixedQRKWorkers.qrk1) bestResult["QRK1"] = fixedQRKWorkers.qrk1;
-    if (hasQRK2 && fixedQRKWorkers.qrk2) bestResult["QRK2"] = fixedQRKWorkers.qrk2;
-
-    // Zápis do paměti pro příští fázi (aby systém věděl, kdo kde seděl teď)
-    for (const p in bestResult) {
-      lastPosByWorker[bestResult[p].id] = p;
-    }
-    
-    const usedIds = new Set(Object.values(bestResult).map(w => w.id));
-    return { assign: bestResult, reserves: activeWorkers.filter(w => !usedIds.has(w.id)) };
-  }
-  return null;
+ // 5. SLOUČENÍ S QRK
+ if (bestResult) {
+   if (hasQRK1 && fixedQRKWorkers.qrk1) bestResult["QRK1"] = fixedQRKWorkers.qrk1;
+   if (hasQRK2 && fixedQRKWorkers.qrk2) bestResult["QRK2"] = fixedQRKWorkers.qrk2;
+   
+   for (const p in bestResult) {
+     lastPosByWorker[bestResult[p].id] = p;
+   }
+   
+   const usedIds = new Set(Object.values(bestResult).map(w => w.id));
+   return { assign: bestResult, reserves: activeWorkers.filter(w => !usedIds.has(w.id)) };
+ }
+ return null;
 }
 
 function runSmartAttempt(shuffledPos, map, dailyHistory) {
