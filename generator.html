@@ -1214,7 +1214,7 @@ function buildPhase(act, historicalStats) {
  let bestResult = null;
  let minScore = Infinity;
  
- for (let i = 0; i < 1000; i++) {
+ for (let i = 0; i < 400; i++) {
    const shuffledPos = [...normalPositions].sort(() => Math.random() - 0.5);
    const attempt = runSmartAttempt(shuffledPos, map, dailyHistory);
    
