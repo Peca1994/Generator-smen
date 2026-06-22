@@ -726,37 +726,37 @@ function render() {
 }
 // 5. AUTOMATIKA DATA A SMĚNY (OPRAVENO DLE PDF)
 function setShiftAutomatically() {
-  const today = new Date();
-  const hours = today.getHours();
-  const anchorDate = new Date(2026, 2, 2); // 2. března 2026
-  
-  const getShift = (d) => {
-    const cleanDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    const msDiff = cleanDate.getTime() - anchorDate.getTime();
-    const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
-    const weeksDiff = Math.floor(daysDiff / 7);
-    const shiftValues = ["noc", "odpo", "ranni"];
-    let index = weeksDiff % 3; if (index < 0) index += 3;
-    return shiftValues[index];
-  };
+ const today = new Date();
+ const hours = today.getHours();
+ const anchorDate = new Date(2026, 2, 2); 
 
-  let dDate = new Date(today);
+ const getShift = (d) => {
+   const cleanDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+   const msDiff = cleanDate.getTime() - anchorDate.getTime();
+   const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+   // Zde je opravené zaokrouhlení na celé týdny
+   const weeksDiff = Math.floor(daysDiff / 7);
+   const shiftValues = ["noc", "odpo", "ranni"];
+   let index = weeksDiff % 3; if (index < 0) index += 3;
+   return shiftValues[index];
+ };
 
-  // OPRAVA: Pokud je v tomto týdnu NOČNÍ směna a je neděle (0) po 12:00,
-  // posuneme datum na pondělí, aby se načetla nová směna.
-  // Pro odpolední týden tato podmínka zůstane ignorována!
-  if (getShift(today) === "noc" && today.getDay() === 0 && hours >= 12) {
-    dDate.setDate(today.getDate() + 1);
-  }
- 
-  // Bezpečné uložení čistého lokálního data bez posunu zón
-  const year = dDate.getFullYear();
-  const month = String(dDate.getMonth() + 1).padStart(2, '0');
-  const day = String(dDate.getDate()).padStart(2, '0');
-  
-  dateEl.value = `${year}-${month}-${day}`;
-  shiftEl.value = getShift(dDate);
-  loadShift();
+ let dDate = new Date(today);
+ const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+
+ // Opravená podmínka: Pokud zítra OPRAVDU začíná týden nočních směn a dnes je neděle po 12:00
+ if (getShift(tomorrow) === "noc" && today.getDay() === 0 && hours >= 12) {
+   dDate = tomorrow;
+ }
+
+ // Bezpečné formátování lokálního data, které nedeformuje mobilní telefony
+ const year = dDate.getFullYear();
+ const month = String(dDate.getMonth() + 1).padStart(2, '0');
+ const day = String(dDate.getDate()).padStart(2, '0');
+
+ dateEl.value = `${year}-${month}-${day}`;
+ shiftEl.value = getShift(dDate);
+ loadShift();
 }
 
 // 6. LOGIKA VÝMĚNY (MODAL)
