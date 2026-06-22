@@ -726,31 +726,37 @@ function render() {
 }
 // 5. AUTOMATIKA DATA A SMĚNY (OPRAVENO DLE PDF)
 function setShiftAutomatically() {
-    const today = new Date();
-    const hours = today.getHours();
-    const anchorDate = new Date(2026, 2, 2); 
-    const getShift = (d) => {
-  // VYČIŠTĚNÍ ČASU: Vytvoříme nový objekt data s čistou půlnocí z lokálního času
-  const cleanDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const today = new Date();
+  const hours = today.getHours();
+  const anchorDate = new Date(2026, 2, 2); // 2. března 2026
+  
+  const getShift = (d) => {
+    const cleanDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const msDiff = cleanDate.getTime() - anchorDate.getTime();
+    const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+    const weeksDiff = Math.floor(daysDiff / 7);
+    const shiftValues = ["noc", "odpo", "ranni"];
+    let index = weeksDiff % 3; if (index < 0) index += 3;
+    return shiftValues[index];
+  };
+
+  let dDate = new Date(today);
+
+  // OPRAVA: Pokud je v tomto týdnu NOČNÍ směna a je neděle (0) po 12:00,
+  // posuneme datum na pondělí, aby se načetla nová směna.
+  // Pro odpolední týden tato podmínka zůstane ignorována!
+  if (getShift(today) === "noc" && today.getDay() === 0 && hours >= 12) {
+    dDate.setDate(today.getDate() + 1);
+  }
  
-  const msDiff = cleanDate.getTime() - anchorDate.getTime();
-  const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+  // Bezpečné uložení čistého lokálního data bez posunu zón
+  const year = dDate.getFullYear();
+  const month = String(dDate.getMonth() + 1).padStart(2, '0');
+  const day = String(dDate.getDate()).padStart(2, '0');
   
-  // OPRAVA: Přidáno Math.floor pro získání celých týdnů
-  const weeksDiff = Math.floor(daysDiff / 7); 
-  
-  const shiftValues = ["noc", "odpo", "ranni"];
-  let index = weeksDiff % 3; if (index < 0) index += 3;
-  return shiftValues[index];
-};
-    let dDate = new Date(today);
-    const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
-    if (getShift(tomorrow) === "noc" && hours >= 12) dDate = tomorrow;
-    else if (hours >= 24) dDate = tomorrow;
-    
-    dateEl.value = (new Date(dDate - dDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
-    shiftEl.value = getShift(dDate);
-    loadShift();
+  dateEl.value = `${year}-${month}-${day}`;
+  shiftEl.value = getShift(dDate);
+  loadShift();
 }
 
 // 6. LOGIKA VÝMĚNY (MODAL)

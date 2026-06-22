@@ -401,46 +401,38 @@ window.showTopics = () => {
 };
 
 function getCurrentShiftInfo() {
-    const today = new Date();
-    const hours = today.getHours();
-    
-    // Identické kotevní datum jako v Schedule
-    const anchorDate = new Date(2026, 2, 2); 
-    
- const getShiftType = (d) => {
-  // VYČIŠTĚNÍ ČASU: Vytvoříme nový objekt data s čistou půlnocí z lokálního času
-  const cleanDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const today = new Date();
+  const hours = today.getHours();
+  const anchorDate = new Date(2026, 2, 2); 
  
-  const msDiff = cleanDate.getTime() - anchorDate.getTime();
-  const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
-  
-  // OPRAVA: Přidáno Math.floor pro získání celých týdnů
-  const weeksDiff = Math.floor(daysDiff / 7); 
-  
-  const shiftValues = ["Noční", "Odpolední", "Ranní"];
-  let index = weeksDiff % 3; if (index < 0) index += 3;
-  return shiftValues[index];
-};
+  const getShiftType = (d) => {
+    const cleanDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const msDiff = cleanDate.getTime() - anchorDate.getTime();
+    const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+    const weeksDiff = Math.floor(daysDiff / 7);
+    const shiftValues = ["Noční", "Odpolední", "Ranní"];
+    let index = weeksDiff % 3; if (index < 0) index += 3;
+    return shiftValues[index];
+  };
 
-    let dDate = new Date(today);
-    const tomorrow = new Date(today); 
-    tomorrow.setDate(today.getDate() + 1);
+  let dDate = new Date(today);
 
-    // Sjednocená překlápěcí logika:
-    // Pokud zítra začíná týden nočních a dnes je už po 12:00, 
-    // ukaž už data pro tu nadcházející noční směnu.
-    if (getShiftType(tomorrow) === "Noční" && hours >= 12) {
-        dDate = tomorrow;
-    }
+  // OPRAVA: Pokud je v tomto týdnu NOČNÍ směna a je neděle (0) po 12:00,
+  // posuneme datum na pondělí.
+  if (getShiftType(today) === "Noční" && today.getDay() === 0 && hours >= 12) {
+    dDate.setDate(today.getDate() + 1);
+  }
 
-    // Formátování data pro Firebase (YYYY-MM-DD) bez posunu časového pásma
-    const dStr = new Date(dDate.getTime() - dDate.getTimezoneOffset() * 60000)
-                 .toISOString().split('T')[0];
+  // Bezpečné formátování lokálního data (YYYY-MM-DD)
+  const year = dDate.getFullYear();
+  const month = String(dDate.getMonth() + 1).padStart(2, '0');
+  const day = String(dDate.getDate()).padStart(2, '0');
+  const dStr = `${year}-${month}-${day}`;
 
-    return { 
-        date: dStr, 
-        shift: getShiftType(dDate) 
-    };
+  return { 
+    date: dStr, 
+    shift: getShiftType(dDate) 
+  };
 }
 // --- DATA PRACOVNÍKŮ ---
 async function loadNicknames() {
