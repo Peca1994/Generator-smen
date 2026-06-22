@@ -727,32 +727,45 @@ function render() {
 // 5. AUTOMATIKA DATA A SMĚNY (OPRAVENO DLE PDF)
 function setShiftAutomatically() {
   const today = new Date();
+  const currentDay = today.getDay(); // 0 = neděle
+  const currentHours = today.getHours();
+  
   let dDate = new Date(today);
 
-  // Pokud je neděle, rovnou skočíme na pondělí nového týdne
-  if (today.getDay() === 0) {
+  // Pomocná funkce pro zjištění směny bez posunu data
+  const checkShift = (d) => {
+    const anchorDate = new Date(2026, 2, 2); 
+    const cleanDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const msDiff = cleanDate.getTime() - anchorDate.getTime();
+    const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+    const weeksDiff = Math.floor(daysDiff / 7);
+    const shiftValues = ["noc", "odpo", "ranni"];
+    let idx = weeksDiff % 3; if (idx < 0) idx += 3;
+    return shiftValues[idx];
+  };
+
+  // VYHRAZENÁ LOGIKA PRO NOČNÍ:
+  // Zkontrolujeme, jaká směna vyjde na zítřejší pondělí
+  const mondayTest = new Date(today);
+  if (currentDay === 0) mondayTest.setDate(today.getDate() + 1); // pokud je neděle, otestuj zítřek
+  else if (currentDay === 1) mondayTest.setDate(today.getDate()); // pokud už je pondělí, otestuj dnešek
+
+  // PŘELOM NASTANE JEN PŘI NOČNÍ:
+  // Pokud má být v novém týdnu noční směna a je neděle po 8:00 ráno, posuneme čas na pondělí.
+  if (checkShift(mondayTest) === "noc" && currentDay === 0 && currentHours >= 8) {
     dDate.setDate(today.getDate() + 1);
   }
 
-  // NOVÉ KOTEVNÍ DATUM: Dnešek (22. června 2026), kdy je ODPOLEDNÍ týden
-  const anchorDate = new Date(2026, 5, 22); // Pozor, v JS je červen měsíc 5
-  
-  const cleanDate = new Date(dDate.getFullYear(), dDate.getMonth(), dDate.getDate());
-  const msDiff = cleanDate.getTime() - anchorDate.getTime();
-  const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
-  const weeksDiff = Math.floor(daysDiff / 7);
-  
-  // Přesné pořadí podle tebe: Odpolední -> Ranní -> Noční
-  // Dnes (weeksDiff = 0) to hodí index 0 = "odpo"
-  const shiftValues = ["odpo", "ranni", "noc"];
-  let index = weeksDiff % 3; if (index < 0) index += 3;
+  // Výpočet výsledné směny pro nastavené datum
+  const finalShift = checkShift(dDate);
 
+  // Bezpečný zápis lokálního data (YYYY-MM-DD) do políčka
   const year = dDate.getFullYear();
   const month = String(dDate.getMonth() + 1).padStart(2, '0');
   const day = String(dDate.getDate()).padStart(2, '0');
 
   dateEl.value = `${year}-${month}-${day}`;
-  shiftEl.value = shiftValues[index];
+  shiftEl.value = finalShift;
   loadShift();
 }
 

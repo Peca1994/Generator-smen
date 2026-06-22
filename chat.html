@@ -402,23 +402,32 @@ window.showTopics = () => {
 
 function getCurrentShiftInfo() {
   const today = new Date();
+  const currentDay = today.getDay(); 
+  const currentHours = today.getHours();
+  
   let dDate = new Date(today);
 
-  // Pokud je neděle, rovnou skočíme na pondělí nového týdne
-  if (today.getDay() === 0) {
+  const checkShift = (d) => {
+    const anchorDate = new Date(2026, 2, 2); 
+    const cleanDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const msDiff = cleanDate.getTime() - anchorDate.getTime();
+    const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+    const weeksDiff = Math.floor(daysDiff / 7);
+    const shiftValues = ["Noční", "Odpolední", "Ranní"];
+    let idx = weeksDiff % 3; if (idx < 0) idx += 3;
+    return shiftValues[idx];
+  };
+
+  const mondayTest = new Date(today);
+  if (currentDay === 0) mondayTest.setDate(today.getDate() + 1);
+  else if (currentDay === 1) mondayTest.setDate(today.getDate());
+
+  // PŘELOM NASTANE JEN PŘI NOČNÍ:
+  if (checkShift(mondayTest) === "Noční" && currentDay === 0 && currentHours >= 8) {
     dDate.setDate(today.getDate() + 1);
   }
 
-  // NOVÉ KOTEVNÍ DATUM: Dnešek (22. června 2026)
-  const anchorDate = new Date(2026, 5, 22); 
-  
-  const cleanDate = new Date(dDate.getFullYear(), dDate.getMonth(), dDate.getDate());
-  const msDiff = cleanDate.getTime() - anchorDate.getTime();
-  const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
-  const weeksDiff = Math.floor(daysDiff / 7);
-  
-  const shiftValues = ["Odpolední", "Ranní", "Noční"];
-  let index = weeksDiff % 3; if (index < 0) index += 3;
+  const finalShift = checkShift(dDate);
 
   const year = dDate.getFullYear();
   const month = String(dDate.getMonth() + 1).padStart(2, '0');
@@ -427,7 +436,7 @@ function getCurrentShiftInfo() {
 
   return { 
     date: dStr, 
-    shift: shiftValues[index] 
+    shift: finalShift 
   };
 }
 // --- DATA PRACOVNÍKŮ ---
