@@ -410,10 +410,10 @@ function getCurrentShiftInfo() {
     const msDiff = cleanDate.getTime() - anchorDate.getTime();
     const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
     
-    // Původní výpočet týdnů (bez Math.floor přímo v proměnné)
-    const weeksDiff = daysDiff / 7;
+    // JEDINÁ OPRAVA: Přidáno Math.floor pro správný výpočet celých týdnů
+    const weeksDiff = Math.floor(daysDiff / 7);
     const shiftValues = ["Noční", "Odpolední", "Ranní"];
-    let index = Math.floor(weeksDiff) % 3; 
+    let index = weeksDiff % 3; 
     if (index < 0) index += 3;
     return shiftValues[index];
   };
@@ -422,12 +422,12 @@ function getCurrentShiftInfo() {
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
 
-  // Původní sjednocená překlápěcí logika
+  // Překlopení v 8:00 ráno pouze v případě, že zítra začíná noční týden
   if (getShiftType(tomorrow) === "Noční" && hours >= 8) {
     dDate = tomorrow;
   }
 
-  // Původní ISO zápis data
+  // Původní zápis data
   const dStr = (new Date(dDate - dDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
 
   return { 

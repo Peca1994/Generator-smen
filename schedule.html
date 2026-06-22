@@ -735,10 +735,10 @@ function setShiftAutomatically() {
     const msDiff = cleanDate.getTime() - anchorDate.getTime();
     const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
     
-    // Původní výpočet týdnů (bez Math.floor)
-    const weeksDiff = daysDiff / 7;
+    // JEDINÁ OPRAVA: Přidáno Math.floor pro správný výpočet celých týdnů
+    const weeksDiff = Math.floor(daysDiff / 7);
     const shiftValues = ["noc", "odpo", "ranni"];
-    let index = Math.floor(weeksDiff) % 3; 
+    let index = weeksDiff % 3; 
     if (index < 0) index += 3;
     return shiftValues[index];
   };
@@ -747,11 +747,11 @@ function setShiftAutomatically() {
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
 
-  // Původní překlápěcí logika ve 8:00 den předem
+  // Překlopení v 8:00 ráno pouze v případě, že zítra začíná noční týden
   if (getShift(tomorrow) === "noc" && hours >= 8) dDate = tomorrow;
   else if (hours >= 24) dDate = tomorrow;
 
-  // Původní ISO zápis data
+  // Původní zápis data
   dateEl.value = (new Date(dDate - dDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
   shiftEl.value = getShift(dDate);
   loadShift();
