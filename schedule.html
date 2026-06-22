@@ -727,10 +727,10 @@ function render() {
 // 5. AUTOMATIKA DATA A SMĚNY (OPRAVENO DLE PDF)
 function setShiftAutomatically() {
   const today = new Date();
+  const hours = today.getHours();
   let dDate = new Date(today);
 
-  // PŘÍMÁ LOGIKA: Pokud je dnes neděle (0), posuneme datum na pondělí.
-  // Stránka tak celou neděli ukazuje směnu na nadcházející týden.
+  // Pokud je neděle, rovnou skočíme na pondělí nového týdne
   if (today.getDay() === 0) {
     dDate.setDate(today.getDate() + 1);
   }
@@ -741,10 +741,12 @@ function setShiftAutomatically() {
   const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
   const weeksDiff = Math.floor(daysDiff / 7);
   
+  // Původní pořadí směn
   const shiftValues = ["noc", "odpo", "ranni"];
   let index = weeksDiff % 3; if (index < 0) index += 3;
 
-  // Bezpečné naplnění políček lokálním časem
+  // BEZPEČNÝ ZÁPIS: Složíme textový řetězec YYYY-MM-DD ručně z lokálního času,
+  // aby mobil neposunul čas o 2 hodiny dozadu.
   const year = dDate.getFullYear();
   const month = String(dDate.getMonth() + 1).padStart(2, '0');
   const day = String(dDate.getDate()).padStart(2, '0');

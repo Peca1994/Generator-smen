@@ -404,7 +404,7 @@ function getCurrentShiftInfo() {
   const today = new Date();
   let dDate = new Date(today);
 
-  // PŘÍMÁ LOGIKA: Pokud je dnes neděle (0), posuneme datum na pondělí.
+  // Pokud je neděle, rovnou skočíme na pondělí nového týdne
   if (today.getDay() === 0) {
     dDate.setDate(today.getDate() + 1);
   }
