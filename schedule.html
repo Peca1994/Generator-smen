@@ -728,16 +728,20 @@ function render() {
 function setShiftAutomatically() {
   const today = new Date();
   const hours = today.getHours();
-  const anchorDate = new Date(2026, 2, 2); // 2. března 2026
+  
+  // Kotevní datum nastaveno na dnešek (červen = v JS index 5)
+  const anchorDate = new Date(2026, 5, 22); 
   
   const getShift = (d) => {
     const cleanDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const msDiff = cleanDate.getTime() - anchorDate.getTime();
     const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
     
-    // JEDINÁ OPRAVA: Přidáno Math.floor pro správný výpočet celých týdnů
+    // Zaokrouhlení na celé týdny
     const weeksDiff = Math.floor(daysDiff / 7);
-    const shiftValues = ["noc", "odpo", "ranni"];
+    
+    // Dnes (týden 0) = odpolední, za týden (týden 1) = ranní, pak (týden 2) = noční
+    const shiftValues = ["odpo", "ranni", "noc"];
     let index = weeksDiff % 3; 
     if (index < 0) index += 3;
     return shiftValues[index];
@@ -751,12 +755,10 @@ function setShiftAutomatically() {
   if (getShift(tomorrow) === "noc" && hours >= 8) dDate = tomorrow;
   else if (hours >= 24) dDate = tomorrow;
 
-  // Původní zápis data
   dateEl.value = (new Date(dDate - dDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
   shiftEl.value = getShift(dDate);
   loadShift();
 }
-
 // 6. LOGIKA VÝMĚNY (MODAL)
 window.openSwapPicker = (idx, myP) => {
     const list = document.getElementById("swapList");

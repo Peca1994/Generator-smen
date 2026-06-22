@@ -403,16 +403,20 @@ window.showTopics = () => {
 function getCurrentShiftInfo() {
   const today = new Date();
   const hours = today.getHours();
-  const anchorDate = new Date(2026, 2, 2); 
+  
+  // Kotevní datum nastaveno na dnešek (červen = v JS index 5)
+  const anchorDate = new Date(2026, 5, 22); 
   
   const getShiftType = (d) => {
     const cleanDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const msDiff = cleanDate.getTime() - anchorDate.getTime();
     const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
     
-    // JEDINÁ OPRAVA: Přidáno Math.floor pro správný výpočet celých týdnů
+    // Zaokrouhlení na celé týdny
     const weeksDiff = Math.floor(daysDiff / 7);
-    const shiftValues = ["Noční", "Odpolední", "Ranní"];
+    
+    // Dnes (týden 0) = Odpolední, za týden = Ranní, pak = Noční
+    const shiftValues = ["Odpolední", "Ranní", "Noční"];
     let index = weeksDiff % 3; 
     if (index < 0) index += 3;
     return shiftValues[index];
@@ -427,7 +431,6 @@ function getCurrentShiftInfo() {
     dDate = tomorrow;
   }
 
-  // Původní zápis data
   const dStr = (new Date(dDate - dDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
 
   return { 
