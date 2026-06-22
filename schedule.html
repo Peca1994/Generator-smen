@@ -727,45 +727,33 @@ function render() {
 // 5. AUTOMATIKA DATA A SMĚNY (OPRAVENO DLE PDF)
 function setShiftAutomatically() {
   const today = new Date();
-  const currentDay = today.getDay(); // 0 = neděle
-  const currentHours = today.getHours();
+  const hours = today.getHours();
+  const anchorDate = new Date(2026, 2, 2); // 2. března 2026
   
-  let dDate = new Date(today);
-
-  // Pomocná funkce pro zjištění směny bez posunu data
-  const checkShift = (d) => {
-    const anchorDate = new Date(2026, 2, 2); 
+  const getShift = (d) => {
     const cleanDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const msDiff = cleanDate.getTime() - anchorDate.getTime();
     const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
-    const weeksDiff = Math.floor(daysDiff / 7);
+    
+    // Původní výpočet týdnů (bez Math.floor)
+    const weeksDiff = daysDiff / 7;
     const shiftValues = ["noc", "odpo", "ranni"];
-    let idx = weeksDiff % 3; if (idx < 0) idx += 3;
-    return shiftValues[idx];
+    let index = Math.floor(weeksDiff) % 3; 
+    if (index < 0) index += 3;
+    return shiftValues[index];
   };
 
-  // VYHRAZENÁ LOGIKA PRO NOČNÍ:
-  // Zkontrolujeme, jaká směna vyjde na zítřejší pondělí
-  const mondayTest = new Date(today);
-  if (currentDay === 0) mondayTest.setDate(today.getDate() + 1); // pokud je neděle, otestuj zítřek
-  else if (currentDay === 1) mondayTest.setDate(today.getDate()); // pokud už je pondělí, otestuj dnešek
+  let dDate = new Date(today);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
 
-  // PŘELOM NASTANE JEN PŘI NOČNÍ:
-  // Pokud má být v novém týdnu noční směna a je neděle po 8:00 ráno, posuneme čas na pondělí.
-  if (checkShift(mondayTest) === "noc" && currentDay === 0 && currentHours >= 8) {
-    dDate.setDate(today.getDate() + 1);
-  }
+  // Původní překlápěcí logika ve 8:00 den předem
+  if (getShift(tomorrow) === "noc" && hours >= 8) dDate = tomorrow;
+  else if (hours >= 24) dDate = tomorrow;
 
-  // Výpočet výsledné směny pro nastavené datum
-  const finalShift = checkShift(dDate);
-
-  // Bezpečný zápis lokálního data (YYYY-MM-DD) do políčka
-  const year = dDate.getFullYear();
-  const month = String(dDate.getMonth() + 1).padStart(2, '0');
-  const day = String(dDate.getDate()).padStart(2, '0');
-
-  dateEl.value = `${year}-${month}-${day}`;
-  shiftEl.value = finalShift;
+  // Původní ISO zápis data
+  dateEl.value = (new Date(dDate - dDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
+  shiftEl.value = getShift(dDate);
   loadShift();
 }
 
