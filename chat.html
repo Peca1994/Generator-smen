@@ -401,38 +401,32 @@ window.showTopics = () => {
 };
 
 function getCurrentShiftInfo() {
- const today = new Date();
- const hours = today.getHours();
- const anchorDate = new Date(2026, 2, 2); 
+  const today = new Date();
+  let dDate = new Date(today);
 
- const getShiftType = (d) => {
-   const cleanDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-   const msDiff = cleanDate.getTime() - anchorDate.getTime();
-   const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
-   // Zde je opravené zaokrouhlení na celé týdny
-   const weeksDiff = Math.floor(daysDiff / 7);
-   const shiftValues = ["Noční", "Odpolední", "Ranní"];
-   let index = weeksDiff % 3; if (index < 0) index += 3;
-   return shiftValues[index];
- };
+  // PŘÍMÁ LOGIKA: Pokud je dnes neděle (0), posuneme datum na pondělí.
+  if (today.getDay() === 0) {
+    dDate.setDate(today.getDate() + 1);
+  }
 
- let dDate = new Date(today);
- const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+  const anchorDate = new Date(2026, 2, 2); 
+  const cleanDate = new Date(dDate.getFullYear(), dDate.getMonth(), dDate.getDate());
+  const msDiff = cleanDate.getTime() - anchorDate.getTime();
+  const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+  const weeksDiff = Math.floor(daysDiff / 7);
+  
+  const shiftValues = ["Noční", "Odpolední", "Ranní"];
+  let index = weeksDiff % 3; if (index < 0) index += 3;
 
- // Opravená podmínka: Pokud zítra OPRAVDU začíná týden nočních směn a dnes je neděle po 12:00
- if (getShiftType(tomorrow) === "Noční" && today.getDay() === 0 && hours >= 12) {
-   dDate = tomorrow;
- }
+  const year = dDate.getFullYear();
+  const month = String(dDate.getMonth() + 1).padStart(2, '0');
+  const day = String(dDate.getDate()).padStart(2, '0');
+  const dStr = `${year}-${month}-${day}`;
 
- const year = dDate.getFullYear();
- const month = String(dDate.getMonth() + 1).padStart(2, '0');
- const day = String(dDate.getDate()).padStart(2, '0');
- const dStr = `${year}-${month}-${day}`;
-
- return { 
-   date: dStr, 
-   shift: getShiftType(dDate) 
- };
+  return { 
+    date: dStr, 
+    shift: shiftValues[index] 
+  };
 }
 // --- DATA PRACOVNÍKŮ ---
 async function loadNicknames() {
