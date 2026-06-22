@@ -727,7 +727,6 @@ function render() {
 // 5. AUTOMATIKA DATA A SMĚNY (OPRAVENO DLE PDF)
 function setShiftAutomatically() {
   const today = new Date();
-  const hours = today.getHours();
   let dDate = new Date(today);
 
   // Pokud je neděle, rovnou skočíme na pondělí nového týdne
@@ -735,18 +734,19 @@ function setShiftAutomatically() {
     dDate.setDate(today.getDate() + 1);
   }
 
-  const anchorDate = new Date(2026, 2, 2); 
+  // NOVÉ KOTEVNÍ DATUM: Dnešek (22. června 2026), kdy je ODPOLEDNÍ týden
+  const anchorDate = new Date(2026, 5, 22); // Pozor, v JS je červen měsíc 5
+  
   const cleanDate = new Date(dDate.getFullYear(), dDate.getMonth(), dDate.getDate());
   const msDiff = cleanDate.getTime() - anchorDate.getTime();
   const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
   const weeksDiff = Math.floor(daysDiff / 7);
   
-  // Původní pořadí směn
-  const shiftValues = ["noc", "odpo", "ranni"];
+  // Přesné pořadí podle tebe: Odpolední -> Ranní -> Noční
+  // Dnes (weeksDiff = 0) to hodí index 0 = "odpo"
+  const shiftValues = ["odpo", "ranni", "noc"];
   let index = weeksDiff % 3; if (index < 0) index += 3;
 
-  // BEZPEČNÝ ZÁPIS: Složíme textový řetězec YYYY-MM-DD ručně z lokálního času,
-  // aby mobil neposunul čas o 2 hodiny dozadu.
   const year = dDate.getFullYear();
   const month = String(dDate.getMonth() + 1).padStart(2, '0');
   const day = String(dDate.getDate()).padStart(2, '0');

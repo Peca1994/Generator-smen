@@ -409,13 +409,15 @@ function getCurrentShiftInfo() {
     dDate.setDate(today.getDate() + 1);
   }
 
-  const anchorDate = new Date(2026, 2, 2); 
+  // NOVÉ KOTEVNÍ DATUM: Dnešek (22. června 2026)
+  const anchorDate = new Date(2026, 5, 22); 
+  
   const cleanDate = new Date(dDate.getFullYear(), dDate.getMonth(), dDate.getDate());
   const msDiff = cleanDate.getTime() - anchorDate.getTime();
   const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
   const weeksDiff = Math.floor(daysDiff / 7);
   
-  const shiftValues = ["Noční", "Odpolední", "Ranní"];
+  const shiftValues = ["Odpolední", "Ranní", "Noční"];
   let index = weeksDiff % 3; if (index < 0) index += 3;
 
   const year = dDate.getFullYear();
