@@ -407,13 +407,16 @@ function getCurrentShiftInfo() {
     // Identické kotevní datum jako v Schedule
     const anchorDate = new Date(2026, 2, 2); 
     
-    const getShiftType = (d) => {
+ const getShiftType = (d) => {
   // VYČIŠTĚNÍ ČASU: Vytvoříme nový objekt data s čistou půlnocí z lokálního času
   const cleanDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  
+ 
   const msDiff = cleanDate.getTime() - anchorDate.getTime();
   const daysDiff = Math.floor(msDiff / (1000 * 60 * 60 * 24));
-  const weeksDiff = Math.floor(daysDiff / 7);
+  
+  // OPRAVA: Přidáno Math.floor pro získání celých týdnů
+  const weeksDiff = Math.floor(daysDiff / 7); 
+  
   const shiftValues = ["Noční", "Odpolední", "Ranní"];
   let index = weeksDiff % 3; if (index < 0) index += 3;
   return shiftValues[index];
