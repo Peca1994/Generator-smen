@@ -1139,14 +1139,22 @@ if (typeof lastPosByWorker === 'undefined') { var lastPosByWorker = {}; }
  */
 const getGenericPos = (p) => {
     if (!p) return "";
-    let clean = p.toUpperCase().trim();
-    // AGR pozice (PP, PZ, LZ, LP) necháváme unikátní dle tvého požadavku
-    if (clean.startsWith("AGR")) return clean;
-    // Ostatní: odstraníme čísla (VYP1 -> VYP)
-    clean = clean.replace(/[0-9]/g, "");
-    // Odstraníme strany (MOT-L -> MOT), pokud to není AGR
-    if (clean.includes('-')) return clean.split('-')[0];
-    return clean;
+    // Převedeme na velká písmena, smažeme mezery na začátku/konci a uvnitř nahradíme případné mezery pomlčkou
+    let clean = p.toUpperCase().trim().replace(/\s+/g, '-');
+    
+    // Nejprve převedeme specifické pozice na unifikovaný název (kvůli mapování)
+    if (clean.startsWith("VYP")) clean = "VYP";
+    if (clean.startsWith("VET")) clean = "VET";
+    if (clean.startsWith("INST")) clean = "INST";
+    if (clean.startsWith("QRK")) clean = "QRK";
+    
+    // Odřízneme všechno za pomlčkou (strany L, P, PZ atd., např. AGR-PP -> AGR, MOT-L -> MOT)
+    if (clean.includes('-')) {
+        clean = clean.split('-')[0];
+    }
+    
+    // Odstraníme případná zbylá čísla
+    return clean.replace(/[0-9]/g, "").trim();
 };
 
 let fixedQRKWorkers = null;
@@ -1210,7 +1218,7 @@ function buildPhase(act, historicalStats) {
    });
  });
 
- // 4. GENEROVÁNÍ: Pouze 200 pokusů, protože kód filtruje inteligentně a poběží bleskově
+ // 4. GENEROVÁNÍ: Sníženo na 400 pokusů + přidáno ultra rychlé předčasné ukončení
  let bestResult = null;
  let minScore = Infinity;
  
@@ -1220,47 +1228,58 @@ function buildPhase(act, historicalStats) {
    
    if (!attempt) continue;
    let currentScore = 0;
-   let hardViolation = false;
    
    for (const pos in attempt) {
      const wId = attempt[pos].id;
      const currentGen = getGenericPos(pos);
      const lastPos = lastPosByWorker[wId];
+     const lastGen = lastPos ? getGenericPos(lastPos) : "";
      
-     // Spoření celkových master skillů (úroveň 2)
      const totalSkills = Object.keys(attempt[pos].skills || {}).filter(k => attempt[pos].skills[k] === 2).length;
-     
-     // NEPRŮSTŘELNÉ PRAVIDLO 1: Pokud umíš víc než 1 věc, NESMÍŠ jít na stejnou pozici HNED PO SOBĚ
-     if (lastPos && getGenericPos(lastPos) === currentGen) {
-       if (totalSkills > 1) {
-         hardViolation = true; // Označíme pokus za neplatný
-         break;
+
+     // Pokuta za rodinu pozic hned po sobě
+     if (lastPos && lastGen === currentGen) {
+       if (totalSkills === 1) {
+         currentScore += 0;
+       } else if (totalSkills === 2) {
+         currentScore += 5000000; 
+       } else if (totalSkills === 3) {
+         currentScore += 6000000;
+       } else {
+         currentScore += 8000000;
        }
      }
      
-     // PRAVIDLO 2: Kontrola celodenní historie (střídání pro lidi s mnoha skilly)
+     // Celodenní opakování a poměr 3:1
      const usedToday = dailyHistory[`${wId}_${currentGen}`] || 0;
      if (usedToday > 0) {
-       if (totalSkills >= 5) {
-         currentScore += (usedToday * 50000); // Vyšší postih pro lidi s 5+ skilly (nutí je rotovat)
-       } else if (totalSkills >= 3) {
-         currentScore += (usedToday * 10000); // Mírný postih pro lidi se 3-4 skilly
-       } else if (totalSkills === 2) {
-         currentScore += (usedToday * 1000);  // Minimální postih pro lidi se 2 skilly, aby se mohli střídat
+       if (totalSkills === 2) {
+         if (usedToday >= 2) {
+           currentScore += 10000000;
+         } else {
+           currentScore += 1000;
+         }
+       } else if (totalSkills === 3) {
+         currentScore += (usedToday * 200000);
+       } else if (totalSkills >= 4) {
+         currentScore += (usedToday * 500000);
        }
      }
      
-     // Systémová optimalizace: Šetři univerzály, přednostně obsazuj lidi s méně skilly
      currentScore += (totalSkills * 10);
      currentScore += Math.floor(Math.random() * 5);
    }
    
-   // Pokud pokus porušil pravidlo "hned po sobě", úplně ho zahodíme
-   if (hardViolation) continue;
-   
    if (currentScore < minScore) {
      minScore = currentScore;
      bestResult = attempt;
+   }
+
+   // --- BLESKOVÝ STOPÉR (EARLY EXIT) ---
+   // Pokud je skóre velmi nízké (např. pod 5000 bodů), znamená to, že rozpis nemá ŽÁDNÉ 
+   // milionové pokuty a střídačky u nováčků sedí dokonale. Končíme, ušetříme čas i baterku mobilu!
+   if (minScore < 5000) {
+     break;
    }
  }
 
@@ -1344,6 +1363,35 @@ genBtn.onclick = async () => {
  genBtn.style.setProperty("background", originalBg, "important");
  genBtn.classList.remove("btn-error-shake");
 
+ // --- OCHRANA PROTI PŘEPSÁNÍ EXISTUJÍCÍ SMĚNY ---
+ try {
+  const shiftId = dateEl.value + "_" + shiftEl.value;
+  const shiftRef = doc(db, "shifts", shiftId);
+  const shiftSnap = await getDoc(shiftRef);
+
+  if (shiftSnap.exists()) {
+   loadingEl.style.display = "none";
+   genBtn.style.setProperty("background", "#e74c3c", "important");
+   genBtn.classList.add("btn-error-shake");
+   genBtn.innerHTML = `
+   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+    <line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>
+   </svg>
+   <span style="font-weight: 800; letter-spacing: 0.3px;">Směna již existuje a je uzamčena!</span>`;
+   
+   setTimeout(() => {
+    genBtn.style.setProperty("background", originalBg, "important");
+    genBtn.innerHTML = originalContent;
+    genBtn.classList.remove("btn-error-shake");
+   }, 4000);
+   return; // Zastaví generování
+  }
+ } catch (err) {
+  console.error("Chyba při kontrole existence směny:", err);
+ }
+ // --- KONEC OCHRANY ---
+
  // 1. Načtení aktuálních lidí v práci
  await loadWorkers();
 
@@ -1356,7 +1404,6 @@ genBtn.onclick = async () => {
  
  shiftsSnapshot.forEach(docSnap => {
  const shiftData = docSnap.data();
- // Procházíme reálně uložené fáze - pokud se lidé prohodili, v "phases" je už zapsané nové ID!
  const savedPhases = shiftData.phases || [];
  savedPhases.forEach(phase => {
  Object.entries(phase).forEach(([pos, val]) => {
@@ -1367,7 +1414,6 @@ genBtn.onclick = async () => {
  if (empId) {
  const genPos = getGenericPos(pos);
  if (!historicalStats[empId]) historicalStats[empId] = {};
- // Přičteme čárku za každou fázi, kterou tam člověk reálně strávil
  historicalStats[empId][genPos] = (historicalStats[empId][genPos] || 0) + 1;
  }
  });
@@ -1384,10 +1430,8 @@ genBtn.onclick = async () => {
  lastPosByWorker = {};
 
  for (let i = 0; i < 4; i++) {
- // Předáme historicalStats (reálnou historii) do plánovače
  const res = buildPhase(act, historicalStats);
  if (!res) {
- // Chybový stav (málo lidí / skillů)
  loadingEl.style.display = "none";
  genBtn.style.setProperty("background", "#e74c3c", "important");
  genBtn.classList.add("btn-error-shake");
@@ -1399,9 +1443,9 @@ genBtn.onclick = async () => {
  <span style="font-weight: 800; letter-spacing: 0.3px;">Nelze obsadit pozice — málo lidí / skillů</span>`;
  
  setTimeout(() => {
- genBtn.style.setProperty("background", originalBg, "important");
- genBtn.innerHTML = originalContent;
- genBtn.classList.remove("btn-error-shake");
+  genBtn.style.setProperty("background", originalBg, "important");
+  genBtn.innerHTML = originalContent;
+  genBtn.classList.remove("btn-error-shake");
  }, 3000);
  return;
  }
@@ -1409,7 +1453,6 @@ genBtn.onclick = async () => {
  phaseReserves.push(res.reserves);
  }
 
- // Vykreslení výsledku do skleněné tabulky
  render();
  loadingEl.style.display = "none";
 };
