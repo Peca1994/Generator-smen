@@ -1139,21 +1139,34 @@ if (typeof lastPosByWorker === 'undefined') { var lastPosByWorker = {}; }
  */
 const getGenericPos = (p) => {
     if (!p) return "";
-    // Převedeme na velká písmena, smažeme mezery na začátku/konci a uvnitř nahradíme případné mezery pomlčkou
     let clean = p.toUpperCase().trim().replace(/\s+/g, '-');
     
-    // Nejprve převedeme specifické pozice na unifikovaný název (kvůli mapování)
-    if (clean.startsWith("VYP")) clean = "VYP";
-    if (clean.startsWith("VET")) clean = "VET";
-    if (clean.startsWith("INST")) clean = "INST";
-    if (clean.startsWith("QRK")) clean = "QRK";
+    // ÚPRAVA: Zachováme čísla pro QRK, VYP, VET, INST, aby se sloty v databázi nepřepisovaly
+    // Např. QRK1 -> QRK1, QRK2 -> QRK2
+    if (clean.startsWith("VYP")) {
+        clean = clean.includes("2") ? "VYP2" : "VYP1";
+    } else if (clean.startsWith("VET")) {
+        if (clean.includes("2")) clean = "VET2";
+        else if (clean.includes("3")) clean = "VET3";
+        else clean = "VET1";
+    } else if (clean.startsWith("INST")) {
+        if (clean.includes("2")) clean = "INST2";
+        else if (clean.includes("3")) clean = "INST3";
+        else clean = "INST1";
+    } else if (clean.startsWith("QRK")) {
+        clean = clean.includes("2") ? "QRK2" : "QRK1";
+    }
     
     // Odřízneme všechno za pomlčkou (strany L, P, PZ atd., např. AGR-PP -> AGR, MOT-L -> MOT)
     if (clean.includes('-')) {
         clean = clean.split('-')[0];
     }
     
-    // Odstraníme případná zbylá čísla
+    // Pro rodiny pozic (jako MOT, AGR) smažeme čísla, ale u specifických fixních pozic (QRK, VYP, VET, INST) čísla necháme
+    if (clean.startsWith("QRK") || clean.startsWith("VYP") || clean.startsWith("VET") || clean.startsWith("INST")) {
+        return clean.trim();
+    }
+    
     return clean.replace(/[0-9]/g, "").trim();
 };
 
