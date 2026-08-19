@@ -1185,7 +1185,7 @@ function buildPhase(act, historicalStats) {
  const hasQRK2 = act.includes("QRK2");
  if ((hasQRK1 || hasQRK2) && (phases.length === 0 || !fixedQRKWorkers)) {
    let qrkCandidates = activeWorkers.filter(w => w.skills && w.skills["QRK"] === 2);
-   qrkCandidates.sort(() => Math.random() - 0.5);
+   rkCandidates.sort(() => Math.random() - 0.5);
    fixedQRKWorkers = {
      qrk1: qrkCandidates[0] || null,
      qrk2: qrkCandidates[1] || null
@@ -1237,7 +1237,7 @@ function buildPhase(act, historicalStats) {
  let bestResult = null;
  let minScore = Infinity;
  
- // Ponecháno 1000 pokusů, aby systém spolehlivě našel kombinaci bez trojitého opakování
+ // Ponecháno 1000 pokusů, systém nyní projde bleskově rychle
  for (let i = 0; i < 1000; i++) {
    const attempt = runSmartAttempt(orderedPos, map);
    if (!attempt) continue;
@@ -1245,7 +1245,7 @@ function buildPhase(act, historicalStats) {
    let currentScore = 0;
    let hardViolation = false;
    
-   // --- NOVÉ POČÍTADLO: Kolikrát byl člověk na dané pozici za celý den ---
+   // --- POČÍTADLO: Kolikrát byl člověk na dané pozici za celý den ---
    const workerDailyCounts = {};
 
    // 1. Načteme historii z reálně odpracovaných předchozích fází
@@ -1280,7 +1280,7 @@ function buildPhase(act, historicalStats) {
      if (totalSkills >= 3) {
        const fasesOnThisPos = workerDailyCounts[wId][currentGen] || 0;
        if (fasesOnThisPos >= 3) {
-         hardViolation = true; // Pokus okamžitě zahodíme a vymažeme
+         hardViolation = true; // Pokus okamžitě zahodíme
          break;
        }
      }
@@ -1294,12 +1294,12 @@ function buildPhase(act, historicalStats) {
        }
      }
 
-     // Kontrola předminulé fází (Mírná penalizace, aby šel raději na jinou volnou věc)
+     // Kontrola předminulé fáze (Mírná penalizace, aby šel raději na jinou volnou věc)
      if (currentPhaseIdx >= 2 && totalSkills > 1) {
        const phaseBack2 = phases[currentPhaseIdx - 2];
        const posBack2 = Object.keys(phaseBack2).find(p => phaseBack2[p] && phaseBack2[p].id === wId);
        if (posBack2 && getGenericPos(posBack2) === currentGen) {
-         currentScore += 40000; 
+         currentScore += 10000; // Sníženo ze 40000 na 10000 pro hladší generování
        }
      }
      
@@ -1309,26 +1309,7 @@ function buildPhase(act, historicalStats) {
    
    if (hardViolation) continue;
 
-   // --- TLAK NA UNIVERZÁLY (KONTROLA DENNÍ ROTACE) ---
-   // Zachováno z vašeho předchozího kódu pro optimální rozložení
-   for (const pos in attempt) {
-     const wId = attempt[pos].id;
-     const worker = activeWorkers.find(x => x.id === wId);
-     if (!worker) continue;
-     
-     const totalSkills = Object.keys(worker.skills || {}).filter(k => worker.skills[k] === 2).length;
-     
-     // Zde simulovaný worker positions pro zjištění celkové pestrosti dne
-     if (!workerDailyCounts[wId]) continue;
-     const uniquePositionsCount = Object.keys(workerDailyCounts[wId]).length;
-
-     if (totalSkills >= 3 && uniquePositionsCount < 3 && currentPhaseIdx === 3) {
-       currentScore += 500000;
-     }
-     if (totalSkills >= 5 && uniquePositionsCount < 3 && currentPhaseIdx >= 2) {
-       currentScore += 800000;
-     }
-   }
+   // --- PŮVODNÍ PROTICHŮDNÝ TLAK NA DENNÍ ROTACE (500k a 800k) BYL ODSTRANĚN ---
 
    if (currentScore < minScore) {
      minScore = currentScore;
