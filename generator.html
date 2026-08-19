@@ -1176,11 +1176,11 @@ function buildPhase(act, historicalStats) {
  // 1. FILTR: Kdo je dnes v práci
  const activeWorkers = workers.filter(w => {
    const s = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
-   return s.includes('work') || s.includes('prác') || s.includes('prac');
+   return s === 'work'; // Přísný filtr ze starého kódu
  });
  if (!act || !activeWorkers || activeWorkers.length < act.length) return null;
 
- // --- SPECIÁLNÍ LOGIKA PRO QRK (FIXACE NA CELÝ DEN) ---
+ // --- NOVINKA 1: SPECIÁLNÍ LOGIKA PRO QRK (FIXACE NA CELÝ DEN) ---
  const hasQRK1 = act.includes("QRK1");
  const hasQRK2 = act.includes("QRK2");
  if ((hasQRK1 || hasQRK2) && (phases.length === 0 || !fixedQRKWorkers)) {
@@ -1192,17 +1192,9 @@ function buildPhase(act, historicalStats) {
    };
  }
 
- // 2. HISTORIE: Co už se dnes reálně odpracovalo v předchozích fázích
- const dailyHistory = {}; 
- phases.forEach(p => {
-   Object.entries(p).forEach(([pos, worker]) => {
-     const wId = worker?.id || worker?.main?.id;
-     if (wId) {
-       const gen = getGenericPos(pos);
-       dailyHistory[`${wId}_${gen}`] = (dailyHistory[`${wId}_${gen}`] || 0) + 1;
-     }
-   });
- });
+ // 2. HISTORIE Z MINULÝCH FÁZÍ (ze starého kódu)
+ const getBasePos = (p) => (p && p.includes('-')) ? p.split('-')[0] : (p || "");
+ const currentPhaseIdx = phases.length; 
 
  // 3. MAPA SKILLŮ: Kdo co může dělat
  const skillMapping = {
@@ -1220,10 +1212,13 @@ function buildPhase(act, historicalStats) {
    map[pos] = activeWorkers.filter(w => {
      if (!w.skills) return false;
      
+     // Odfiltrujeme zafixované QRK pracovníky, aby nešli na běžné pozice
      if (fixedQRKWorkers) {
        if (fixedQRKWorkers.qrk1 && w.id === fixedQRKWorkers.qrk1.id) return false;
        if (fixedQRKWorkers.qrk2 && w.id === fixedQRKWorkers.qrk2.id) return false;
      }
+
+     // Kontrola skillu (přizpůsobeno struktuře vašeho pole/objektu)
      if (typeof w.skills === 'object' && !Array.isArray(w.skills)) {
        return w.skills[requiredSkill] === 2;
      }
@@ -1231,69 +1226,71 @@ function buildPhase(act, historicalStats) {
    });
  });
 
- // 4. GENEROVÁNÍ: Sníženo na 400 pokusů + přidáno ultra rychlé předčasné ukončení
+ // Řazení pozic podle kritičnosti (ze starého kódu)
+ const orderedPos = [...normalPositions].sort((a, b) => map[a].length - map[b].length);
+
  let bestResult = null;
  let minScore = Infinity;
  
- for (let i = 0; i < 400; i++) {
-   const shuffledPos = [...normalPositions].sort(() => Math.random() - 0.5);
-   const attempt = runSmartAttempt(shuffledPos, map, dailyHistory);
-   
+ // Cyklus nastaven na 600 pokusů jako ve starém kódu
+ for (let i = 0; i < 600; i++) {
+   const attempt = runSmartAttempt(orderedPos, map);
    if (!attempt) continue;
+   
    let currentScore = 0;
+   let hardViolation = false;
    
    for (const pos in attempt) {
      const wId = attempt[pos].id;
-     const currentGen = getGenericPos(pos);
-     const lastPos = lastPosByWorker[wId];
-     const lastGen = lastPos ? getGenericPos(lastPos) : "";
+     const currentBase = getBasePos(pos);
      
+     // Zjištění celkového počtu master skillů (úroveň 2)
      const totalSkills = Object.keys(attempt[pos].skills || {}).filter(k => attempt[pos].skills[k] === 2).length;
 
-     // Pokuta za rodinu pozic hned po sobě
-     if (lastPos && lastGen === currentGen) {
-       if (totalSkills === 1) {
-         currentScore += 0;
-       } else if (totalSkills === 2) {
-         currentScore += 5000000; 
-       } else if (totalSkills === 3) {
-         currentScore += 6000000;
-       } else {
-         currentScore += 8000000;
-       }
-     }
-     
-     // Celodenní opakování a poměr 3:1
-     const usedToday = dailyHistory[`${wId}_${currentGen}`] || 0;
-     if (usedToday > 0) {
-       if (totalSkills === 2) {
-         if (usedToday >= 2) {
-           currentScore += 10000000;
-         } else {
-           currentScore += 1000;
+     // Kontrola minulé fáze (Fáze hned před touto)
+     const lastPos = lastPosByWorker[wId];
+     if (lastPos) {
+       // --- NOVINKA 2: NEPOKUTOVÁNÍ PŘI POUZE JEDNOM SKILLU ---
+       // Pokud má člověk pouze 1 skill, nepokutujeme ho za sezení na stejné pozici
+       if (totalSkills > 1) {
+         if (lastPos === pos) {
+           // Namísto obří pokuty dává starý kód rovnou tvrdé vyřazení pokusu
+           hardViolation = true; 
+           break;
+         } else if (getBasePos(lastPos) === currentBase) {
+           currentScore += 20000; // Penalizace za stejnou rodinu z vašeho starého kódu
          }
-       } else if (totalSkills === 3) {
-         currentScore += (usedToday * 200000);
-       } else if (totalSkills >= 4) {
-         currentScore += (usedToday * 500000);
+       }
+     }
+
+     // Kontrola předminulé fáze (O dvě fáze zpět - ze starého kódu)
+     if (currentPhaseIdx >= 2 && totalSkills > 1) {
+       const phaseBack2 = phases[currentPhaseIdx - 2];
+       const posBack2 = Object.keys(phaseBack2).find(p => phaseBack2[p] && phaseBack2[p].id === wId);
+       
+       if (posBack2) {
+          if (posBack2 === pos) {
+            currentScore += 30000; 
+          } else if (getBasePos(posBack2) === currentBase) {
+            currentScore += 15000; 
+          }
        }
      }
      
-     currentScore += (totalSkills * 10);
-     currentScore += Math.floor(Math.random() * 5);
+     // Dlouhodobá historie z dlouhodobé statistiky (ze starého kódu)
+     currentScore += (historicalStats && historicalStats[wId + "_" + pos] || 0) * 100;
    }
    
+   // Pokud pokus porušil pravidlo "stejná pozice hned po sobě", úplně ho zahodíme
+   if (hardViolation) continue;
+
    if (currentScore < minScore) {
      minScore = currentScore;
      bestResult = attempt;
    }
-
-   // --- BLESKOVÝ STOPÉR (EARLY EXIT) ---
-   // Pokud je skóre velmi nízké (např. pod 5000 bodů), znamená to, že rozpis nemá ŽÁDNÉ 
-   // milionové pokuty a střídačky u nováčků sedí dokonale. Končíme, ušetříme čas i baterku mobilu!
-   if (minScore < 5000) {
-     break;
-   }
+   
+   // Pokud je rozpis perfektní (skóre 0), končíme dřív (ze starého kódu)
+   if (minScore === 0) break;
  }
 
  // 5. SLOUČENÍ S QRK
@@ -1306,12 +1303,15 @@ function buildPhase(act, historicalStats) {
    }
    
    const usedIds = new Set(Object.values(bestResult).map(w => w.id));
-   return { assign: bestResult, reserves: activeWorkers.filter(w => !usedIds.has(w.id)) };
+   return { 
+     assign: bestResult, 
+     reserves: activeWorkers.filter(w => !usedIds.has(w.id)) 
+   };
  }
  return null;
 }
 
-function runSmartAttempt(shuffledPos, map, dailyHistory) {
+function runSmartAttempt(orderedPos, map) {
   let assign = {}; 
   let used = new Set(); 
   let steps = 0;
@@ -1319,26 +1319,12 @@ function runSmartAttempt(shuffledPos, map, dailyHistory) {
   function solve(index) {
     steps++; 
     if (steps > 10000) return false; 
-    if (index === shuffledPos.length) return true;
+    if (index === orderedPos.length) return true;
 
-    const pos = shuffledPos[index];
-    const currentGen = getGenericPos(pos);
-    
-    // TOTÁLNÍ NÁHODA: Seznam lidí pro tuhle pozici úplně rozházíme
-    let candidates = [...map[pos].filter(w => !used.has(w.id))].sort(() => Math.random() - 0.5);
-
-    // Seřadíme je jen podle nejnutnějších pravidel
-    candidates.sort((a, b) => {
-      // 1. Přednost mají ti, co tam neseděli minule
-      const lastA = lastPosByWorker[a.id] && getGenericPos(lastPosByWorker[a.id]) === currentGen ? 1 : 0;
-      const lastB = lastPosByWorker[b.id] && getGenericPos(lastPosByWorker[b.id]) === currentGen ? 1 : 0;
-      if (lastA !== lastB) return lastA - lastB;
-
-      // 2. Přednost mají specialisté (málo skillů), aby nezacláněli univerzálům
-      const sA = Object.keys(a.skills || {}).length;
-      const sB = Object.keys(b.skills || {}).length;
-      return sA - sB;
-    });
+    const pos = orderedPos[index];
+    // Výběr kandidátů a náhodné zamíchání (ze starého kódu)
+    let candidates = map[pos].filter(w => !used.has(w.id));
+    candidates.sort(() => Math.random() - 0.5);
 
     for (const worker of candidates) {
       assign[pos] = worker; 
