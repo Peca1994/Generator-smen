@@ -1261,7 +1261,7 @@ function buildPhase(act, historicalStats) {
  let minScore = Infinity;
  const currentPhaseIdx = phases.length;
  
- for (let i = 0; i < 600; i++) {
+ for (let i = 0; i < 300; i++) {
    const shuffledPos = [...normalPositions].sort(() => Math.random() - 0.5);
    const attempt = runSmartAttempt(shuffledPos, map, dailyHistory);
    
