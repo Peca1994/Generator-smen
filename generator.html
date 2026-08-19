@@ -1180,12 +1180,21 @@ function buildPhase(act, historicalStats) {
  });
  if (!act || !activeWorkers || activeWorkers.length < act.length) return null;
 
- // --- SPECIÁLNÍ LOGIKA PRO QRK (FIXACE NA CELÝ DEN) ---
+ // --- CHYTRÁ LOGIKA PRO QRK (FIXACE NA CELÝ DEN) ---
  const hasQRK1 = act.includes("QRK1");
  const hasQRK2 = act.includes("QRK2");
  if ((hasQRK1 || hasQRK2) && (phases.length === 0 || !fixedQRKWorkers)) {
    let qrkCandidates = activeWorkers.filter(w => w.skills && w.skills["QRK"] === 2);
-   rkCandidates.sort(() => Math.random() - 0.5);
+   
+   // PRIORITA PRO QRK: Seřadíme kandidáty tak, aby přednost dostali ti, co umí NEJMÉNĚ 
+   // ostatních operací. Tím zachráníme univerzály (lidi s 3 a více skilly) pro rotaci na lince.
+   qrkCandidates.sort((a, b) => {
+     const skillsA = Object.keys(a.skills || {}).filter(k => a.skills[k] === 2).length;
+     const skillsB = Object.keys(b.skills || {}).filter(k => b.skills[k] === 2).length;
+     if (skillsA !== skillsB) return skillsA - skillsB; // Méně skillů má přednost
+     return Math.random() - 0.5; // Jinak náhoda
+   });
+
    fixedQRKWorkers = {
      qrk1: qrkCandidates[0] || null,
      qrk2: qrkCandidates[1] || null
@@ -1237,7 +1246,7 @@ function buildPhase(act, historicalStats) {
  let bestResult = null;
  let minScore = Infinity;
  
- // Ponecháno 1000 pokusů, systém nyní projde bleskově rychle
+ // Nastaveno 1000 pokusů, kód proběhne plynule bez zamrzání
  for (let i = 0; i < 1000; i++) {
    const attempt = runSmartAttempt(orderedPos, map);
    if (!attempt) continue;
@@ -1275,13 +1284,23 @@ function buildPhase(act, historicalStats) {
      const wId = attempt[pos].id;
      const currentGen = getGenericPos(pos);
      const totalSkills = Object.keys(attempt[pos].skills || {}).filter(k => attempt[pos].skills[k] === 2).length;
+     const fasesOnThisPos = workerDailyCounts[wId][currentGen] || 0;
 
-     // --- STRIKTNÍ ZÁKAZ: TŘIKRÁT STEJNÁ OPERACE ZA DEN PRO 3+ SKILLY ---
-     if (totalSkills >= 3) {
-       const fasesOnThisPos = workerDailyCounts[wId][currentGen] || 0;
-       if (fasesOnThisPos >= 3) {
-         hardViolation = true; // Pokus okamžitě zahodíme
+     // --- KONTROLA LIMITU: 3x NA STEJNÉM MÍSTĚ ZA DEN ---
+     if (fasesOnThisPos >= 3) {
+       if (totalSkills >= 3) {
+         // ABSOLUTNÍ ZÁKAZ pro 3 a více skillů: Pokus se okamžitě maže za jakékoliv situace!
+         hardViolation = true; 
          break;
+       }
+       if (totalSkills === 2) {
+         // Pro 2 skilly: Prvních 600 pokusů zakázáno. Pak (krajní nouze) povoleno s obří pokutou.
+         if (i < 600) {
+           hardViolation = true;
+           break;
+         } else {
+           currentScore += 9000000; 
+         }
        }
      }
 
@@ -1289,17 +1308,23 @@ function buildPhase(act, historicalStats) {
      const lastPos = lastPosByWorker[wId];
      if (lastPos && totalSkills > 1) {
        if (getGenericPos(lastPos) === currentGen) {
-         hardViolation = true; 
-         break;
+         // Pokud v totální krizové situaci po 800 pokusech neexistuje jiné řešení, 
+         // povolí se sezení hned po sobě, aby kód nezamrzl, ale s velkým trestem.
+         if (i < 800) {
+           hardViolation = true; 
+           break;
+         } else {
+           currentScore += 5000000;
+         }
        }
      }
 
-     // Kontrola předminulé fáze (Mírná penalizace, aby šel raději na jinou volnou věc)
+     // Kontrola předminulé fáze (Lehký tlak, aby šel raději na jinou volnou věc)
      if (currentPhaseIdx >= 2 && totalSkills > 1) {
        const phaseBack2 = phases[currentPhaseIdx - 2];
        const posBack2 = Object.keys(phaseBack2).find(p => phaseBack2[p] && phaseBack2[p].id === wId);
        if (posBack2 && getGenericPos(posBack2) === currentGen) {
-         currentScore += 10000; // Sníženo ze 40000 na 10000 pro hladší generování
+         currentScore += 10000; 
        }
      }
      
@@ -1309,11 +1334,14 @@ function buildPhase(act, historicalStats) {
    
    if (hardViolation) continue;
 
-   // --- PŮVODNÍ PROTICHŮDNÝ TLAK NA DENNÍ ROTACE (500k a 800k) BYL ODSTRANĚN ---
-
    if (currentScore < minScore) {
      minScore = currentScore;
      bestResult = attempt;
+   }
+
+   // Pokud najdeme rozpis bez jakýchkoliv krizových penalizací, končíme ihned
+   if (minScore < 5000) {
+     break;
    }
  }
 
