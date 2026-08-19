@@ -1176,23 +1176,21 @@ function buildPhase(act, historicalStats) {
  // 1. FILTR: Kdo je dnes v práci
  const activeWorkers = workers.filter(w => {
    const s = (w.statusToday || w.status || 'work').toString().toLowerCase().trim();
-   return s === 'work'; 
+   return s.includes('work') || s.includes('prác') || s.includes('prac');
  });
  if (!act || !activeWorkers || activeWorkers.length < act.length) return null;
 
- // --- CHYTRÁ LOGIKA PRO QRK (FIXACE NA CELÝ DEN) ---
+ // --- SPECIÁLNÍ LOGIKA PRO QRK (FIXACE NA CELÝ DEN) ---
  const hasQRK1 = act.includes("QRK1");
  const hasQRK2 = act.includes("QRK2");
  if ((hasQRK1 || hasQRK2) && (phases.length === 0 || !fixedQRKWorkers)) {
    let qrkCandidates = activeWorkers.filter(w => w.skills && w.skills["QRK"] === 2);
    
-   // PRIORITA PRO QRK: Seřadíme kandidáty tak, aby přednost dostali ti, co umí NEJMÉNĚ 
-   // ostatních operací. Tím zachráníme univerzály (lidi s 3 a více skilly) pro rotaci na lince.
+   // PRIORITA PRO QRK: Vybereme ty, co umí nejméně ostatních věcí, aby žolíci zbyli na linku
    qrkCandidates.sort((a, b) => {
      const skillsA = Object.keys(a.skills || {}).filter(k => a.skills[k] === 2).length;
      const skillsB = Object.keys(b.skills || {}).filter(k => b.skills[k] === 2).length;
-     if (skillsA !== skillsB) return skillsA - skillsB; // Méně skillů má přednost
-     return Math.random() - 0.5; // Jinak náhoda
+     return skillsA - skillsB;
    });
 
    fixedQRKWorkers = {
@@ -1201,17 +1199,17 @@ function buildPhase(act, historicalStats) {
    };
  }
 
- // Pomocná funkce pro sjednocení rodin pozic (např. VYP1-L -> VYP, MOT-L -> MOT)
- const getGenericPos = (p) => {
-   if (!p) return "";
-   let clean = p.toUpperCase().trim();
-   if (clean.startsWith("AGR")) return clean; // AGR necháváme unikátní
-   clean = clean.replace(/[0-9]/g, ""); // odstraní čísla
-   if (clean.includes('-')) return clean.split('-')[0]; // odsekne stranu
-   return clean;
- };
-
- const currentPhaseIdx = phases.length; 
+ // 2. HISTORIE: Co už se dnes reálně odpracovalo v předchozích fázích
+ const dailyHistory = {}; 
+ phases.forEach(p => {
+   Object.entries(p).forEach(([pos, worker]) => {
+     const wId = worker?.id || worker?.main?.id;
+     if (wId) {
+       const gen = getGenericPos(pos);
+       dailyHistory[`${wId}_${gen}`] = (dailyHistory[`${wId}_${gen}`] || 0) + 1;
+     }
+   });
+ });
 
  // 3. MAPA SKILLŮ: Kdo co může dělat
  const skillMapping = {
@@ -1226,121 +1224,153 @@ function buildPhase(act, historicalStats) {
  const map = {};
  normalPositions.forEach(pos => {
    const requiredSkill = skillMapping[pos] || pos;
-   map[pos] = activeWorkers.filter(w => {
+   
+   // KROK A: Hledáme lidi s master skillem (úroveň 2)
+   let candidates = activeWorkers.filter(w => {
      if (!w.skills) return false;
-     
      if (fixedQRKWorkers) {
        if (fixedQRKWorkers.qrk1 && w.id === fixedQRKWorkers.qrk1.id) return false;
        if (fixedQRKWorkers.qrk2 && w.id === fixedQRKWorkers.qrk2.id) return false;
      }
-
      if (typeof w.skills === 'object' && !Array.isArray(w.skills)) {
        return w.skills[requiredSkill] === 2;
      }
      return Array.isArray(w.skills) && w.skills.includes(requiredSkill);
    });
+
+   // KROK B (ZÁCHRANNÁ SÍŤ): Pokud na pozici nikdo s úrovní 2 nezbyl, přibereme i úroveň 1 (zaučení)
+   if (candidates.length === 0) {
+     candidates = activeWorkers.filter(w => {
+       if (!w.skills) return false;
+       if (fixedQRKWorkers) {
+         if (fixedQRKWorkers.qrk1 && w.id === fixedQRKWorkers.qrk1.id) return false;
+         if (fixedQRKWorkers.qrk2 && w.id === fixedQRKWorkers.qrk2.id) return false;
+       }
+       if (typeof w.skills === 'object' && !Array.isArray(w.skills)) {
+         return w.skills[requiredSkill] === 2 || w.skills[requiredSkill] === 1;
+       }
+       return Array.isArray(w.skills) && w.skills.includes(requiredSkill);
+     });
+   }
+
+   map[pos] = candidates;
  });
 
- const orderedPos = [...normalPositions].sort((a, b) => map[a].length - map[b].length);
-
+ // 4. GENEROVÁNÍ: Nastaveno na 600 pokusů pro optimální prohledání do několika vteřin
  let bestResult = null;
  let minScore = Infinity;
+ const currentPhaseIdx = phases.length;
  
- // Nastaveno 1000 pokusů, kód proběhne plynule bez zamrzání
- for (let i = 0; i < 1000; i++) {
-   const attempt = runSmartAttempt(orderedPos, map);
+ for (let i = 0; i < 600; i++) {
+   const shuffledPos = [...normalPositions].sort(() => Math.random() - 0.5);
+   const attempt = runSmartAttempt(shuffledPos, map, dailyHistory);
+   
    if (!attempt) continue;
-   
    let currentScore = 0;
-   let hardViolation = false;
    
-   // --- POČÍTADLO: Kolikrát byl člověk na dané pozici za celý den ---
-   const workerDailyCounts = {};
+   // Pomocné celodenní počítadlo unikátních rodin pozic speciálně pro tento pokus
+   const uniquePositionsCount = {};
 
-   // 1. Načteme historii z reálně odpracovaných předchozích fází
+   // Načteme do počítadla unikátnosti historii z minulých fází
    phases.forEach(p => {
      Object.entries(p).forEach(([pos, worker]) => {
        const wId = worker?.id || worker?.main?.id;
        if (wId) {
-         if (!workerDailyCounts[wId]) workerDailyCounts[wId] = {};
-         const gen = getGenericPos(pos);
-         workerDailyCounts[wId][gen] = (workerDailyCounts[wId][gen] || 0) + 1;
+         if (!uniquePositionsCount[wId]) uniquePositionsCount[wId] = new Set();
+         uniquePositionsCount[wId].add(getGenericPos(pos));
        }
      });
    });
 
-   // 2. Přičteme k tomu pozici, kterou se pokoušíme naplánovat teď
+   // Přičteme k unikátnosti aktuální pokus
    for (const pos in attempt) {
      const wId = attempt[pos].id;
      if (wId) {
-       if (!workerDailyCounts[wId]) workerDailyCounts[wId] = {};
-       const gen = getGenericPos(pos);
-       workerDailyCounts[wId][gen] = (workerDailyCounts[wId][gen] || 0) + 1;
+       if (!uniquePositionsCount[wId]) uniquePositionsCount[wId] = new Set();
+       uniquePositionsCount[wId].add(getGenericPos(pos));
      }
    }
    
-   // 3. Hlavní smyčka kontroly pravidel pro jednotlivé lidi v pokusu
    for (const pos in attempt) {
      const wId = attempt[pos].id;
      const currentGen = getGenericPos(pos);
-     const totalSkills = Object.keys(attempt[pos].skills || {}).filter(k => attempt[pos].skills[k] === 2).length;
-     const fasesOnThisPos = workerDailyCounts[wId][currentGen] || 0;
-
-     // --- KONTROLA LIMITU: 3x NA STEJNÉM MÍSTĚ ZA DEN ---
-     if (fasesOnThisPos >= 3) {
-       if (totalSkills >= 3) {
-         // ABSOLUTNÍ ZÁKAZ pro 3 a více skillů: Pokus se okamžitě maže za jakékoliv situace!
-         hardViolation = true; 
-         break;
-       }
-       if (totalSkills === 2) {
-         // Pro 2 skilly: Prvních 600 pokusů zakázáno. Pak (krajní nouze) povoleno s obří pokutou.
-         if (i < 600) {
-           hardViolation = true;
-           break;
-         } else {
-           currentScore += 9000000; 
-         }
-       }
-     }
-
-     // STRIKTNÍ KONTROLA MINULÉ FÁZE (Hned po sobě)
      const lastPos = lastPosByWorker[wId];
-     if (lastPos && totalSkills > 1) {
-       if (getGenericPos(lastPos) === currentGen) {
-         // Pokud v totální krizové situaci po 800 pokusech neexistuje jiné řešení, 
-         // povolí se sezení hned po sobě, aby kód nezamrzl, ale s velkým trestem.
-         if (i < 800) {
-           hardViolation = true; 
-           break;
-         } else {
-           currentScore += 5000000;
-         }
-       }
+     const lastGen = lastPos ? getGenericPos(lastPos) : "";
+     
+     const totalSkills = Object.keys(attempt[pos].skills || {}).filter(k => attempt[pos].skills[k] === 2).length;
+     const requiredSkill = skillMapping[pos] || pos;
+
+     // Pokud musíme využít zaučeného střídače (úroveň 1), udělíme drobnou penalizaci
+     if (attempt[pos].skills && attempt[pos].skills[requiredSkill] === 1) {
+       currentScore += 5000;
      }
 
-     // Kontrola předminulé fáze (Lehký tlak, aby šel raději na jinou volnou věc)
-     if (currentPhaseIdx >= 2 && totalSkills > 1) {
-       const phaseBack2 = phases[currentPhaseIdx - 2];
-       const posBack2 = Object.keys(phaseBack2).find(p => phaseBack2[p] && phaseBack2[p].id === wId);
-       if (posBack2 && getGenericPos(posBack2) === currentGen) {
-         currentScore += 10000; 
+     // --- FAKTOR: POKUTA ZA RODINU POZIC HNED PO SOBĚ ---
+     if (lastPos && lastGen === currentGen) {
+       if (totalSkills === 1) {
+         currentScore += 0; // Nováček s 1 skillem na pozici klidně zůstává
+       } else if (totalSkills === 2) {
+         currentScore += 5000000; // Lidé se 2 skilly střídají ob fázi
+       } else {
+         currentScore += 8000000; // Pro lidi se 3+ skilly platí přísný zákaz hned po sobě
        }
      }
      
-     // Dlouhodobá historie
-     currentScore += (historicalStats && historicalStats[wId + "_" + pos] || 0) * 100;
+     // --- FAKTOR: CELODENNÍ OPAKOVÁNÍ A ROTACE ---
+     const usedToday = dailyHistory[`${wId}_${currentGen}`] || 0;
+     
+     // Logika pro 2 skilly
+     if (totalSkills === 2 && usedToday > 0) {
+       if (usedToday >= 2) {
+         currentScore += 100000; // Krajní nouze: poměr 3:1 povolen, ale s mírným trestem
+       } else {
+         currentScore += 1000;
+       }
+     }
+     
+     // Logika pro 3 skilly (Zákon proti 3 fázím na stejném místě)
+     if (totalSkills === 3 && usedToday > 0) {
+       if (usedToday >= 2) {
+         currentScore += 50000000; // ASTRONOMICKÝ ZÁKAZ jít na stejné místo potřetí!
+       } else {
+         currentScore += (usedToday * 200000);
+       }
+     }
+     
+     // Logika pro 4 a více skillů
+     if (totalSkills >= 4 && usedToday > 0) {
+       if (usedToday >= 2) {
+         currentScore += 80000000; // ASTRONOMICKÝ ZÁKAZ jít na stejné místo potřetí!
+       } else {
+         currentScore += (usedToday * 500000);
+       }
+     }
+     
+     // --- FAKTOR: MINIMÁLNÍ POČET VYSTŘÍDANÝCH OPERACÍ ---
+     if (uniquePositionsCount[wId]) {
+       const count = uniquePositionsCount[wId].size;
+       
+       // Člověk se 3 skilly by měl ideálně zkusit všechny 3 (aktivuje se na konci dne ve 4. fázi)
+       if (totalSkills === 3 && count < 3 && currentPhaseIdx === 3) {
+         currentScore += 200000;
+       }
+       // Člověk se 4 a více skilly musí za den vidět aspoň 3 různé věci (hlídáme už od 3. fáze)
+       if (totalSkills >= 4 && count < 3 && currentPhaseIdx >= 2) {
+         currentScore += 400000;
+       }
+     }
+     
+     currentScore += (totalSkills * 10);
+     currentScore += Math.floor(Math.random() * 5);
    }
    
-   if (hardViolation) continue;
-
    if (currentScore < minScore) {
      minScore = currentScore;
      bestResult = attempt;
    }
 
-   // Pokud najdeme rozpis bez jakýchkoliv krizových penalizací, končíme ihned
-   if (minScore < 5000) {
+   // Bleskový stopér (Aktivuje se jen při zcela bezchybném rozpisu)
+   if (minScore === 0) {
      break;
    }
  }
@@ -1355,12 +1385,50 @@ function buildPhase(act, historicalStats) {
    }
    
    const usedIds = new Set(Object.values(bestResult).map(w => w.id));
-   return { 
-     assign: bestResult, 
-     reserves: activeWorkers.filter(w => !usedIds.has(w.id)) 
-   };
+   return { assign: bestResult, reserves: activeWorkers.filter(w => !usedIds.has(w.id)) };
  }
  return null;
+}
+
+function runSmartAttempt(shuffledPos, map, dailyHistory) {
+  let assign = {}; 
+  let used = new Set(); 
+  let steps = 0;
+  
+  function solve(index) {
+    steps++; 
+    if (steps > 10000) return false; 
+    if (index === shuffledPos.length) return true;
+
+    const pos = shuffledPos[index];
+    const currentGen = getGenericPos(pos);
+    
+    // TOTÁLNÍ NÁHODA: Seznam lidí pro tuhle pozici úplně rozházíme
+    let candidates = [...map[pos].filter(w => !used.has(w.id))].sort(() => Math.random() - 0.5);
+
+    // Seřadíme je jen podle nejnutnějších pravidel
+    candidates.sort((a, b) => {
+      // 1. Přednost mají ti, co tam neseděli minule
+      const lastA = lastPosByWorker[a.id] && getGenericPos(lastPosByWorker[a.id]) === currentGen ? 1 : 0;
+      const lastB = lastPosByWorker[b.id] && getGenericPos(lastPosByWorker[b.id]) === currentGen ? 1 : 0;
+      if (lastA !== lastB) return lastA - lastB;
+
+      // 2. Přednost mají specialisté (málo skillů), aby nezacláněli univerzálům
+      const sA = Object.keys(a.skills || {}).length;
+      const sB = Object.keys(b.skills || {}).length;
+      return sA - sB;
+    });
+
+    for (const worker of candidates) {
+      assign[pos] = worker; 
+      used.add(worker.id);
+      if (solve(index + 1)) return true;
+      used.delete(worker.id); 
+      delete assign[pos];
+    }
+    return false;
+  }
+  return solve(0) ? assign : null;
 }
 
 
