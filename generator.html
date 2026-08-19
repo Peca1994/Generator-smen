@@ -1198,7 +1198,7 @@ function buildPhase(act, historicalStats) {
    let clean = p.toUpperCase().trim();
    if (clean.startsWith("AGR")) return clean; // AGR necháváme unikátní
    clean = clean.replace(/[0-9]/g, ""); // odstraní čísla
-   if (clean.includes('-')) return clean.split('-')[0]; // opravený index odseknutí
+   if (clean.includes('-')) return clean.split('-')[0]; // odsekne stranu
    return clean;
  };
 
@@ -1237,46 +1237,55 @@ function buildPhase(act, historicalStats) {
  let bestResult = null;
  let minScore = Infinity;
  
- // Cyklus nastaven na 1500 pokusů, abychom prozkoumali maximum kombinací
- for (let i = 0; i < 1500; i++) {
+ // Ponecháno 1000 pokusů, aby systém spolehlivě našel kombinaci bez trojitého opakování
+ for (let i = 0; i < 1000; i++) {
    const attempt = runSmartAttempt(orderedPos, map);
    if (!attempt) continue;
    
    let currentScore = 0;
    let hardViolation = false;
    
-   // Přesné celodenní počítadlo fází pro tento pokus
-   const workerPositionCounts = {};
+   // --- NOVÉ POČÍTADLO: Kolikrát byl člověk na dané pozici za celý den ---
+   const workerDailyCounts = {};
 
-   // 1. Načteme historii z předchozích fází dne
+   // 1. Načteme historii z reálně odpracovaných předchozích fází
    phases.forEach(p => {
      Object.entries(p).forEach(([pos, worker]) => {
        const wId = worker?.id || worker?.main?.id;
        if (wId) {
-         if (!workerPositionCounts[wId]) workerPositionCounts[wId] = {};
+         if (!workerDailyCounts[wId]) workerDailyCounts[wId] = {};
          const gen = getGenericPos(pos);
-         workerPositionCounts[wId][gen] = (workerPositionCounts[wId][gen] || 0) + 1;
+         workerDailyCounts[wId][gen] = (workerDailyCounts[wId][gen] || 0) + 1;
        }
      });
    });
-   
-   // 2. Přičteme aktuálně zkoušený pokus
+
+   // 2. Přičteme k tomu pozici, kterou se pokoušíme naplánovat teď
    for (const pos in attempt) {
      const wId = attempt[pos].id;
      if (wId) {
-       if (!workerPositionCounts[wId]) workerPositionCounts[wId] = {};
+       if (!workerDailyCounts[wId]) workerDailyCounts[wId] = {};
        const gen = getGenericPos(pos);
-       workerPositionCounts[wId][gen] = (workerPositionCounts[wId][gen] || 0) + 1;
+       workerDailyCounts[wId][gen] = (workerDailyCounts[wId][gen] || 0) + 1;
      }
    }
-
-   // 3. Kontrola striktních pravidel
+   
+   // 3. Hlavní smyčka kontroly pravidel pro jednotlivé lidi v pokusu
    for (const pos in attempt) {
      const wId = attempt[pos].id;
      const currentGen = getGenericPos(pos);
      const totalSkills = Object.keys(attempt[pos].skills || {}).filter(k => attempt[pos].skills[k] === 2).length;
 
-     // STRIKTNÍ ZÁKAZ 1: Dvě stejné rodiny pozic HNED PO SOBĚ (pro lidi s více skilly)
+     // --- STRIKTNÍ ZÁKAZ: TŘIKRÁT STEJNÁ OPERACE ZA DEN PRO 3+ SKILLY ---
+     if (totalSkills >= 3) {
+       const fasesOnThisPos = workerDailyCounts[wId][currentGen] || 0;
+       if (fasesOnThisPos >= 3) {
+         hardViolation = true; // Pokus okamžitě zahodíme a vymažeme
+         break;
+       }
+     }
+
+     // STRIKTNÍ KONTROLA MINULÉ FÁZE (Hned po sobě)
      const lastPos = lastPosByWorker[wId];
      if (lastPos && totalSkills > 1) {
        if (getGenericPos(lastPos) === currentGen) {
@@ -1285,56 +1294,39 @@ function buildPhase(act, historicalStats) {
        }
      }
 
-     // STRIKTNÍ ZÁKAZ 2: Celodenní limit (3x na stejné operaci za den)
-     if (totalSkills > 1) {
-       const totalFasesOnThisPos = workerPositionCounts[wId][currentGen] || 0;
-       
-       // Pro lidi se 3 a více skilly platí absolutní stopka za jakýchkoliv okolností
-       if (totalSkills >= 3 && totalFasesOnThisPos >= 3) {
-         hardViolation = true;
-         break;
-       }
-
-       // Pro lidi se 2 skilly platí tvrdá stopka v prvních 1000 pokusech (chceme poměr 2:2)
-       // V posledních 500 pokusech (krajní nouze) jim to povolí poměr 3:1, ale s obřím trestem
-       if (totalSkills === 2 && totalFasesOnThisPos >= 3) {
-         if (i < 1000) {
-           hardViolation = true;
-           break;
-         } else {
-           currentScore += 8000000; // Extrémní penalizace v krajní nouzi
-         }
-       }
-     }
-
-     // Kontrola předminulé fáze (mírný tlak pro 2 skilly, ať jdou raději ob fázi)
-     if (currentPhaseIdx >= 2 && totalSkills === 2) {
+     // Kontrola předminulé fází (Mírná penalizace, aby šel raději na jinou volnou věc)
+     if (currentPhaseIdx >= 2 && totalSkills > 1) {
        const phaseBack2 = phases[currentPhaseIdx - 2];
        const posBack2 = Object.keys(phaseBack2).find(p => phaseBack2[p] && phaseBack2[p].id === wId);
        if (posBack2 && getGenericPos(posBack2) === currentGen) {
-         currentScore += 10000; 
+         currentScore += 40000; 
        }
      }
      
-     // Dlouhodobá historie z Firebase
+     // Dlouhodobá historie
      currentScore += (historicalStats && historicalStats[wId + "_" + pos] || 0) * 100;
    }
    
    if (hardViolation) continue;
 
-   // --- KONTROLA PESTROSTI PRO MULTI-UNIVERZÁLY ---
-   if (currentPhaseIdx === 3) { // Pouze na konci dne (ve 4. fázi)
-     for (const wId in workerPositionCounts) {
-       const worker = activeWorkers.find(x => x.id === wId);
-       if (!worker) continue;
-       
-       const totalSkills = Object.keys(worker.skills || {}).filter(k => worker.skills[k] === 2).length;
-       const uniquePositionsToday = Object.keys(workerPositionCounts[wId]).length;
+   // --- TLAK NA UNIVERZÁLY (KONTROLA DENNÍ ROTACE) ---
+   // Zachováno z vašeho předchozího kódu pro optimální rozložení
+   for (const pos in attempt) {
+     const wId = attempt[pos].id;
+     const worker = activeWorkers.find(x => x.id === wId);
+     if (!worker) continue;
+     
+     const totalSkills = Object.keys(worker.skills || {}).filter(k => worker.skills[k] === 2).length;
+     
+     // Zde simulovaný worker positions pro zjištění celkové pestrosti dne
+     if (!workerDailyCounts[wId]) continue;
+     const uniquePositionsCount = Object.keys(workerDailyCounts[wId]).length;
 
-       // Pokud umí 5 a více věcí, ale za celý den dělal méně než 3 různé věci, pokus znevýhodníme
-       if (totalSkills >= 5 && uniquePositionsToday < 3) {
-         currentScore += 500000;
-       }
+     if (totalSkills >= 3 && uniquePositionsCount < 3 && currentPhaseIdx === 3) {
+       currentScore += 500000;
+     }
+     if (totalSkills >= 5 && uniquePositionsCount < 3 && currentPhaseIdx >= 2) {
+       currentScore += 800000;
      }
    }
 
